@@ -161,102 +161,64 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="pricing" className="section-container">
+        <section className="section-container">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Simple Pricing
+              Features That Help You Heal
             </h2>
             <p className="text-xl text-gray-600">
-              Try it free, upgrade when you're ready
+              Everything you need to transform your heartbreak into art
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <motion.div
-              whileHover={{ y: -10 }}
-              className="card text-center"
-            >
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-              <div className="text-4xl font-bold text-heartbreak-500 mb-4">$0</div>
-              <ul className="space-y-3 text-left mb-6">
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>10-second previews</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>All song styles</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>Share previews</span>
-                </li>
-              </ul>
-              <Link href="/story">
-                <button className="btn-secondary w-full">Try Free</button>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -10 }}
-              className="card text-center border-4 border-heartbreak-400 relative"
-            >
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-heartbreak-500 text-white px-4 py-1 rounded-full text-sm font-bold">
-                Popular
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Standard</h3>
-              <div className="text-4xl font-bold text-heartbreak-500 mb-4">
-                $9<span className="text-lg text-gray-500">/mo</span>
-              </div>
-              <ul className="space-y-3 text-left mb-6">
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>5 full songs/month</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>HD audio quality</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>Download MP3s</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>Social sharing</span>
-                </li>
-              </ul>
-              <button className="btn-primary w-full">Get Started</button>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -10 }}
-              className="card text-center"
-            >
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-              <div className="text-4xl font-bold text-heartbreak-500 mb-4">
-                $19<span className="text-lg text-gray-500">/mo</span>
-              </div>
-              <ul className="space-y-3 text-left mb-6">
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>20 full songs/month</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>AI breakup advice</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>No-contact guidance</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <FaCheck className="text-heartbreak-500 mt-1" />
-                  <span>Priority support</span>
-                </li>
-              </ul>
-              <button className="btn-primary w-full">Go Premium</button>
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: "🎵",
+                title: "AI-Generated Music",
+                description: "Unique, original songs crafted specifically from your story and emotions",
+              },
+              {
+                icon: "💖",
+                title: "Multiple Moods",
+                description: "Choose from Sad, Savage, or Healing vibes to match your current state",
+              },
+              {
+                icon: "📲",
+                title: "Easy Sharing",
+                description: "Share your song on TikTok, Instagram, WhatsApp and more with one click",
+              },
+              {
+                icon: "🎧",
+                title: "HD Audio Quality",
+                description: "Professional-quality sound that captures every emotion perfectly",
+              },
+              {
+                icon: "💬",
+                title: "AI Advice (Premium)",
+                description: "Get personalized breakup guidance and no-contact support from AI",
+              },
+              {
+                icon: "⚡",
+                title: "Instant Generation",
+                description: "Your personalized song is ready in minutes, not hours or days",
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="card text-center hover:shadow-xl transition-shadow duration-300"
+              >
+                <div className="text-5xl mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </motion.div>
+            ))}
           </div>
         </section>
 
@@ -278,12 +240,12 @@ export default function HomePage() {
                 a: "Absolutely! Once you unlock the full song, you can download it and share it anywhere - TikTok, Instagram, WhatsApp, or wherever you want.",
               },
               {
-                q: "What's included in the Premium plan?",
-                a: "Premium includes 20 songs per month, plus AI-powered breakup advice and no-contact tips to help you heal and move forward.",
+                q: "Is my breakup story private?",
+                a: "Yes! Your story and generated songs are completely private. We never share your personal information or content without your permission.",
               },
               {
-                q: "Can I cancel anytime?",
-                a: "Yes! You can cancel your subscription at any time. No questions asked.",
+                q: "How long does it take to generate a song?",
+                a: "Most songs are ready in just a few minutes. You'll see a preview first, and can unlock the full song whenever you're ready.",
               },
             ].map((faq, index) => (
               <motion.div

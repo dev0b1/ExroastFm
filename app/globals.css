@@ -6,6 +6,10 @@ html {
 
 body {
   color: #111827;
+  font-feature-settings: "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .btn-primary {
@@ -44,9 +48,15 @@ body {
 .card {
   background: white;
   border-radius: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
   padding: 2rem;
-  border: 1px solid #f3f4f6;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 .input-field {
@@ -66,18 +76,18 @@ body {
 .section-container {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 3rem 1rem;
+  padding: 4rem 1.5rem;
 }
 
 @media (min-width: 640px) {
   .section-container {
-    padding: 4rem 1.5rem;
+    padding: 5rem 2rem;
   }
 }
 
 @media (min-width: 1024px) {
   .section-container {
-    padding: 5rem 2rem;
+    padding: 6rem 2.5rem;
   }
 }
 

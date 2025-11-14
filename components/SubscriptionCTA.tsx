@@ -60,25 +60,46 @@ export function SubscriptionCTA() {
     setIsLoading(tier.id);
     
     try {
-      if (typeof window !== "undefined" && (window as any).Paddle) {
-        (window as any).Paddle.Checkout.open({
-          items: [
-            {
-              priceId: tier.priceId,
-              quantity: 1,
-            },
-          ],
-          settings: {
-            successUrl: `${window.location.origin}/success?tier=${tier.id}`,
-            theme: "light",
-          },
-        });
-      } else {
-        alert("Payment system loading... Please try again in a moment.");
+      if (typeof window === "undefined") {
+        throw new Error("Window is not defined");
       }
+
+      if (!(window as any).Paddle) {
+        alert("Payment system is still loading. Please wait a moment and try again.");
+        setIsLoading(null);
+        return;
+      }
+
+      if (!tier.priceId) {
+        console.error("Paddle price ID not configured. Please set up your Paddle products and environment variables.");
+        alert("Payment system not configured. Please contact support.");
+        setIsLoading(null);
+        return;
+      }
+
+      const isPaddleFormat = /^pri_[0-9a-zA-Z]{20,}$/.test(tier.priceId);
+      if (!isPaddleFormat) {
+        console.warn(`Price ID "${tier.priceId}" doesn't match Paddle format. Expected format: pri_01... (alphanumeric, 20+ chars). Configure real Paddle price IDs in environment variables.`);
+        alert("Payment system not fully configured. Please set up real Paddle price IDs.");
+        setIsLoading(null);
+        return;
+      }
+
+      (window as any).Paddle.Checkout.open({
+        items: [
+          {
+            priceId: tier.priceId,
+            quantity: 1,
+          },
+        ],
+        settings: {
+          successUrl: `${window.location.origin}/success?tier=${tier.id}`,
+          theme: "light",
+        },
+      });
     } catch (error) {
       console.error("Checkout error:", error);
-      alert("Something went wrong. Please try again.");
+      alert("Unable to open checkout. Please try again or contact support.");
     } finally {
       setIsLoading(null);
     }
@@ -88,22 +109,48 @@ export function SubscriptionCTA() {
     setIsLoading("single");
     
     try {
-      if (typeof window !== "undefined" && (window as any).Paddle) {
-        (window as any).Paddle.Checkout.open({
-          items: [
-            {
-              priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE || "pri_single_song",
-              quantity: 1,
-            },
-          ],
-          settings: {
-            successUrl: `${window.location.origin}/success?type=single`,
-            theme: "light",
-          },
-        });
+      if (typeof window === "undefined") {
+        throw new Error("Window is not defined");
       }
+
+      if (!(window as any).Paddle) {
+        alert("Payment system is still loading. Please wait a moment and try again.");
+        setIsLoading(null);
+        return;
+      }
+
+      const singlePriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE;
+      
+      if (!singlePriceId) {
+        console.error("Paddle price ID for single purchase not configured. Please set up your Paddle products.");
+        alert("Payment system not configured. Please contact support.");
+        setIsLoading(null);
+        return;
+      }
+
+      const isPaddleFormat = /^pri_[0-9a-zA-Z]{20,}$/.test(singlePriceId);
+      if (!isPaddleFormat) {
+        console.warn(`Price ID "${singlePriceId}" doesn't match Paddle format. Expected format: pri_01... (alphanumeric, 20+ chars). Configure real Paddle price IDs in environment variables.`);
+        alert("Payment system not fully configured. Please set up real Paddle price IDs.");
+        setIsLoading(null);
+        return;
+      }
+
+      (window as any).Paddle.Checkout.open({
+        items: [
+          {
+            priceId: singlePriceId,
+            quantity: 1,
+          },
+        ],
+        settings: {
+          successUrl: `${window.location.origin}/success?type=single`,
+          theme: "light",
+        },
+      });
     } catch (error) {
       console.error("Checkout error:", error);
+      alert("Unable to open checkout. Please try again or contact support.");
     } finally {
       setIsLoading(null);
     }
