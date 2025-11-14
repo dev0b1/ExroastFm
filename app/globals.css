@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-8 py-4 bg-gradient-to-r from-heartbreak-500 to-heartbreak-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-white text-heartbreak-600 font-semibold rounded-full shadow-md hover:shadow-lg border-2 border-heartbreak-200 hover:border-heartbreak-400 transform hover:scale-105 transition-all duration-300;
+  }
+  
+  .card {
+    @apply bg-white rounded-3xl shadow-xl p-8 border border-gray-100;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-heartbreak-400 focus:ring-4 focus:ring-heartbreak-100 transition-all duration-200;
+  }
+  
+  .section-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-heartbreak-600 to-heartbreak-400 bg-clip-text text-transparent;
+  }
+  
+  .glass-effect {
+    @apply bg-white/60 backdrop-blur-lg border border-white/20;
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes note-float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-note-float {
+  animation: note-float 4s ease-in-out infinite;
+}
