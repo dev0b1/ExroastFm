@@ -104,6 +104,19 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.glass-effect-soft {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-gradient-soft {
+  background: linear-gradient(to right, #fb7185, #fda4af);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 @keyframes heartbeat {
   0%, 100% {
     transform: scale(1);

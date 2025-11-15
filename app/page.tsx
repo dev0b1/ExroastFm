@@ -78,7 +78,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight px-4"
             >
               <span className="text-gradient">Heartbroken?</span>
               <br />
@@ -91,7 +91,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto"
+              className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto px-4"
             >
               Instant AI songs that say what you wish you could — sad, savage, healing, or funny.
             </motion.p>
@@ -355,7 +355,7 @@ export default function HomePage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -367,121 +367,238 @@ export default function HomePage() {
 
               {/* Step 1: Emotional Check-in */}
               {onboardingStep === 1 && (
-                <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <motion.h2
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2"
+                    >
                       How are you feeling right now?
-                    </h2>
-                    <p className="text-gray-600">This helps us create the perfect song for you</p>
+                    </motion.h2>
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-gray-600"
+                    >
+                      This helps us create the perfect song for you
+                    </motion.p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
-                    {feelings.map((feeling) => (
-                      <button
+                    {feelings.map((feeling, index) => (
+                      <motion.button
                         key={feeling.value}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index, duration: 0.3 }}
+                        whileHover={{ scale: 1.02, x: 4 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           setSelectedFeeling(feeling.value);
                           setOnboardingStep(2);
                         }}
-                        className="card hover:shadow-xl transition-all duration-300 flex items-center space-x-4 text-left p-6"
+                        className="card hover:shadow-xl transition-all duration-300 flex items-center space-x-3 sm:space-x-4 text-left p-4 sm:p-6 cursor-pointer hover:border-heartbreak-300"
                       >
-                        <span className="text-4xl">{feeling.emoji}</span>
-                        <span className="text-xl font-semibold text-gray-900">{feeling.label}</span>
-                      </button>
+                        <motion.span
+                          className="text-3xl sm:text-4xl"
+                          whileHover={{ rotate: [0, -10, 10, 0] }}
+                          transition={{ duration: 0.5 }}
+                        >
+                          {feeling.emoji}
+                        </motion.span>
+                        <span className="text-lg sm:text-xl font-semibold text-gray-900">{feeling.label}</span>
+                      </motion.button>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {/* Step 2: Optional Story Input */}
               {onboardingStep === 2 && (
-                <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <motion.h2
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2"
+                    >
                       Tell us your story
-                    </h2>
-                    <p className="text-gray-600">Or skip this step — it's totally optional</p>
+                    </motion.h2>
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-gray-600"
+                    >
+                      Or skip this step — it's totally optional
+                    </motion.p>
                   </div>
 
-                  <textarea
+                  <motion.textarea
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
                     value={userStory}
                     onChange={(e) => setUserStory(e.target.value)}
                     placeholder="What happened? How do you feel? What do you wish you could say?"
-                    className="w-full h-40 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heartbreak-500 focus:border-transparent resize-none"
+                    className="w-full h-40 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-heartbreak-500 focus:border-transparent resize-none transition-all duration-300"
                   />
 
-                  <div className="flex space-x-4">
-                    <button
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="flex flex-col sm:flex-row gap-4"
+                  >
+                    <motion.button
                       onClick={() => setOnboardingStep(3)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className="btn-secondary flex-1"
                     >
                       Skip
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={() => setOnboardingStep(3)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className="btn-primary flex-1"
                     >
                       Continue
-                    </button>
-                  </div>
+                    </motion.button>
+                  </motion.div>
 
-                  <button
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
                     onClick={() => setOnboardingStep(1)}
-                    className="text-gray-500 hover:text-gray-700 text-sm w-full text-center"
+                    className="text-gray-500 hover:text-gray-700 text-sm w-full text-center transition-colors"
                   >
                     ← Back
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               )}
 
               {/* Step 3: Choose Mode */}
               {onboardingStep === 3 && (
-                <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    <motion.h2
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2"
+                    >
                       Choose your mode
-                    </h2>
-                    <p className="text-gray-600">What kind of song matches your mood?</p>
+                    </motion.h2>
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-gray-600"
+                    >
+                      What kind of song matches your mood?
+                    </motion.p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
-                    {modes.map((mode) => (
-                      <button
+                    {modes.map((mode, index) => (
+                      <motion.button
                         key={mode.style}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index, duration: 0.3 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => setSelectedMode(mode.style)}
-                        className={`card text-left p-6 transition-all duration-300 ${
+                        className={`card text-left p-4 sm:p-6 transition-all duration-300 cursor-pointer relative overflow-hidden ${
                           selectedMode === mode.style
-                            ? 'ring-4 ring-heartbreak-500 shadow-xl'
-                            : 'hover:shadow-xl'
+                            ? 'ring-4 ring-heartbreak-500 shadow-2xl bg-heartbreak-50'
+                            : 'hover:shadow-xl hover:border-heartbreak-300'
                         }`}
                       >
-                        <div className="flex items-start space-x-4">
-                          <span className="text-5xl">{mode.emoji}</span>
+                        {selectedMode === mode.style && (
+                          <motion.div
+                            layoutId="selectedMode"
+                            className="absolute inset-0 bg-gradient-to-r from-heartbreak-100/50 to-transparent"
+                            initial={false}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                          />
+                        )}
+                        <div className="flex items-start space-x-3 sm:space-x-4 relative z-10">
+                          <motion.span
+                            className="text-4xl sm:text-5xl"
+                            animate={selectedMode === mode.style ? { scale: [1, 1.2, 1] } : {}}
+                            transition={{ duration: 0.3 }}
+                          >
+                            {mode.emoji}
+                          </motion.span>
                           <div className="flex-1">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">{mode.name}</h3>
-                            <p className="text-gray-600">{mode.description}</p>
+                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{mode.name}</h3>
+                            <p className="text-sm sm:text-base text-gray-600">{mode.description}</p>
                           </div>
+                          {selectedMode === mode.style && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="flex-shrink-0 w-6 h-6 bg-heartbreak-500 rounded-full flex items-center justify-center"
+                            >
+                              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </motion.div>
+                          )}
                         </div>
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
 
-                  <div className="flex space-x-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex flex-col sm:flex-row gap-4"
+                  >
                     <button
                       onClick={() => setOnboardingStep(2)}
                       className="btn-secondary flex-1"
                     >
                       ← Back
                     </button>
-                    <button
+                    <motion.button
                       onClick={handleCreateSong}
                       disabled={!selectedMode}
+                      whileHover={selectedMode ? { scale: 1.05 } : {}}
+                      whileTap={selectedMode ? { scale: 0.95 } : {}}
                       className={`btn-primary flex-1 ${!selectedMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       Generate My Song
-                    </button>
-                  </div>
-                </div>
+                    </motion.button>
+                  </motion.div>
+                </motion.div>
               )}
             </motion.div>
           </motion.div>
