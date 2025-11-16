@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, songs } from '@/src/db';
-import { getAllTemplates, saveRoast } from '@/lib/supabase-service';
+import { db } from '@/server/db';
+import { songs } from '@/src/db/schema';
+import { getAllTemplates, saveRoast } from '@/lib/db-service';
 import { matchTemplate } from '@/lib/template-matcher';
 
 export async function POST(request: NextRequest) {

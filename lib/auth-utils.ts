@@ -1,25 +1,21 @@
-import { createClient } from './supabase/client';
-import { getUserSubscriptionStatus } from './supabase-service';
+import { getUserSubscriptionStatus } from './db-service';
 
-export async function checkProStatus(): Promise<{
+export async function checkProStatus(userId?: string): Promise<{
   isPro: boolean;
   tier: 'free' | 'one-time' | 'unlimited';
   userId?: string;
 }> {
   try {
-    const supabase = createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error || !user) {
+    if (!userId) {
       return { isPro: false, tier: 'free' };
     }
 
-    const subscription = await getUserSubscriptionStatus(user.id);
+    const subscription = await getUserSubscriptionStatus(userId);
     
     return {
       isPro: subscription.isPro,
       tier: subscription.tier,
-      userId: user.id
+      userId
     };
   } catch (error) {
     console.error('Error checking pro status:', error);

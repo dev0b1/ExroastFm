@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getUserSubscriptionStatus } from '@/lib/supabase-service';
+import { getUserSubscriptionStatus } from '@/lib/db-service';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const userId = request.headers.get('x-user-id');
     
-    if (error || !user) {
+    if (!userId) {
       return NextResponse.json({
         success: true,
         isPro: false,
@@ -15,13 +13,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const subscription = await getUserSubscriptionStatus(user.id);
+    const subscription = await getUserSubscriptionStatus(userId);
     
     return NextResponse.json({
       success: true,
       isPro: subscription.isPro,
       tier: subscription.tier,
-      userId: user.id
+      userId
     });
   } catch (error) {
     console.error('Error checking pro status:', error);

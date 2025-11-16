@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllTemplates } from '@/lib/supabase-service';
+import { getAllTemplates } from '@/lib/db-service';
 import { matchTemplate } from '@/lib/template-matcher';
 
 export async function POST(request: NextRequest) {

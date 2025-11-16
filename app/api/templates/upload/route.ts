@@ -1,24 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadTemplateAudio, createTemplate } from '@/lib/supabase-service';
-import { createClient } from '@/lib/supabase/server';
+import { uploadTemplateAudio } from '@/lib/file-storage';
+import { createTemplate } from '@/lib/db-service';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const adminKey = request.headers.get('x-admin-key');
     
-    if (authError || !user) {
+    if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized - admin access required' },
         { status: 401 }
-      );
-    }
-
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
-    if (adminEmails.length === 0 || !adminEmails.includes(user.email || '')) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - admin privileges required' },
-        { status: 403 }
       );
     }
 
