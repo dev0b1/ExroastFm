@@ -68,7 +68,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-xl sm:text-2xl md:text-3xl text-exroast-gold max-w-3xl mx-auto px-4 font-bold"
+              className="text-xl sm:text-2xl md:text-3xl text-white max-w-3xl mx-auto px-4 font-bold"
             >
               Zero sadness. 100% savage. TikTok-viral AI roasts.
             </motion.p>
@@ -102,10 +102,10 @@ export default function HomePage() {
         <section className="section-container">
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-black text-white">
+              <h2 className="text-4xl md:text-5xl font-black text-gradient">
                 Pick Your Vibe
               </h2>
-              <p className="text-xl md:text-2xl text-exroast-gold font-bold">
+              <p className="text-xl md:text-2xl text-white font-bold">
                 Petty? Victory lap? We got you. 👑
               </p>
             </div>
@@ -117,12 +117,12 @@ export default function HomePage() {
                 transition={{ duration: 0.5 }}
                 viewport={{ once: true }}
                 whileHover={{ scale: 1.05, rotate: -2 }}
-                className="card hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-exroast-pink/20 to-red-900/20 border-exroast-pink cursor-pointer"
+                className="card hover:shadow-2xl transition-all duration-300 border-exroast-pink cursor-pointer"
               >
                 <div className="text-7xl mb-4 animate-fire">🔥</div>
                 <h3 className="text-3xl font-black text-white mb-2">Petty Roast</h3>
                 <p className="text-lg text-white mb-3">Savage, brutal, hilarious</p>
-                <p className="text-base italic text-white/80">"They thought they were the catch? LOL"</p>
+                <p className="text-base italic text-white">"They thought they were the catch? LOL"</p>
               </motion.div>
 
               <motion.div
@@ -131,19 +131,19 @@ export default function HomePage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 viewport={{ once: true }}
                 whileHover={{ scale: 1.05, rotate: 2 }}
-                className="card hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-exroast-gold/20 to-yellow-900/20 border-exroast-gold cursor-pointer"
+                className="card hover:shadow-2xl transition-all duration-300 border-exroast-gold cursor-pointer"
               >
                 <div className="text-7xl mb-4">👑</div>
                 <h3 className="text-3xl font-black text-white mb-2">Glow-Up Flex</h3>
                 <p className="text-lg text-white mb-3">Upbeat victory anthem</p>
-                <p className="text-base italic text-white/80">"I'm thriving, they're crying"</p>
+                <p className="text-base italic text-white">"I'm thriving, they're crying"</p>
               </motion.div>
             </div>
           </div>
         </section>
 
         {/* Social Proof Section */}
-        <section className="section-container bg-gradient-to-b from-transparent to-exroast-pink/5">
+        <section className="section-container">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -190,10 +190,10 @@ export default function HomePage() {
         {/* How It Works Section */}
         <section id="how-it-works" className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-black text-white mb-4">
+            <h2 className="text-5xl md:text-6xl font-black text-gradient mb-4">
               How It Works
             </h2>
-            <p className="text-2xl text-exroast-gold font-bold">
+            <p className="text-2xl text-white font-bold">
               3 steps to revenge perfection 💅
             </p>
           </div>
@@ -248,12 +248,12 @@ export default function HomePage() {
         </section>
 
         {/* Benefits Section */}
-        <section className="section-container bg-gradient-to-b from-exroast-gold/5 to-transparent">
+        <section className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-black text-white mb-4">
+            <h2 className="text-5xl md:text-6xl font-black text-gradient mb-4">
               Why ExRoast.fm?
             </h2>
-            <p className="text-2xl text-exroast-gold font-bold">
+            <p className="text-2xl text-white font-bold">
               Because therapy is expensive and this is hilarious
             </p>
           </div>
@@ -308,8 +308,8 @@ export default function HomePage() {
 
         {/* Pricing Section */}
         <section className="section-container">
-          <div className="card max-w-3xl mx-auto text-center bg-gradient-to-br from-exroast-pink/10 to-exroast-gold/10 border-4 border-exroast-pink">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-6">
+          <div className="card max-w-3xl mx-auto text-center border-2 border-exroast-pink">
+            <h2 className="text-4xl md:text-5xl font-black text-gradient mb-6">
               Pricing That Slaps 🔥
             </h2>
             <div className="space-y-4 mb-8">
@@ -327,7 +327,7 @@ export default function HomePage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="btn-secondary text-xl px-10 py-4"
+                className="btn-primary text-xl px-10 py-4"
               >
                 See Full Pricing →
               </motion.button>
@@ -337,22 +337,24 @@ export default function HomePage() {
 
         {/* Final CTA Section */}
         <section className="section-container">
-          <div className="bg-gradient-to-r from-exroast-pink to-orange-600 rounded-3xl p-12 md:p-16 text-center space-y-8">
-            <h2 className="text-4xl md:text-6xl font-black text-white">
-              Ready to Roast Your Ex?
-            </h2>
-            <p className="text-2xl text-white/90 max-w-2xl mx-auto font-bold">
-              Your ex is out there living rent-free in your head. Time to evict them. 🔥
-            </p>
-            <Link href="/story">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-white text-exroast-pink px-12 py-6 rounded-full font-black text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300"
-              >
-                Roast My Ex Now 💅
-              </motion.button>
-            </Link>
+          <div className="card border-2 border-exroast-pink">
+            <div className="text-center space-y-8">
+              <h2 className="text-4xl md:text-6xl font-black text-gradient">
+                Ready to Roast Your Ex?
+              </h2>
+              <p className="text-2xl text-white max-w-2xl mx-auto font-bold">
+                Your ex is out there living rent-free in your head. Time to evict them. 🔥
+              </p>
+              <Link href="/story">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="btn-primary px-12 py-6 text-2xl"
+                >
+                  Roast My Ex Now 💅
+                </motion.button>
+              </Link>
+            </div>
           </div>
         </section>
       </main>

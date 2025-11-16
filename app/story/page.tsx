@@ -117,7 +117,7 @@ export default function StoryPage() {
               <h1 className="text-5xl md:text-6xl font-black text-white">
                 Spill the Tea <span className="text-gradient">👀</span>
               </h1>
-              <p className="text-2xl text-exroast-gold font-bold">
+              <p className="text-2xl text-white font-bold">
                 What did they do? We need ALL the details 🔥
               </p>
             </div>
@@ -130,7 +130,7 @@ export default function StoryPage() {
                   className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
                     inputMode === 'text'
                       ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
-                      : 'bg-exroast-black/50 text-gray-400 border-2 border-gray-700 hover:border-exroast-gold'
+                      : 'bg-exroast-black/50 text-white border-2 border-gray-700 hover:border-exroast-gold'
                   }`}
                 >
                   <FiEdit className="inline mr-2" />
@@ -141,7 +141,7 @@ export default function StoryPage() {
                   className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
                     inputMode === 'screenshot'
                       ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
-                      : 'bg-exroast-black/50 text-gray-400 border-2 border-gray-700 hover:border-exroast-gold'
+                      : 'bg-exroast-black/50 text-white border-2 border-gray-700 hover:border-exroast-gold'
                   }`}
                 >
                   <FiImage className="inline mr-2" />
@@ -152,7 +152,7 @@ export default function StoryPage() {
               {/* Text Input */}
               {inputMode === 'text' && (
                 <div className="space-y-2">
-                  <label className="block text-xl font-black text-exroast-gold">
+                  <label className="block text-xl font-black text-white">
                     Spill the tea — what did they do? 👀
                   </label>
                   <div className="relative">
@@ -167,11 +167,11 @@ export default function StoryPage() {
                       placeholder="They ghosted me after 2 years... They cheated with my best friend... They said I was 'too much'... Give us EVERYTHING 🗡️"
                       className="w-full h-48 input-field resize-none text-lg"
                     />
-                    <div className="absolute bottom-4 right-4 text-sm text-gray-500 font-bold">
+                    <div className="absolute bottom-4 right-4 text-sm text-white font-bold">
                       {story.length}/500
                     </div>
                   </div>
-                  <p className="text-sm text-gray-400 italic">
+                  <p className="text-sm text-white italic">
                     💡 The more specific, the more savage the roast
                   </p>
                 </div>
@@ -180,14 +180,14 @@ export default function StoryPage() {
               {/* Screenshot Upload */}
               {inputMode === 'screenshot' && (
                 <div className="space-y-2">
-                  <label className="block text-xl font-black text-exroast-gold">
+                  <label className="block text-xl font-black text-white">
                     Drop those receipts 📸
                   </label>
                   <FileUpload
                     onFileSelect={(file) => setScreenshot(file)}
                     onClear={() => setScreenshot(null)}
                   />
-                  <p className="text-sm text-gray-400 italic">
+                  <p className="text-sm text-white italic">
                     💡 Upload a chat screenshot for max petty energy
                   </p>
                 </div>
@@ -209,7 +209,7 @@ export default function StoryPage() {
                 disabled={inputMode === 'text' && story.trim().length < 10}
                 className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 ${
                   inputMode === 'text' && story.trim().length < 10
-                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                    ? 'bg-gray-700 text-white cursor-not-allowed opacity-50'
                     : 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-2xl shadow-exroast-pink/50 hover:shadow-3xl'
                 }`}
               >
