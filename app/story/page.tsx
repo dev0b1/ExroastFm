@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
@@ -26,6 +26,26 @@ export default function StoryPage() {
   const [loadingStep, setLoadingStep] = useState<LoadingStep>('ocr');
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [proStatusChecked, setProStatusChecked] = useState(false);
+
+  useEffect(() => {
+    checkUserProStatus();
+  }, []);
+
+  const checkUserProStatus = async () => {
+    try {
+      const response = await fetch('/api/user/pro-status');
+      if (response.ok) {
+        const data = await response.json();
+        setIsPro(data.isPro || false);
+      }
+    } catch (error) {
+      console.log('Pro status check failed:', error);
+    } finally {
+      setProStatusChecked(true);
+    }
+  };
 
   const handleGenerate = async () => {
     if (inputMode === 'text' && story.trim().length < 10) {
@@ -38,6 +58,12 @@ export default function StoryPage() {
       return;
     }
 
+    if (inputMode === 'screenshot' && !isPro) {
+      alert("🔒 Screenshot upload is a Pro feature! Upgrade to get hyper-personalized roasts from your chat receipts. For now, try typing your story!");
+      setInputMode('text');
+      return;
+    }
+
     setIsGenerating(true);
     setLoadingStep('ocr');
     setLoadingProgress(0);
@@ -45,7 +71,7 @@ export default function StoryPage() {
     try {
       let extractedText = story;
 
-      if (inputMode === 'screenshot' && screenshot) {
+      if (inputMode === 'screenshot' && screenshot && isPro) {
         setLoadingStep('ocr');
         
         const formData = new FormData();
@@ -68,7 +94,9 @@ export default function StoryPage() {
       setLoadingStep('lyrics');
       setLoadingProgress(30);
 
-      const response = await fetch("/api/generate-song", {
+      const endpoint = isPro ? "/api/generate-song" : "/api/generate-preview";
+      
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,6 +114,16 @@ export default function StoryPage() {
         setLoadingProgress(100);
         
         setShowConfetti(true);
+        
+        if (!isPro && typeof window !== 'undefined') {
+          const recentRoasts = JSON.parse(localStorage.getItem('recentRoasts') || '[]');
+          recentRoasts.unshift({
+            id: data.songId,
+            title: data.title,
+            timestamp: new Date().toISOString()
+          });
+          localStorage.setItem('recentRoasts', JSON.stringify(recentRoasts.slice(0, 3)));
+        }
         
         setTimeout(() => {
           router.push(`/preview?songId=${data.songId}`);

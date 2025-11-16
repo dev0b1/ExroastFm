@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SubscriptionCTA } from "@/components/SubscriptionCTA";
 import { SubscriptionModal } from "@/components/SubscriptionModal";
+import { UpsellModal } from "@/components/UpsellModal";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
@@ -22,6 +23,7 @@ interface Song {
   style: string;
   story: string;
   isPurchased: boolean;
+  isTemplate?: boolean;
 }
 
 export default function PreviewPage() {
@@ -32,6 +34,7 @@ export default function PreviewPage() {
   const [loading, setLoading] = useState(true);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -101,7 +104,13 @@ export default function PreviewPage() {
     const current = audioRef.current.currentTime;
     setCurrentTime(current);
 
-    if (!song.isPurchased && current >= 10) {
+    if (song.isTemplate && current >= 15 && !hasShownModalRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      setShowUpsellModal(true);
+      hasShownModalRef.current = true;
+    } else if (!song.isPurchased && current >= 10) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
@@ -329,6 +338,16 @@ export default function PreviewPage() {
       <SubscriptionModal 
         isOpen={showFirstTimeModal} 
         onClose={() => setShowFirstTimeModal(false)} 
+      />
+      
+      <UpsellModal
+        isOpen={showUpsellModal}
+        onClose={() => setShowUpsellModal(false)}
+        onUpgrade={(tier) => {
+          console.log('Upgrading to:', tier);
+          setShowUpsellModal(false);
+          setShowSubscription(true);
+        }}
       />
     </div>
   );
