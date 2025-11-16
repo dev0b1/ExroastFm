@@ -74,8 +74,8 @@ export default function PreviewPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900">Song not found</h1>
-          <p className="text-gray-600">Please try generating a new song</p>
+          <h1 className="text-3xl font-bold text-white">Song not found</h1>
+          <p className="text-white">Please try generating a new song</p>
         </div>
       </div>
     );
@@ -161,10 +161,10 @@ export default function PreviewPage() {
               >
                 <div className="text-6xl mb-4">🎵</div>
               </motion.div>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+              <h1 className="text-4xl md:text-5xl font-bold text-white">
                 Your Song is <span className="text-gradient">Ready!</span>
               </h1>
-              <p className="text-xl text-gray-600">
+              <p className="text-xl text-white">
                 Listen to your preview and see the lyrics come to life!
               </p>
             </div>
@@ -177,8 +177,8 @@ export default function PreviewPage() {
                   isPlaying={isPlaying}
                 />
 
-                <div className="card bg-healing-50 border-healing-200">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                <div className="card bg-black border-healing-200">
+                  <h3 className="text-xl font-bold text-white mb-4">
                     Your Breakup Story
                   </h3>
                   <p className="text-gray-700 italic mb-4">"{song.story}"</p>
@@ -234,7 +234,7 @@ export default function PreviewPage() {
                           }}
                           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-heartbreak-500"
                         />
-                        <div className="flex justify-between text-xs text-gray-500 mt-2">
+                        <div className="flex justify-between text-xs text-white mt-2">
                           <span>{formatTime(currentTime)}</span>
                           <span>{formatTime(duration)}</span>
                         </div>
@@ -254,16 +254,16 @@ export default function PreviewPage() {
               </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-heartbreak-50 to-heartbreak-100 border-2 border-heartbreak-200">
+            <div className="card bg-black to-heartbreak-100 border-2 border-heartbreak-200">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <FaLock className="text-3xl text-heartbreak-500" />
+                  <FaLock className="text-3xl text-exroast-gold" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-xl font-bold text-white mb-2">
                     Unlock the Full Song
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-white mb-4">
                     Love what you hear? Get the complete song, download it as an MP3, 
                     and share it with the world. Choose a subscription or buy just this one song.
                   </p>
@@ -296,7 +296,7 @@ export default function PreviewPage() {
               <div className="flex items-start space-x-3">
                 <div className="text-2xl">💙</div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
+                  <h3 className="font-semibold text-white mb-2">
                     Premium Members Get:
                   </h3>
                   <ul className="space-y-1 text-sm text-gray-700">

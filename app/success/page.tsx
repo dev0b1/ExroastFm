@@ -28,20 +28,20 @@ export default function SuccessPage() {
             </motion.div>
 
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+              <h1 className="text-4xl md:text-5xl font-bold text-white">
                 Payment Successful! 🎉
               </h1>
-              <p className="text-xl text-gray-600">
+              <p className="text-xl text-white">
                 Thank you for your purchase. Your full song is now unlocked!
               </p>
             </div>
 
             <div className="card space-y-6">
               <div className="flex items-center justify-center space-x-4">
-                <FaMusic className="text-4xl text-heartbreak-500" />
+                <FaMusic className="text-4xl text-exroast-gold" />
                 <div className="text-left">
-                  <h3 className="font-bold text-lg text-gray-900">What's Next?</h3>
-                  <p className="text-gray-600">Your song is ready to download and share</p>
+                  <h3 className="font-bold text-lg text-white">What's Next?</h3>
+                  <p className="text-white">Your song is ready to download and share</p>
                 </div>
               </div>
 
@@ -71,10 +71,10 @@ export default function SuccessPage() {
             </div>
 
             <div className="card bg-heartbreak-50 border-heartbreak-200">
-              <h3 className="font-semibold text-gray-900 mb-2">
+              <h3 className="font-semibold text-white mb-2">
                 Receipt & Account Info
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white">
                 A receipt has been sent to your email. You can manage your subscription 
                 and downloads from your account dashboard.
               </p>
