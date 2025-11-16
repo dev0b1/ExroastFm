@@ -6,10 +6,12 @@ import { FaCheck, FaStar, FaCrown } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SubscriptionCTA } from "@/components/SubscriptionCTA";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-black">
+      <AnimatedBackground />
       <Header />
       
       <main className="pt-32 pb-20">
@@ -36,7 +38,7 @@ export default function PricingPage() {
               whileHover={{ y: -10 }}
               className="card text-center"
             >
-              <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
+              <h3 className="text-2xl font-bold text-gradient mb-2">Free</h3>
               <div className="text-5xl font-bold text-exroast-gold mb-6">
                 $0
               </div>
@@ -47,7 +49,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-start space-x-3">
                   <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>All song styles (Sad, Savage, Healing)</span>
+                  <span>All savage roast styles</span>
                 </li>
                 <li className="flex items-start space-x-3">
                   <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
@@ -77,7 +79,7 @@ export default function PricingPage() {
               </div>
               <div className="flex items-center justify-center mb-2">
                 <FaStar className="text-exroast-gold text-2xl mr-2" />
-                <h3 className="text-2xl font-bold text-white">Standard</h3>
+                <h3 className="text-2xl font-bold text-gradient">Standard</h3>
               </div>
               <div className="text-5xl font-bold text-exroast-gold mb-6">
                 $9
@@ -121,7 +123,7 @@ export default function PricingPage() {
             >
               <div className="flex items-center justify-center mb-2">
                 <FaCrown className="text-exroast-gold text-2xl mr-2" />
-                <h3 className="text-2xl font-bold text-white">Premium</h3>
+                <h3 className="text-2xl font-bold text-gradient">Premium</h3>
               </div>
               <div className="text-5xl font-bold text-exroast-gold mb-6">
                 $19

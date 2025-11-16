@@ -64,17 +64,21 @@ export default function PreviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingAnimation message="Loading your song..." />
+      <div className="min-h-screen bg-black relative flex items-center justify-center">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <LoadingAnimation message="Loading your song..." />
+        </div>
       </div>
     );
   }
 
   if (!song) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-white">Song not found</h1>
+      <div className="min-h-screen bg-black relative flex items-center justify-center">
+        <AnimatedBackground />
+        <div className="text-center space-y-4 relative z-10">
+          <h1 className="text-3xl font-bold text-gradient">Song not found</h1>
           <p className="text-white">Please try generating a new song</p>
         </div>
       </div>
@@ -140,7 +144,7 @@ export default function PreviewPage() {
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${song?.id}` : '';
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen bg-black relative">
       <AnimatedBackground />
       <Header />
       
@@ -159,13 +163,13 @@ export default function PreviewPage() {
                 transition={{ delay: 0.2, type: "spring" }}
                 className="inline-block"
               >
-                <div className="text-6xl mb-4">🎵</div>
+                <div className="text-6xl mb-4">🔥</div>
               </motion.div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white">
-                Your Song is <span className="text-gradient">Ready!</span>
+              <h1 className="text-4xl md:text-5xl font-bold text-gradient">
+                Your Song is Ready!
               </h1>
               <p className="text-xl text-white">
-                Listen to your preview and see the lyrics come to life!
+                Your savage roast is ready! Listen and share 🔥
               </p>
             </div>
 
@@ -177,13 +181,13 @@ export default function PreviewPage() {
                   isPlaying={isPlaying}
                 />
 
-                <div className="card bg-black border-healing-200">
-                  <h3 className="text-xl font-bold text-white mb-4">
+                <div className="card bg-black">
+                  <h3 className="text-xl font-bold text-gradient mb-4">
                     Your Breakup Story
                   </h3>
-                  <p className="text-gray-700 italic mb-4">"{song.story}"</p>
+                  <p className="text-white italic mb-4">"{song.story}"</p>
                   <div className="flex items-center space-x-2">
-                    <span className="px-3 py-1 bg-healing-200 text-healing-800 rounded-full text-sm font-medium">
+                    <span className="px-3 py-1 bg-exroast-gold text-black rounded-full text-sm font-medium">
                       {song.style.charAt(0).toUpperCase() + song.style.slice(1)} Vibe
                     </span>
                   </div>
@@ -194,9 +198,9 @@ export default function PreviewPage() {
                 <div className="card sticky top-24">
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg text-gray-800">{song.title}</h3>
+                      <h3 className="font-semibold text-lg text-gradient">{song.title}</h3>
                       {!song.isPurchased && (
-                        <span className="text-xs bg-heartbreak-100 text-heartbreak-700 px-3 py-1 rounded-full font-medium">
+                        <span className="text-xs bg-exroast-pink text-white px-3 py-1 rounded-full font-medium">
                           Preview (10s)
                         </span>
                       )}
@@ -215,7 +219,7 @@ export default function PreviewPage() {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={togglePlay}
-                        className="w-14 h-14 rounded-full bg-heartbreak-500 hover:bg-heartbreak-600 text-white flex items-center justify-center transition-colors flex-shrink-0"
+                        className="w-14 h-14 rounded-full bg-exroast-pink hover:bg-exroast-gold text-white flex items-center justify-center transition-colors flex-shrink-0"
                       >
                         {isPlaying ? <FaPause className="text-xl" /> : <FaPlay className="text-xl ml-1" />}
                       </motion.button>
@@ -241,8 +245,8 @@ export default function PreviewPage() {
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-200 pt-6">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Share Your Song</h4>
+                    <div className="border-t border-white/10 pt-6">
+                      <h4 className="text-sm font-semibold text-white mb-3">Share Your Song</h4>
                       <SocialShareButtons 
                         url={shareUrl}
                         title={song.title}
@@ -260,7 +264,7 @@ export default function PreviewPage() {
                   <FaLock className="text-3xl text-exroast-gold" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl font-bold text-gradient mb-2">
                     Unlock the Full Song
                   </h3>
                   <p className="text-white mb-4">
@@ -292,23 +296,23 @@ export default function PreviewPage() {
               </motion.div>
             )}
 
-            <div className="card bg-blue-50 border-blue-200">
+            <div className="card bg-black">
               <div className="flex items-start space-x-3">
-                <div className="text-2xl">💙</div>
+                <div className="text-2xl">👑</div>
                 <div>
-                  <h3 className="font-semibold text-white mb-2">
+                  <h3 className="font-semibold text-gradient mb-2">
                     Premium Members Get:
                   </h3>
-                  <ul className="space-y-1 text-sm text-gray-700">
-                    <li>• AI-powered breakup advice tailored to your situation</li>
-                    <li>• No-contact tips and daily affirmations</li>
-                    <li>• Healing playlists and meditation guides</li>
-                    <li>• Priority support from our community</li>
+                  <ul className="space-y-1 text-sm text-white">
+                    <li>• AI-powered savage roast advice tailored to your situation</li>
+                    <li>• No-contact tips and confidence affirmations</li>
+                    <li>• Exclusive roast playlists and power-up guides</li>
+                    <li>• Priority support from our savage community</li>
                   </ul>
                   {!showSubscription && (
                     <button
                       onClick={() => setShowSubscription(true)}
-                      className="mt-4 text-heartbreak-600 font-semibold hover:text-heartbreak-700 transition-colors"
+                      className="mt-4 text-exroast-gold font-semibold hover:text-white transition-colors"
                     >
                       Learn More →
                     </button>

@@ -9,6 +9,7 @@ import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import FileUpload from "@/components/FileUpload";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { FiEdit, FiImage } from "react-icons/fi";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 type InputMode = 'text' | 'screenshot';
 
@@ -29,7 +30,7 @@ export default function StoryPage() {
     }
 
     if (inputMode === 'screenshot' && !screenshot) {
-      alert("Upload that screenshot! We need the receipts 👀");
+      alert("Upload that screenshot! We need the receipts 🔥");
       return;
     }
 
@@ -95,14 +96,18 @@ export default function StoryPage() {
 
   if (isGenerating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-exroast-black px-4">
-        <LoadingProgress currentStep={loadingStep} progress={loadingProgress} />
+      <div className="min-h-screen flex items-center justify-center bg-black px-4">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <LoadingProgress currentStep={loadingStep} progress={loadingProgress} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-exroast-black">
+    <div className="min-h-screen bg-black">
+      <AnimatedBackground />
       <Header />
       
       <main className="pt-32 pb-20">
@@ -114,8 +119,8 @@ export default function StoryPage() {
             className="space-y-8"
           >
             <div className="text-center space-y-4">
-              <h1 className="text-5xl md:text-6xl font-black text-white">
-                Spill the Tea <span className="text-gradient">👀</span>
+              <h1 className="text-5xl md:text-6xl font-black text-gradient">
+                Spill the Tea 🔥
               </h1>
               <p className="text-2xl text-white font-bold">
                 What did they do? We need ALL the details 🔥
@@ -130,7 +135,7 @@ export default function StoryPage() {
                   className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
                     inputMode === 'text'
                       ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
-                      : 'bg-exroast-black/50 text-white border-2 border-gray-700 hover:border-exroast-gold'
+                      : 'bg-exroast-black/50 text-white border-2 border-white/10 hover:border-exroast-gold'
                   }`}
                 >
                   <FiEdit className="inline mr-2" />
@@ -141,7 +146,7 @@ export default function StoryPage() {
                   className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
                     inputMode === 'screenshot'
                       ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
-                      : 'bg-exroast-black/50 text-white border-2 border-gray-700 hover:border-exroast-gold'
+                      : 'bg-exroast-black/50 text-white border-2 border-white/10 hover:border-exroast-gold'
                   }`}
                 >
                   <FiImage className="inline mr-2" />
@@ -153,7 +158,7 @@ export default function StoryPage() {
               {inputMode === 'text' && (
                 <div className="space-y-2">
                   <label className="block text-xl font-black text-white">
-                    Spill the tea — what did they do? 👀
+                    Spill the tea — what did they do? 🔥
                   </label>
                   <div className="relative">
                     <textarea

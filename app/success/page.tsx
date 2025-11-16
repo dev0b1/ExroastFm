@@ -5,10 +5,12 @@ import Link from "next/link";
 import { FaCheckCircle, FaDownload, FaMusic } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function SuccessPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
+      <AnimatedBackground />
       <Header />
       
       <main className="pt-32 pb-20">
@@ -24,12 +26,12 @@ export default function SuccessPage() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             >
-              <FaCheckCircle className="text-8xl text-green-500 mx-auto" />
+              <div className="text-8xl mx-auto">👑</div>
             </motion.div>
 
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-white">
-                Payment Successful! 🎉
+              <h1 className="text-4xl md:text-5xl font-bold text-gradient">
+                Payment Successful! 👑
               </h1>
               <p className="text-xl text-white">
                 Thank you for your purchase. Your full song is now unlocked!
@@ -40,7 +42,7 @@ export default function SuccessPage() {
               <div className="flex items-center justify-center space-x-4">
                 <FaMusic className="text-4xl text-exroast-gold" />
                 <div className="text-left">
-                  <h3 className="font-bold text-lg text-white">What's Next?</h3>
+                  <h3 className="font-bold text-lg text-gradient">What's Next?</h3>
                   <p className="text-white">Your song is ready to download and share</p>
                 </div>
               </div>
@@ -61,7 +63,7 @@ export default function SuccessPage() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="btn-secondary w-full flex items-center justify-center space-x-2"
+                    className="btn-primary w-full flex items-center justify-center space-x-2"
                   >
                     <FaMusic />
                     <span>Create Another</span>
@@ -70,8 +72,8 @@ export default function SuccessPage() {
               </div>
             </div>
 
-            <div className="card bg-heartbreak-50 border-heartbreak-200">
-              <h3 className="font-semibold text-white mb-2">
+            <div className="card">
+              <h3 className="font-semibold text-gradient mb-2">
                 Receipt & Account Info
               </h3>
               <p className="text-sm text-white">

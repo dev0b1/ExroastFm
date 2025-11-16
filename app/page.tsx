@@ -24,7 +24,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-tight px-4"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-tight px-4 text-gradient"
             >
               <motion.span 
                 className="text-gradient inline-block"
@@ -48,14 +48,13 @@ export default function HomePage() {
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="inline-block"
+                className="text-gradient inline-block"
               >
-                <span className="text-white">30-Second</span>{" "}
-                <span className="text-gradient">Roast Song</span>
+                30-Second Roast Song
               </motion.span>
               <br />
               <motion.span 
-                className="text-white flex items-center justify-center gap-4 mt-4"
+                className="text-gradient flex items-center justify-center gap-4 mt-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
@@ -120,7 +119,7 @@ export default function HomePage() {
                 className="card hover:shadow-2xl transition-all duration-300 border-exroast-pink cursor-pointer"
               >
                 <div className="text-7xl mb-4 animate-fire">🔥</div>
-                <h3 className="text-3xl font-black text-white mb-2">Petty Roast</h3>
+                <h3 className="text-3xl font-black text-gradient mb-2">Petty Roast</h3>
                 <p className="text-lg text-white mb-3">Savage, brutal, hilarious</p>
                 <p className="text-base italic text-white">"They thought they were the catch? LOL"</p>
               </motion.div>
@@ -134,7 +133,7 @@ export default function HomePage() {
                 className="card hover:shadow-2xl transition-all duration-300 border-exroast-gold cursor-pointer"
               >
                 <div className="text-7xl mb-4">👑</div>
-                <h3 className="text-3xl font-black text-white mb-2">Glow-Up Flex</h3>
+                <h3 className="text-3xl font-black text-gradient mb-2">Glow-Up Flex</h3>
                 <p className="text-lg text-white mb-3">Upbeat victory anthem</p>
                 <p className="text-base italic text-white">"I'm thriving, they're crying"</p>
               </motion.div>
@@ -238,7 +237,7 @@ export default function HomePage() {
                 <div className="text-sm font-black text-exroast-gold mb-2">
                   STEP {item.step}
                 </div>
-                <h3 className="text-2xl font-black text-white mb-3">
+                <h3 className="text-2xl font-black text-gradient mb-3">
                   {item.title}
                 </h3>
                 <p className="text-white text-lg">{item.description}</p>
@@ -297,7 +296,7 @@ export default function HomePage() {
                 >
                   {benefit.icon}
                 </motion.div>
-                <h3 className="text-xl font-black text-white mb-3">
+                <h3 className="text-xl font-black text-gradient mb-3">
                   {benefit.title}
                 </h3>
                 <p className="text-white">{benefit.description}</p>
