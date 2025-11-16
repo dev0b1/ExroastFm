@@ -134,7 +134,7 @@ export default function StoryPage() {
                   onClick={() => setInputMode('text')}
                   className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
                     inputMode === 'text'
-                      ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
+                      ? 'bg-[#ff006e] text-white border-2 border-[#ffd23f] shadow-lg shadow-[#ffd23f]/50'
                       : 'bg-exroast-black/50 text-white border-2 border-white/10 hover:border-exroast-gold'
                   }`}
                 >
@@ -145,7 +145,7 @@ export default function StoryPage() {
                   onClick={() => setInputMode('screenshot')}
                   className={`flex-1 py-4 px-6 rounded-xl font-black text-lg transition-all duration-300 ${
                     inputMode === 'screenshot'
-                      ? 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-lg shadow-exroast-pink/50'
+                      ? 'bg-[#ff006e] text-white border-2 border-[#ffd23f] shadow-lg shadow-[#ffd23f]/50'
                       : 'bg-exroast-black/50 text-white border-2 border-white/10 hover:border-exroast-gold'
                   }`}
                 >
@@ -171,6 +171,7 @@ export default function StoryPage() {
                       maxLength={500}
                       placeholder="They ghosted me after 2 years... They cheated with my best friend... They said I was 'too much'... Give us EVERYTHING 🗡️"
                       className="w-full h-48 input-field resize-none text-lg"
+                      style={{ fontSize: '16px' }}
                     />
                     <div className="absolute bottom-4 right-4 text-sm text-white font-bold">
                       {story.length}/500
@@ -215,10 +216,11 @@ export default function StoryPage() {
                 className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 ${
                   inputMode === 'text' && story.trim().length < 10
                     ? 'bg-gray-700 text-white cursor-not-allowed opacity-50'
-                    : 'bg-gradient-to-r from-exroast-pink to-orange-500 text-white shadow-2xl shadow-exroast-pink/50 hover:shadow-3xl'
+                    : 'bg-[#ff006e] text-white shadow-[0_0_15px_#ffd23f] hover:shadow-[0_0_25px_#ffd23f]'
                 }`}
+                style={{ filter: inputMode === 'text' && story.trim().length < 10 ? 'none' : 'brightness(1.0) contrast(1.0)' }}
               >
-                Generate My Roast 🔥💅
+                <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Generate My Roast 🔥💅</span>
               </motion.button>
 
               <p className="text-center text-sm text-gray-400">

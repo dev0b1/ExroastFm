@@ -21,10 +21,11 @@ export function Header() {
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               className="text-exroast-pink"
+              style={{ filter: 'brightness(1.1) contrast(1.2)' }}
             >
               <span className="text-3xl">🔥</span>
             </motion.div>
-            <span className="text-2xl font-black bg-gradient-to-r from-exroast-pink to-exroast-gold bg-clip-text text-transparent">
+            <span className="text-2xl font-black bg-gradient-to-r from-[#ff006e] to-[#ffd23f] bg-clip-text text-transparent">
               ExRoast.fm
             </span>
           </Link>
@@ -44,8 +45,8 @@ export function Header() {
               FAQ
             </Link>
             <Link href="/story">
-              <button className="bg-gradient-to-r from-exroast-pink to-orange-500 hover:from-exroast-pink/90 hover:to-orange-600 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 shadow-lg hover:shadow-exroast-pink/50 hover:shadow-2xl">
-                Roast My Ex 🔥
+              <button className="bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
+                <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>
               </button>
             </Link>
           </div>
@@ -85,8 +86,8 @@ export function Header() {
                 FAQ
               </Link>
               <Link href="/story" onClick={() => setMobileMenuOpen(false)}>
-                <button className="w-full bg-gradient-to-r from-exroast-pink to-orange-500 hover:from-exroast-pink/90 hover:to-orange-600 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 shadow-lg hover:shadow-exroast-pink/50 hover:shadow-2xl">
-                  Roast My Ex 🔥
+                <button className="w-full bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
+                  <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>
                 </button>
               </Link>
             </motion.div>

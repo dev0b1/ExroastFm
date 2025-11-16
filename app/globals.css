@@ -25,19 +25,20 @@ body {
 
 .btn-primary {
   padding: 1rem 2.5rem;
-  background: linear-gradient(to right, #ff006e, #ff4500);
+  background: #ff4500;
   color: white;
   font-weight: 900;
   font-size: 1.125rem;
   border-radius: 9999px;
   border: 2px solid #ffd23f;
-  box-shadow: 0 10px 30px rgba(255, 0, 110, 0.5);
+  box-shadow: 0 10px 30px rgba(255, 69, 0, 0.5);
   transform-origin: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 15px 40px rgba(255, 0, 110, 0.9), 0 0 50px rgba(255, 0, 110, 0.6);
+  background: rgba(255, 69, 0, 0.9);
+  box-shadow: 0 15px 40px rgba(255, 0, 110, 0.9), 0 0 50px rgba(255, 0, 110, 0.7);
   transform: scale(1.05);
 }
 
@@ -92,7 +93,22 @@ body {
 }
 
 .input-field::placeholder {
-  color: #666;
+  color: #ffd23f;
+}
+
+.emoji-enhanced {
+  filter: brightness(1.1) contrast(1.2);
+}
+
+body {
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(255, 210, 63, 0.3);
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
 }
 
 .section-container {

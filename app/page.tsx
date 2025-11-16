@@ -85,13 +85,13 @@ export default function HomePage() {
                   className="btn-primary flex items-center space-x-3 mx-auto text-xl px-12 py-6"
                 >
                   <span>Roast My Ex Now</span>
-                  <span className="text-2xl">🔥</span>
+                  <span className="text-2xl emoji-enhanced">🔥</span>
                   <FaArrowRight />
                 </motion.button>
               </Link>
               
               <p className="text-base text-white font-bold">
-                Free 15-second preview • Full roast $4.99 • No sadness allowed 💅
+                Free 15-second preview • Full roast $4.99 • No sadness allowed <span className="emoji-enhanced">💅</span>
               </p>
             </motion.div>
           </div>
@@ -105,7 +105,7 @@ export default function HomePage() {
                 Pick Your Vibe
               </h2>
               <p className="text-xl md:text-2xl text-white font-bold">
-                Petty? Victory lap? We got you. 👑
+                Petty? Victory lap? We got you. <span className="emoji-enhanced">👑</span>
               </p>
             </div>
 
@@ -118,7 +118,7 @@ export default function HomePage() {
                 whileHover={{ scale: 1.05, rotate: -2 }}
                 className="card hover:shadow-2xl transition-all duration-300 border-exroast-pink cursor-pointer"
               >
-                <div className="text-7xl mb-4 animate-fire">🔥</div>
+                <div className="text-7xl mb-4 animate-fire emoji-enhanced">🔥</div>
                 <h3 className="text-3xl font-black text-gradient mb-2">Petty Roast</h3>
                 <p className="text-lg text-white mb-3">Savage, brutal, hilarious</p>
                 <p className="text-base italic text-white">"They thought they were the catch? LOL"</p>
@@ -132,7 +132,7 @@ export default function HomePage() {
                 whileHover={{ scale: 1.05, rotate: 2 }}
                 className="card hover:shadow-2xl transition-all duration-300 border-exroast-gold cursor-pointer"
               >
-                <div className="text-7xl mb-4">👑</div>
+                <div className="text-7xl mb-4 emoji-enhanced">👑</div>
                 <h3 className="text-3xl font-black text-gradient mb-2">Glow-Up Flex</h3>
                 <p className="text-lg text-white mb-3">Upbeat victory anthem</p>
                 <p className="text-base italic text-white">"I'm thriving, they're crying"</p>
@@ -228,7 +228,7 @@ export default function HomePage() {
                 className="card text-center"
               >
                 <motion.div 
-                  className="text-7xl mb-4"
+                  className="text-7xl mb-4 emoji-enhanced"
                   whileHover={{ scale: 1.2, rotate: 10 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
@@ -290,7 +290,7 @@ export default function HomePage() {
                 className="card text-center hover:shadow-2xl transition-all duration-300"
               >
                 <motion.div 
-                  className="text-6xl mb-4"
+                  className="text-6xl mb-4 emoji-enhanced"
                   whileHover={{ scale: 1.3, rotate: 15 }}
                   transition={{ type: "spring", stiffness: 400 }}
                 >
@@ -309,17 +309,17 @@ export default function HomePage() {
         <section className="section-container">
           <div className="card max-w-3xl mx-auto text-center border-2 border-exroast-pink">
             <h2 className="text-4xl md:text-5xl font-black text-gradient mb-6">
-              Pricing That Slaps 🔥
+              Pricing That Slaps <span className="emoji-enhanced">🔥</span>
             </h2>
             <div className="space-y-4 mb-8">
               <p className="text-2xl font-bold">
-                🔥 <span className="text-white">Free: 15-second watermarked preview</span>
+                <span className="emoji-enhanced">🔥</span> <span className="text-white">Free: 15-second watermarked preview</span>
               </p>
               <p className="text-2xl font-bold">
-                💅 <span className="text-exroast-gold text-3xl">$4.99</span><span className="text-white">: Full 30-second roast (one-time)</span>
+                <span className="emoji-enhanced">💅</span> <span className="text-exroast-gold text-3xl">$4.99</span><span className="text-white">: Full 30-second roast (one-time)</span>
               </p>
               <p className="text-2xl font-bold">
-                👑 <span className="text-exroast-gold text-3xl">$12.99/mo</span><span className="text-white">: Unlimited roasts, no watermark</span>
+                <span className="emoji-enhanced">👑</span> <span className="text-exroast-gold text-3xl">$12.99/mo</span><span className="text-white">: Unlimited roasts, no watermark</span>
               </p>
             </div>
             <Link href="/pricing">
@@ -342,7 +342,7 @@ export default function HomePage() {
                 Ready to Roast Your Ex?
               </h2>
               <p className="text-2xl text-white max-w-2xl mx-auto font-bold">
-                Your ex is out there living rent-free in your head. Time to evict them. 🔥
+                Your ex is out there living rent-free in your head. Time to evict them. <span className="emoji-enhanced">🔥</span>
               </p>
               <Link href="/story">
                 <motion.button
@@ -350,7 +350,7 @@ export default function HomePage() {
                   whileTap={{ scale: 0.95 }}
                   className="btn-primary px-12 py-6 text-2xl"
                 >
-                  Roast My Ex Now 💅
+                  Roast My Ex Now <span className="emoji-enhanced">💅</span>
                 </motion.button>
               </Link>
             </div>
