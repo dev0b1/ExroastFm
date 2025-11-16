@@ -182,7 +182,7 @@ export default function StoryPage() {
                         className="input-field resize-none"
                         style={{ 
                           width: '100%',
-                          minHeight: '120px',
+                          minHeight: '240px',
                           fontSize: '16px',
                           opacity: 1.0
                         }}
@@ -227,35 +227,41 @@ export default function StoryPage() {
               </div>
 
               {/* Generate Button */}
-              <Tooltip content="15s free preview—unlock full for $4.99">
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.05,
-                    boxShadow: '0 0 30px rgba(255, 0, 110, 0.8)'
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleGenerate}
-                  disabled={inputMode === 'text' && story.trim().length < 10}
-                  className="w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300"
-                  style={
-                    inputMode === 'text' && story.trim().length < 10
-                      ? {
-                          backgroundColor: '#555',
-                          color: '#999',
-                          cursor: 'not-allowed',
-                          opacity: 0.5
-                        }
-                      : {
-                          backgroundColor: '#ffd23f',
-                          color: '#ffffff',
-                          border: '3px solid #ff006e',
-                          boxShadow: '0 0 20px rgba(255, 210, 63, 0.6)',
-                        }
-                  }
-                >
-                  Generate My Roast 🔥💅
-                </motion.button>
-              </Tooltip>
+              <div className="flex justify-center">
+                <Tooltip content="15s free preview—unlock full for $4.99">
+                  <motion.button
+                    whileHover={{ 
+                      scale: 1.05,
+                      boxShadow: '0 0 30px rgba(255, 0, 110, 0.8)'
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleGenerate}
+                    disabled={inputMode === 'text' && story.trim().length < 10}
+                    className="py-6 rounded-2xl font-black text-2xl transition-all duration-100"
+                    style={
+                      inputMode === 'text' && story.trim().length < 10
+                        ? {
+                            backgroundColor: '#555',
+                            color: '#999',
+                            cursor: 'not-allowed',
+                            opacity: 0.5,
+                            width: '70%',
+                            willChange: 'transform'
+                          }
+                        : {
+                            backgroundColor: '#ffd23f',
+                            color: '#ffffff',
+                            border: '3px solid #ff006e',
+                            boxShadow: '0 0 20px rgba(255, 210, 63, 0.6)',
+                            width: '70%',
+                            willChange: 'transform'
+                          }
+                    }
+                  >
+                    Generate My Roast 🔥💅
+                  </motion.button>
+                </Tooltip>
+              </div>
 
               <p className="text-center text-sm text-gray-400">
                 Free 15-second preview • Full roast $4.99 • Takes 30 seconds

@@ -19,7 +19,7 @@ export function TypewriterText({ text, delay = 0, className = '' }: TypewriterTe
         const timeout = setTimeout(() => {
           setDisplayText(prev => prev + text[currentIndex]);
           setCurrentIndex(prev => prev + 1);
-        }, 50);
+        }, 15);
         return () => clearTimeout(timeout);
       }
     }, delay);
@@ -33,23 +33,15 @@ export function TypewriterText({ text, delay = 0, className = '' }: TypewriterTe
           key={i}
           initial={{ opacity: 0 }}
           animate={{ 
-            opacity: 1,
-            textShadow: [
-              "0 0 0px #ffd23f",
-              "0 0 10px #ffd23f",
-              "0 0 10px #ff006e"
-            ]
+            opacity: 1
           }}
           transition={{ 
-            duration: 0.3,
-            delay: i * 0.05,
-            textShadow: {
-              duration: 0.5,
-              repeat: 1
-            }
+            duration: 0.15,
+            delay: i * 0.015,
+            ease: "linear"
           }}
           style={{
-            filter: 'drop-shadow(0 0 10px #ff006e)'
+            willChange: 'opacity'
           }}
         >
           {char}

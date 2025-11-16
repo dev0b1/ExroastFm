@@ -12,15 +12,18 @@ export function SparkStorm() {
   }>>([]);
 
   useEffect(() => {
-    const colors = ['#ff006e', '#ffd23f', '#ff4500'];
-    const newSparks = Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 4}s`,
-      duration: `${2 + Math.random() * 2}s`,
-      color: colors[Math.floor(Math.random() * colors.length)]
-    }));
-    setSparks(newSparks);
+    const timer = setTimeout(() => {
+      const colors = ['#ff006e', '#ffd23f', '#ff4500'];
+      const newSparks = Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        delay: `${Math.random() * 4}s`,
+        duration: `${2 + Math.random() * 2}s`,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      }));
+      setSparks(newSparks);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -65,6 +68,7 @@ export function SparkStorm() {
           animation-delay: var(--delay);
           background: var(--color);
           box-shadow: 0 0 6px var(--color);
+          will-change: transform, opacity;
         }
 
         .spark-container {
