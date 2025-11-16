@@ -10,6 +10,9 @@ import FileUpload from "@/components/FileUpload";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { FiEdit, FiImage } from "react-icons/fi";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { SparkStorm } from "@/components/SparkStorm";
+import { ConfettiPop } from "@/components/ConfettiPop";
+import { Tooltip } from "@/components/Tooltip";
 
 type InputMode = 'text' | 'screenshot';
 
@@ -22,6 +25,7 @@ export default function StoryPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState<LoadingStep>('ocr');
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleGenerate = async () => {
     if (inputMode === 'text' && story.trim().length < 10) {
@@ -81,9 +85,11 @@ export default function StoryPage() {
         setLoadingStep('complete');
         setLoadingProgress(100);
         
+        setShowConfetti(true);
+        
         setTimeout(() => {
           router.push(`/preview?songId=${data.songId}`);
-        }, 500);
+        }, 1500);
       } else {
         throw new Error(data.error || "Failed to generate song");
       }
@@ -108,6 +114,8 @@ export default function StoryPage() {
   return (
     <div className="min-h-screen bg-black">
       <AnimatedBackground />
+      <SparkStorm />
+      <ConfettiPop show={showConfetti} onComplete={() => setShowConfetti(false)} />
       <Header />
       
       <main className="pt-32 pb-20">
@@ -160,23 +168,25 @@ export default function StoryPage() {
                   <label className="block text-xl font-black text-white">
                     Spill the tea — what did they do? 🔥
                   </label>
-                  <div className="relative">
-                    <textarea
-                      value={story}
-                      onChange={(e) => {
-                        if (e.target.value.length <= 500) {
-                          setStory(e.target.value);
-                        }
-                      }}
-                      maxLength={500}
-                      placeholder="They ghosted me after 2 years... They cheated with my best friend... They said I was 'too much'... Give us EVERYTHING 🗡️"
-                      className="w-full h-48 input-field resize-none text-lg"
-                      style={{ fontSize: '16px' }}
-                    />
-                    <div className="absolute bottom-4 right-4 text-sm text-white font-bold">
-                      {story.length}/500
+                  <Tooltip content="Be specific for savage lyrics (e.g., 'Ghosted after tacos')">
+                    <div className="relative">
+                      <textarea
+                        value={story}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 500) {
+                            setStory(e.target.value);
+                          }
+                        }}
+                        maxLength={500}
+                        placeholder="They ghosted me after 2 years... They cheated with my best friend... They said I was 'too much'... Give us EVERYTHING 🗡️"
+                        className="w-full h-48 input-field resize-none text-lg"
+                        style={{ fontSize: '16px' }}
+                      />
+                      <div className="absolute bottom-4 right-4 text-sm text-white font-bold">
+                        {story.length}/500
+                      </div>
                     </div>
-                  </div>
+                  </Tooltip>
                   <p className="text-sm text-white italic">
                     💡 The more specific, the more savage the roast
                   </p>
@@ -201,27 +211,33 @@ export default function StoryPage() {
 
               {/* Style Selector */}
               <div className="pt-4">
-                <StyleSelector
-                  selected={style}
-                  onChange={setStyle}
-                />
+                <Tooltip content="Petty = Brutal diss; Glow-Up = Victory banger">
+                  <div>
+                    <StyleSelector
+                      selected={style}
+                      onChange={setStyle}
+                    />
+                  </div>
+                </Tooltip>
               </div>
 
               {/* Generate Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleGenerate}
-                disabled={inputMode === 'text' && story.trim().length < 10}
-                className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 ${
-                  inputMode === 'text' && story.trim().length < 10
-                    ? 'bg-gray-700 text-white cursor-not-allowed opacity-50'
-                    : 'bg-[#ff006e] text-white shadow-[0_0_15px_#ffd23f] hover:shadow-[0_0_25px_#ffd23f]'
-                }`}
-                style={{ filter: inputMode === 'text' && story.trim().length < 10 ? 'none' : 'brightness(1.0) contrast(1.0)' }}
-              >
-                <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Generate My Roast 🔥💅</span>
-              </motion.button>
+              <Tooltip content="15s free preview—unlock full for $4.99">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleGenerate}
+                  disabled={inputMode === 'text' && story.trim().length < 10}
+                  className={`w-full py-6 rounded-2xl font-black text-2xl transition-all duration-300 btn-pulse ${
+                    inputMode === 'text' && story.trim().length < 10
+                      ? 'bg-gray-700 text-white cursor-not-allowed opacity-50'
+                      : 'bg-[#ff006e] text-white shadow-[0_0_15px_#ffd23f] hover:shadow-[0_0_25px_#ffd23f]'
+                  }`}
+                  style={{ filter: inputMode === 'text' && story.trim().length < 10 ? 'none' : 'brightness(1.0) contrast(1.0)' }}
+                >
+                  <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Generate My Roast 🔥💅</span>
+                </motion.button>
+              </Tooltip>
 
               <p className="text-center text-sm text-gray-400">
                 Free 15-second preview • Full roast $4.99 • Takes 30 seconds

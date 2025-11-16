@@ -7,11 +7,15 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import { SparkStorm } from "@/components/SparkStorm";
+import { DemoVideo } from "@/components/DemoVideo";
+import { TypewriterText } from "@/components/TypewriterText";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-black relative">
       <AnimatedBackground />
+      <SparkStorm />
       <div className="relative z-10">
       <Header />
       
@@ -20,48 +24,22 @@ export default function HomePage() {
         <section className="section-container relative">
           <div className="absolute inset-0 bg-black -z-10"></div>
           <div className="max-w-5xl mx-auto text-center space-y-8 relative z-10">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-tight px-4 text-gradient"
-            >
-              <motion.span 
-                className="text-gradient inline-block"
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                Turn Your Breakup
-              </motion.span>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-tight px-4 text-gradient">
+              <TypewriterText text="Turn Your Breakup" className="text-gradient inline-block" delay={200} />
               <br />
-              <motion.span 
-                className="text-gradient inline-block"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                Into a Savage
-              </motion.span>
+              <TypewriterText text="Into a Savage" className="text-gradient inline-block" delay={1000} />
               <br />
-              <motion.span
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                className="text-gradient inline-block"
-              >
-                30-Second Roast Song
-              </motion.span>
+              <TypewriterText text="30-Second Roast Song" className="text-gradient inline-block" delay={1800} />
               <br />
               <motion.span 
                 className="text-gradient flex items-center justify-center gap-4 mt-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
+                transition={{ duration: 0.8, delay: 2.6 }}
               >
                 In Seconds 🔥
               </motion.span>
-            </motion.h1>
+            </h1>
             
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -82,13 +60,15 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="btn-primary flex items-center space-x-3 mx-auto text-xl px-12 py-6"
+                  className="btn-primary btn-pulse flex items-center space-x-3 mx-auto text-xl px-12 py-6"
                 >
                   <span>Roast My Ex Now</span>
                   <span className="text-2xl emoji-enhanced">🔥</span>
                   <FaArrowRight />
                 </motion.button>
               </Link>
+              
+              <DemoVideo />
               
               <p className="text-base text-white font-bold">
                 Free 15-second preview • Full roast $4.99 • No sadness allowed <span className="emoji-enhanced">💅</span>
