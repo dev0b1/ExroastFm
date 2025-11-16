@@ -3,7 +3,18 @@
 ## Overview
 ExRoast.fm is a Next.js web application that turns breakup stories into savage, TikTok-viral AI roast songs. 100% petty, zero sadness. Built with Next.js 16, Tailwind CSS, Framer Motion, Suno AI, and OpenRouter.
 
-## Recent Changes (November 15, 2025)
+## Recent Changes (November 16, 2025)
+
+### Final Launch Polish (November 16, 2025)
+- ✅ **Enhanced Logo Visibility** - ExRoast.fm logo now uses vibrant neon gradient (hot pink #ff006e → gold #ffd23f) for maximum impact
+- ✅ **Fixed Dim Buttons** - All CTA buttons now use solid colors with proper glows:
+  - "Generate My Roast" → Solid hot pink #ff006e with strong gold glow (0 0 15px #ffd23f)
+  - "Roast My Ex" buttons → Solid deep orange-red #ff4500 with gold border and pink glow on hover
+  - Input toggles → Solid hot pink #ff006e with white text and 2px gold border
+- ✅ **Boosted Image/Icon Visibility** - All emojis and icons now use brightness(1.1) contrast(1.2) filters for better pop on black background
+- ✅ **Enhanced Text Readability** - Placeholder text changed to light gold #ffd23f, all body text pure white with subtle gold text-shadow
+- ✅ **Mobile-First Typography** - Minimum 16px font size on mobile for better readability
+- ✅ **Production-Ready Styling** - All buttons crisp, fully opaque, even lighting, no dim spots
 
 ### Complete Rebrand to ExRoast.fm (November 15, 2025)
 - ✅ **Rebranded from HeartHeal to ExRoast.fm** - Complete transformation from healing to savage roast app
