@@ -7,13 +7,17 @@
     "build": "next build",
     "start": "next start -p 5000 -H 0.0.0.0",
     "lint": "next lint",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx scripts/seed-templates.ts"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@neondatabase/serverless": "^1.0.2",
     "@paddle/paddle-js": "^1.5.1",
     "@paddle/paddle-node-sdk": "^3.4.0",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.81.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@tsparticles/engine": "^3.9.1",
     "@tsparticles/react": "^3.0.0",

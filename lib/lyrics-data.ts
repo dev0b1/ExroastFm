@@ -1,0 +1,275 @@
+// Lyrics data - structured by template ID
+// This maps template filenames to their corresponding lyrics
+
+export const LYRICS_DATA: Record<string, string> = {
+  'petty-breakup': `[Intro]
+Uh, yeah
+Ahem
+Lemme clear my throat
+This for my ex... and his new ting
+
+[Verse 1]
+Remember ramen days?
+Sharing one pack
+Now you fine dining
+On her daddy's stack?
+Cheapskate move, bro
+I ain't even mad
+Just peeped her Insta
+Your new girl is sad!
+
+[Pre-Chorus]
+Word on the street, you sprung
+Guess her daddy got the funds
+
+[Chorus]
+You upgraded side piece
+Downgraded standards
+Swapped a queen for pawn
+Loser's gambit, fam
+You upgraded side piece
+Downgraded standards
+Now you stuck with her
+While I'm blowing up, damn!
+
+[Verse 2]
+She rock designer
+But that weave is tragic
+You traded loyalty
+For a plastic fantastic
+Hope that sugar daddy
+Keep your pockets fat
+'Cause your career moves?
+Boy, they straight up wack
+
+[Chorus]
+You upgraded side piece
+Downgraded standards
+Swapped a queen for pawn
+Loser's gambit, fam
+You upgraded side piece
+Downgraded standards
+Now you stuck with her
+While I'm blowing up, damn!`,
+
+  'ghosted-diss': `[Verse 1]
+Remember them nights, talkin' 'bout forever?
+Now you duckin' my calls, whatever
+See you out with Becky, rockin' that fake flex
+I ain't even mad, I'm onto the next
+Word
+
+[Prechorus]
+Thought you were a dime, nah, more like a penny
+Heads up, worthless, ghosted plenty
+
+[Verse 2]
+Your game weaker than gas station coffee
+Shoulda seen the signs, I was too damn goofy
+Now you chasin' clout, pathetic try-hard
+I'm laughin' to the bank, playin' my own card
+
+[Chorus]
+Vanished faster than promises
+Went ghost, Casper, total bogus
+Poof, you gone, like a bad toupee in wind
+Shoulda known, you a zero, pretend
+
+[Verse]
+You're like a pizza burn
+On the roof of my mouth
+I hate you
+But you are so average
+I can't even hate you enough
+
+[Prechorus]
+(Female Vocal)
+I wish I could quit you
+But you are my nicotine
+You are my bad habit
+You are the worst thing
+
+[Chorus]
+(Male Vocal)
+You're a walking red flag
+You're a walking red flag
+A certified walking red flag
+And I knew it
+
+[Verse 2]
+(Female Vocal)
+You are like that stain
+On my favorite shirt
+You won't leave
+You are like my student loans
+I can't shake you
+
+[Prechorus]
+(Male Vocal)
+I wish I could forget you
+But you're stuck in my head
+You're a bad song
+You are a mess
+
+[Chorus]
+(Female Vocal)
+You're a walking red flag
+You're a walking red flag
+A certified walking red flag
+And I knew it`,
+
+  'savage-confidence': `[Verse 1]
+You got a PhD in gaslight science
+Majored in lies
+Minored in defiance
+Your ego's so big it needs a ZIP code
+But your bank account screams "low-budget mode"
+
+[Prechorus]
+Mirror
+Mirror
+You check it twice
+Who's the clown? Oh
+What a surprise
+Your charm expired
+It's out of stock
+Guess what? You're the joke
+Not the shock
+
+[Chorus]
+Certified walking red flag
+You're the reason karma carries a bag
+Certified walking red flag
+Even your shadow throws you a drag
+
+[Verse 2]
+Your playlist? All breakup anthems
+Bro
+But we both know you're the problem
+Though
+Swipe left
+Right
+But love won't stick
+Your bio's a novel of narcissistic tricks
+
+[Prechorus]
+Mirror
+Mirror
+It's cracked in two
+One for me
+One reflecting you
+No magic left
+No spell to cast
+The clown show's over
+It went too fast
+
+[Chorus]
+Certified walking red flag
+You're the reason karma carries a bag
+Certified walking red flag
+Even your shadow throws you a drag`,
+
+  'healing-journey': `[Verse]
+You said I'd never make it past your shadow
+Guess what
+I'm bathing in my own glow
+Every wound you left became my gold
+While you're chasing ghosts in stories old
+
+[Prechorus]
+Same old script
+Same bad lines
+Rewind the tape
+You're stuck in time
+
+[Chorus]
+I'm thriving while you're stuck
+In your red-flag rerun rut
+I'm the glow-up you can't touch
+Oh
+Thriving while you're stuck
+
+[Verse 2]
+You're a broken record
+I'm a new song
+I hit the charts while you're still wrong
+All your drama's reruns on repeat
+I'm living rent-free
+Isn't that sweet
+
+[Bridge]
+You spin your wheels
+I'm flying high
+You're a bad tattoo I left behind
+Here's to me
+The one who won
+Thriving
+While you're stuck and done
+
+[Chorus]
+I'm thriving while you're stuck
+In your red-flag rerun rut
+I'm the glow-up you can't touch
+Oh
+Thriving while you're stuck`,
+
+  'self-love-anthem': `[Verse]
+You said I'd fade like a cheap tattoo
+But look at me now I'm a better view
+Neon glow I'm the skyline's queen
+While you're stuck on yesterday's scene
+
+[Prechorus]
+Oh you thought I'd break thought I'd fall apart
+But I turned my cracks into modern art
+
+[Chorus]
+Better brighter—you're basic and bitter
+Glow so strong it'll fry your dimmer
+Level up while you stay stuck
+I'm the sunrise you're a burned-out truck
+
+[Bridge]
+Sip my shine while you spill that tea
+My upgrade's louder than your jealousy
+Better brighter—you're basic and bitter
+Catch me rising I'm a heavy-hitter`,
+
+  'vibe-check': `[Verse]
+Caught you sliding in my DMs, typing "Hey stranger,"
+Thought I'd ghost you back, but nah—I'm a game-changer.
+Your life's a sitcom, canceled mid-season,
+I'm the Emmy-winning reboot, stealing the reason.
+Still rocking that haircut? Yikes, 2012 called,
+Your swag's expired, like milk that's uninstalled.
+
+[Prechorus]
+You peaked at prom, I'm the after-party,
+Glow-up so strong, paparazzi sorry.
+
+[Chorus]
+You're the plot twist nobody wanted—
+I'm the glow-up sequel, undaunted.
+Mock my past? Nah, I flaunt it,
+Came back better, now I haunt it.
+
+[Verse 2]
+Remember that mixtape you made, all Drake tracks?
+Had me crying, but now I laugh at those playback cracks.
+Tried to flex your ride, but it's rust and duct tape,
+Meanwhile, I'm pulling up, top-down, first place.
+Messy as your room, left socks on the floor,
+Now I'm on a yacht, not a care anymore.
+
+[Bridge]
+TikTok saw it first, now the world's on my vibe,
+Glow-up chronicles, yeah, I'm certified.
+Your new girl's my copy, but bootleg cheap,
+While I'm champagne, you're flat cola asleep.
+
+[Chorus]
+You're the plot twist nobody wanted—
+I'm the glow-up sequel, undaunted.
+Mock my past? Nah, I flaunt it,
+Came back better, now I haunt it.`,
+};

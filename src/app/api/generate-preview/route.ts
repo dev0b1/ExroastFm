@@ -3,6 +3,7 @@ import { db } from '@/server/db';
 import { songs } from '@/src/db/schema';
 import { getAllTemplates, saveRoast } from '@/lib/db-service';
 import { matchTemplate } from '@/lib/template-matcher';
+import { LYRICS_DATA } from '@/lib/lyrics-data';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,9 +32,13 @@ export async function POST(request: NextRequest) {
 
     console.log('Selected template:', selectedTemplate.filename, 'Score:', match?.score || 0);
 
+    // Get lyrics for the selected template
+    const templateId = selectedTemplate.filename.replace('.mp3', '');
+    const templateLyrics = LYRICS_DATA[templateId] || '';
+
     const [song] = await db.insert(songs).values({
       title: `${style.charAt(0).toUpperCase() + style.slice(1)} Roast`,
-      lyrics: `Template roast based on your ${style} vibe!\n\n(Upgrade to Pro for personalized lyrics based on your story)`,
+      lyrics: templateLyrics,
       previewUrl: selectedTemplate.storageUrl,
       fullUrl: '',
       style,
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
         story: story.substring(0, 500),
         mode: style,
         title: song.title,
-        lyrics: song.lyrics || '',
+        lyrics: templateLyrics,
         audioUrl: selectedTemplate.storageUrl,
         isTemplate: true
       });
@@ -60,6 +65,8 @@ export async function POST(request: NextRequest) {
       success: true,
       songId: song.id,
       title: song.title,
+      // Return the mp3 preview URL directly for free users (will be replaced with video later)
+      previewUrl: selectedTemplate.storageUrl,
       message: 'Template preview generated! Upgrade to Pro for personalized roasts.',
       isTemplate: true,
       matchScore: match?.score || 0

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadPreviewAudio } from '@/lib/file-storage';
-import { trimAudioToPreview } from '@/lib/audio-utils';
-import { unlink, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import path from 'path';
+
+// This route requires server-side dependencies
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +19,6 @@ export async function POST(request: NextRequest) {
     }
     
     const previewFilename = `preview_${templateId}_${Date.now()}.mp3`;
-    const tempPreviewPath = path.join('/tmp', previewFilename);
 
     let audioBuffer: Buffer;
     
@@ -31,13 +33,9 @@ export async function POST(request: NextRequest) {
       audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
     }
     
-    await trimAudioToPreview(audioBuffer, tempPreviewPath, 15, 0);
-
-    const previewBuffer = await import('fs/promises').then(fs => fs.readFile(tempPreviewPath));
-    
-    const previewUrl = await uploadPreviewAudio(previewBuffer, previewFilename);
-
-    await unlink(tempPreviewPath).catch(() => {});
+    // TODO: Trim to 15 seconds when FFmpeg is moved to external service
+    // For now, return full audio as preview
+    const previewUrl = await uploadPreviewAudio(audioBuffer, previewFilename);
 
     if (!previewUrl) {
       throw new Error('Failed to upload preview');

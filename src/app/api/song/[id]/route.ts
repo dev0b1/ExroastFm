@@ -5,12 +5,12 @@ import { eq } from "drizzle-orm";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const songId = params.id;
+    const { id } = await params;
     
-    const songResult = await db.select().from(songs).where(eq(songs.id, songId)).limit(1);
+    const songResult = await db.select().from(songs).where(eq(songs.id, id)).limit(1);
     const song = songResult[0];
 
     if (!song) {

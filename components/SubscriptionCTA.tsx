@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import { FaCheck, FaStar, FaCrown } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 interface SubscriptionTier {
   id: string;
@@ -54,12 +56,30 @@ const tiers: SubscriptionTier[] = [
 ];
 
 export function SubscriptionCTA() {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
   const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkUser();
+  }, [supabase]);
 
   const handleSubscribe = async (tier: SubscriptionTier) => {
     setIsLoading(tier.id);
     
     try {
+      // Check if user is logged in
+      if (!user) {
+        // Redirect to login, then to checkout
+        router.push(`/login?redirectTo=/checkout&tier=${tier.id}`);
+        return;
+      }
+
       if (typeof window === "undefined") {
         throw new Error("Window is not defined");
       }
@@ -109,6 +129,11 @@ export function SubscriptionCTA() {
     setIsLoading("single");
     
     try {
+      if (!user) {
+        router.push(`/login?redirectTo=/checkout&type=single`);
+        return;
+      }
+
       if (typeof window === "undefined") {
         throw new Error("Window is not defined");
       }

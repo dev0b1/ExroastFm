@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllTemplates } from '@/lib/db-service';
 import { matchTemplate } from '@/lib/template-matcher';
+import { LYRICS_DATA } from '@/lib/lyrics-data';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,18 +27,27 @@ export async function POST(request: NextRequest) {
     
     if (!match) {
       const fallback = templates[0];
+      const templateId = fallback.filename.replace('.mp3', '');
+      const lyrics = LYRICS_DATA[templateId] || '';
+      
       return NextResponse.json({
         success: true,
         template: fallback,
+        lyrics,
         score: 0,
         matchedKeywords: [],
         isFallback: true
       });
     }
 
+    // Get lyrics for the matched template
+    const templateId = match.template.filename.replace('.mp3', '');
+    const lyrics = LYRICS_DATA[templateId] || '';
+
     return NextResponse.json({
       success: true,
       template: match.template,
+      lyrics,
       score: match.score,
       matchedKeywords: match.matchedKeywords,
       isFallback: false
