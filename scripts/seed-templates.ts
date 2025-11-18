@@ -1,3 +1,5 @@
+// Ensure environment variables from .env / .env.local are loaded when running this script
+import 'dotenv/config';
 import { db } from '@/server/db';
 import { templates } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';

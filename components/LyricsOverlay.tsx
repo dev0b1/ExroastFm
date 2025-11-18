@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 interface LyricsOverlayProps {
-  lyrics: string;
+  lyrics?: string | null;
   duration?: number;
   isPlaying: boolean;
 }
@@ -12,7 +12,9 @@ interface LyricsOverlayProps {
 export function LyricsOverlay({ lyrics, duration = 60, isPlaying }: LyricsOverlayProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  const lyricsLines = lyrics.split('\n').filter(line => line.trim() !== '');
+  // Guard against undefined/null lyrics coming from the server
+  const safeLyrics = typeof lyrics === 'string' ? lyrics : '';
+  const lyricsLines = safeLyrics.split('\n').filter(line => line.trim() !== '');
 
   useEffect(() => {
     if (!isPlaying) {

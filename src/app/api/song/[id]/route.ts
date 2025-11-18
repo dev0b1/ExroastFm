@@ -27,9 +27,11 @@ export async function GET(
         title: song.title,
         story: song.story,
         style: song.style,
+        lyrics: song.lyrics || '',
         previewUrl: song.previewUrl,
         fullUrl: song.isPurchased ? song.fullUrl : song.previewUrl,
         isPurchased: song.isPurchased,
+        isTemplate: song.isTemplate || false,
         createdAt: song.createdAt,
       },
     });

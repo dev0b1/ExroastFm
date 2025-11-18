@@ -14,11 +14,13 @@ export function PaddleLoader() {
       }
 
       try {
+        // The Paddle CDN script does not accept an `environment` option here.
+        // Provide the client token only. Use NEXT_PUBLIC_PADDLE_CLIENT_TOKEN to
+        // control sandbox vs production keys (switch tokens in env).
         (window as any).Paddle.Initialize({
           token: clientToken,
-          environment: environment,
         });
-        console.log(`Paddle initialized successfully in ${environment} mode`);
+        console.log(`Paddle initialized successfully (env hint: ${environment})`);
       } catch (error) {
         console.error("Failed to initialize Paddle:", error);
       }
