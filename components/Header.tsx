@@ -1,21 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaUserCircle } from 'react-icons/fa';
 import { usePathname, useRouter } from 'next/navigation';
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaTimes } from "react-icons/fa";
 import SubscriptionPrompt from "./SubscriptionPrompt";
+import SettingsMenu from "./SettingsMenu";
 import { openSingleCheckout, openTierCheckout } from "@/lib/checkout";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any | null>(null);
-  const [confirmSignOutOpen, setConfirmSignOutOpen] = useState(false);
+  // legacy sign-out modal removed; mobile sign-out now calls supabase.auth.signOut directly
   const [showToast, setShowToast] = useState(false);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
   const router = useRouter();
@@ -141,18 +143,23 @@ export function Header() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link
-              href="/pricing"
-              className="text-exroast-gold hover:text-white transition-colors duration-200 font-bold"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/#faq"
-              className="text-exroast-gold hover:text-white transition-colors duration-200 font-bold"
-            >
-              FAQ
-            </Link>
+            {!user && (
+              <>
+                <Link
+                  href="/pricing"
+                  className="text-exroast-gold hover:text-white transition-colors duration-200 font-bold"
+                >
+                  Pricing
+                </Link>
+                <Link
+                  href="/#faq"
+                  className="text-exroast-gold hover:text-white transition-colors duration-200 font-bold"
+                >
+                  FAQ
+                </Link>
+              </>
+            )}
+
             <Link href={user ? "/story" : "/template"}>
               <button className="bg-[#ff4500] hover:bg-[#ff4500]/90 text-white px-8 py-3 rounded-full font-black text-lg transition-all duration-200 border-2 border-[#ffd23f] shadow-lg hover:shadow-[#ff006e]/70 hover:shadow-2xl">
                 <span style={{ filter: 'brightness(1.1) contrast(1.2)' }}>Roast My Ex 🔥</span>
@@ -165,17 +172,29 @@ export function Header() {
                 <button
                   onClick={() => router.push('/account')}
                   className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-full"
+                  title={user.email}
                 >
                   <FaUserCircle className="text-xl text-white" />
                   <span className="text-sm text-white/90 truncate max-w-[120px]">{user.email}</span>
                 </button>
-                <button
-                  onClick={() => setConfirmSignOutOpen(true)}
-                  title="Sign out"
-                  className="ml-2 text-gray-300 hover:text-white"
-                >
-                  <FaSignOutAlt />
-                </button>
+
+                {/* Settings dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSettingsMenu((s) => !s)}
+                    title="Settings"
+                    className="ml-2 text-gray-300 hover:text-white px-3 py-2 rounded-full bg-white/5"
+                    onMouseDown={(e) => e.preventDefault()}
+                    id="settings-button"
+                  >
+                    ⚙️
+                  </button>
+                  {showSettingsMenu && (
+                    <div className="absolute right-0 mt-12">
+                      <SettingsMenu onClose={() => setShowSettingsMenu(false)} />
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <Link href="/auth">
@@ -234,7 +253,16 @@ export function Header() {
                       <button className="w-full btn-primary">My Roasts</button>
                     </Link>
                     <button
-                      onClick={() => setConfirmSignOutOpen(true)}
+                      onClick={async () => {
+                        try {
+                          setMobileMenuOpen(false);
+                          await supabase.auth.signOut();
+                          setUser(null);
+                          router.push('/');
+                        } catch (e) {
+                          console.error('Sign out error', e);
+                        }
+                      }}
                       className="w-full mt-2 bg-white text-black py-3 rounded-full font-bold"
                     >
                       Sign out
@@ -266,51 +294,7 @@ export function Header() {
           />
         )}
       </AnimatePresence>
-      {/* Sign-out confirmation modal */}
-      <AnimatePresence>
-        {confirmSignOutOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-60 flex items-center justify-center bg-black/60"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="bg-gray-900 rounded-xl p-6 max-w-sm w-full mx-4"
-            >
-              <h3 className="text-xl font-bold text-white mb-2">Confirm sign out</h3>
-              <p className="text-gray-400 mb-4">Are you sure you want to sign out? You can sign back in anytime.</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setConfirmSignOutOpen(false)}
-                  className="px-4 py-2 rounded-md bg-white/5 text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      await supabase.auth.signOut();
-                      setUser(null);
-                      setConfirmSignOutOpen(false);
-                      router.push('/');
-                    } catch (e) {
-                      console.error('Sign out error', e);
-                    }
-                  }}
-                  className="px-4 py-2 rounded-md bg-white text-black font-bold"
-                >
-                  Sign out
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* legacy sign-out modal removed */}
     </motion.header>
   );
 }

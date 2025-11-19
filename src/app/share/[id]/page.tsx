@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
@@ -80,9 +81,7 @@ export default function SharePage() {
             <p className="text-white mb-8">
               This song may have been deleted or the link is invalid.
             </p>
-            <Link href="/story">
-              <button className="btn-primary">Create Your Own Song</button>
-            </Link>
+            <AuthAwareCTA className="btn-primary">Create Your Own Song</AuthAwareCTA>
           </div>
         </main>
         <Footer />
@@ -239,11 +238,9 @@ export default function SharePage() {
                           <span>Export Full Song (Paid)</span>
                         </button>
                         
-                        <Link href="/story">
-                          <button className="w-full btn-primary">
-                            Create Your Own Song
-                          </button>
-                        </Link>
+                        <AuthAwareCTA className="w-full btn-primary"> 
+                          Create Your Own Song
+                        </AuthAwareCTA>
                       </div>
                     </div>
 

@@ -10,6 +10,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import { SparkStorm } from "@/components/SparkStorm";
 import { DemoVideo } from "@/components/DemoVideo";
 import { TypewriterText } from "@/components/TypewriterText";
+import AuthAwareCTA from "@/components/AuthAwareCTA";
 
 export default function HomePage() {
   return (
@@ -56,17 +57,11 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="space-y-6"
             >
-              <Link href="/story">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="btn-primary btn-pulse flex items-center space-x-3 mx-auto text-xl px-12 py-6"
-                >
-                  <span>Roast My Ex Now</span>
-                  <span className="text-2xl emoji-enhanced">🔥</span>
-                  <FaArrowRight />
-                </motion.button>
-              </Link>
+              <AuthAwareCTA className="btn-primary btn-pulse flex items-center space-x-3 mx-auto text-xl px-12 py-6">
+                <span>Roast My Ex Now</span>
+                <span className="text-2xl emoji-enhanced">🔥</span>
+                <FaArrowRight />
+              </AuthAwareCTA>
               
               <DemoVideo />
               

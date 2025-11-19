@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
@@ -14,6 +15,8 @@ import { ConfettiPop } from "@/components/ConfettiPop";
 import { Tooltip } from "@/components/Tooltip";
 
 export default function StoryPage() {
+  const supabase = createClientComponentClient();
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
   const router = useRouter();
   const [story, setStory] = useState("");
   const [style, setStyle] = useState<SongStyle>("petty");
@@ -28,6 +31,15 @@ export default function StoryPage() {
 
   useEffect(() => {
     checkUserProStatus();
+    // fetch session to determine whether we should hide footer
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setCurrentUser(session?.user || null);
+      } catch (e) {
+        // ignore
+      }
+    })();
   }, []);
 
   const checkUserProStatus = async () => {
@@ -325,7 +337,7 @@ export default function StoryPage() {
         </div>
       </main>
       
-      <Footer />
+      {!currentUser && <Footer />}
     </div>
   );
 }

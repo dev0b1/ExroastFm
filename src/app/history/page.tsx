@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import AuthAwareCTA from '@/components/AuthAwareCTA';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 import { FaPlay, FaShare, FaLock, FaCrown } from 'react-icons/fa';
 
@@ -138,11 +139,9 @@ export default function HistoryPage() {
               <p className="text-gray-400 mb-8">
                 Create your first savage breakup song to see it here
               </p>
-              <Link href="/story">
-                <button className="bg-gradient-to-r from-exroast-pink to-exroast-gold text-white font-black px-8 py-4 rounded-full text-lg hover:scale-105 transition-transform">
-                  Create Your First Roast 🔥
-                </button>
-              </Link>
+              <AuthAwareCTA className="bg-gradient-to-r from-exroast-pink to-exroast-gold text-white font-black px-8 py-4 rounded-full text-lg hover:scale-105 transition-transform">
+                Create Your First Roast 🔥
+              </AuthAwareCTA>
             </motion.div>
           ) : (
             <div className="grid gap-6">

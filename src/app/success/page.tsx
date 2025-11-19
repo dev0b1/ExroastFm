@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FaCheckCircle, FaDownload, FaMusic } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function SuccessPage() {
@@ -59,16 +60,10 @@ export default function SuccessPage() {
                   </motion.button>
                 </Link>
                 
-                <Link href="/story">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="btn-primary w-full flex items-center justify-center space-x-2"
-                  >
-                    <FaMusic />
-                    <span>Create Another</span>
-                  </motion.button>
-                </Link>
+                <AuthAwareCTA className="btn-primary w-full flex items-center justify-center space-x-2">
+                  <FaMusic />
+                  <span>Create Another</span>
+                </AuthAwareCTA>
               </div>
             </div>
 

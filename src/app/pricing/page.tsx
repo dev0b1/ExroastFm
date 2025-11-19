@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FaCheck, FaStar, FaCrown, FaShieldAlt, FaLock } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { SINGLE_LABEL, SINGLE_AMOUNT, PREMIUM_LABEL, PREMIUM_AMOUNT } from '@/lib/pricing';
 import { openSingleCheckout, openTierCheckout } from '@/lib/checkout';
@@ -81,11 +82,9 @@ export default function PricingPage() {
                   <span className="text-gray-600 line-through">Screenshot upload</span>
                 </li>
               </ul>
-              <Link href="/story">
-                <button className="btn-secondary w-full">
-                  Try Free Now
-                </button>
-              </Link>
+              <AuthAwareCTA className="btn-secondary w-full">
+                Try Free Now
+              </AuthAwareCTA>
             </motion.div>
 
             <motion.div
