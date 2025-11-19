@@ -42,6 +42,8 @@ export default function StoryPage() {
     })();
   }, []);
 
+  // Signed-in visual test badge state is driven by currentUser
+
   const checkUserProStatus = async () => {
     try {
       const response = await fetch('/api/user/pro-status');
@@ -156,7 +158,8 @@ export default function StoryPage() {
       <AnimatedBackground />
       <SparkStorm />
       <ConfettiPop show={showConfetti} onComplete={() => setShowConfetti(false)} />
-      <Header />
+      {/* Pass the fetched currentUser into Header to avoid UI flash of public links */}
+      <Header userProp={currentUser} />
       
       <main className="pt-32 pb-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

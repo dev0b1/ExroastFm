@@ -11,9 +11,9 @@ import SubscriptionPrompt from "./SubscriptionPrompt";
 import SettingsMenu from "./SettingsMenu";
 import { openSingleCheckout, openTierCheckout } from "@/lib/checkout";
 
-export function Header() {
+export function Header({ userProp }: { userProp?: any }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<any | null>(() => userProp || null);
   // legacy sign-out modal removed; mobile sign-out now calls supabase.auth.signOut directly
   const [showToast, setShowToast] = useState(false);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
@@ -25,10 +25,47 @@ export function Header() {
   useEffect(() => {
     let mounted = true;
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (mounted) setUser(session?.user || null);
+      if (userProp) {
+        // parent provided a user (e.g., /story) — use it and skip client/server checks
+        setUser(userProp);
+        return;
+      }
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (mounted && session?.user) {
+          setUser(session.user);
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Fallback: try server-side session endpoint (uses cookies) in case
+      // the client auth helper can't read the session immediately.
+      try {
+        const res = await fetch('/api/session');
+        if (res.ok) {
+          const json = await res.json();
+          if (mounted && json?.user) {
+            setUser(json.user);
+            return;
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+      if (mounted) setUser(null);
     };
     checkUser();
+
+    // keep header in sync if parent passes a new user later
+    // (e.g., story page fetches session and passes it)
+    // Note: we intentionally update state only when userProp is truthy
+    // to avoid clobbering the client-driven session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (userProp) {
+      setUser(userProp);
+    }
 
     // subscribe to auth changes so header stays in-sync across redirects/reloads
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -170,27 +207,31 @@ export function Header() {
             {user ? (
               <div className="relative flex items-center gap-3">
                 <button
-                  onClick={() => router.push('/account')}
+                  onClick={() => setShowSettingsMenu(true)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  aria-haspopup="menu"
+                  aria-expanded={showSettingsMenu}
+                  aria-controls="settings-menu"
                   className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-full"
                   title={user.email}
                 >
-                  <FaUserCircle className="text-xl text-white" />
+                  {user?.user_metadata?.avatar_url ? (
+                    // use a simple img tag to avoid next/image complications inside the header
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="avatar"
+                      className="w-7 h-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <FaUserCircle className="text-xl text-white" />
+                  )}
                   <span className="text-sm text-white/90 truncate max-w-[120px]">{user.email}</span>
                 </button>
 
-                {/* Settings dropdown */}
+                {/* Settings dropdown (opened by account button) */}
                 <div className="relative">
-                  <button
-                    onClick={() => setShowSettingsMenu((s) => !s)}
-                    title="Settings"
-                    className="ml-2 text-gray-300 hover:text-white px-3 py-2 rounded-full bg-white/5"
-                    onMouseDown={(e) => e.preventDefault()}
-                    id="settings-button"
-                  >
-                    ⚙️
-                  </button>
                   {showSettingsMenu && (
-                    <div className="absolute right-0 mt-12">
+                    <div className="absolute right-0 mt-12" id="settings-menu">
                       <SettingsMenu onClose={() => setShowSettingsMenu(false)} />
                     </div>
                   )}
@@ -249,9 +290,15 @@ export function Header() {
                   <div className="space-y-2">
                     <div className="text-white">Signed in as</div>
                     <div className="text-gray-300 font-bold">{user.email}</div>
-                    <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
-                      <button className="w-full btn-primary">My Roasts</button>
-                    </Link>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setShowSettingsMenu(true);
+                      }}
+                      className="w-full btn-primary"
+                    >
+                      My Roasts
+                    </button>
                     <button
                       onClick={async () => {
                         try {
