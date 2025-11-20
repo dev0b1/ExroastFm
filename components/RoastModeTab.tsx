@@ -40,26 +40,26 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
-        <div className="text-center space-y-4">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-exroast-pink via-orange-500 to-red-600 bg-clip-text text-transparent">
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-orange-400 via-red-500 to-red-600 bg-clip-text text-transparent">
             Create Your Savage Roast 🔥
           </h2>
-          <p className="text-xl md:text-2xl text-white font-bold">
+          <p className="text-lg md:text-xl text-gray-300 font-semibold">
             30-second AI diss track that ends them
           </p>
         </div>
 
-        <div className="card bg-gradient-to-br from-red-900/20 via-black to-black border-2 border-exroast-pink">
+        <div className="bg-black/40 backdrop-blur-sm border border-red-900/30 rounded-lg p-6 md:p-8 shadow-xl">
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-exroast-pink/20 to-red-600/20 border-2 border-exroast-pink rounded-xl p-6">
+            <div className="bg-red-950/30 border border-red-900/40 rounded-lg p-5 md:p-6">
               <div className="flex items-start gap-4">
-                <div className="text-4xl">🗡️</div>
+                <div className="text-3xl md:text-4xl">🗡️</div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-black text-white mb-2">
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">
                     Ready to roast?
                   </h3>
-                  <p className="text-white/80">
-                    Head to the full roast creation experience where you can spill the tea, pick your vibe (Petty Roast or Glow-Up Flex), and get your 30-second banger.
+                  <p className="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Spill the tea, pick your vibe (Petty Roast or Glow-Up Flex), and get your 30-second banger.
                   </p>
                 </div>
               </div>
@@ -67,14 +67,14 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
 
             <button
               onClick={() => router.push("/app")}
-              className="btn-primary w-full text-xl md:text-2xl py-6 md:py-8 flex items-center justify-center gap-4 bg-gradient-to-r from-exroast-pink to-red-600 hover:from-pink-500 hover:to-red-500 shadow-lg shadow-exroast-pink/50"
+              className="w-full text-lg md:text-xl font-black py-5 md:py-6 rounded-lg flex items-center justify-center gap-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg shadow-red-900/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Spill the Tea & Create Roast</span>
-              <FaFire className="text-3xl" />
+              <FaFire className="text-2xl" />
             </button>
             
-            <p className="text-center text-gray-400 text-sm">
-              Takes you to the full roast creation experience with OCR, style selection, and audio preview
+            <p className="text-center text-gray-500 text-xs md:text-sm">
+              Full roast creation with OCR, style selection, and audio preview
             </p>
           </div>
         </div>
@@ -82,9 +82,9 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
 
       {/* Divider */}
       <div className="flex items-center gap-4">
-        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <span className="text-white/40 font-bold">YOUR SAVAGE LIBRARY</span>
-        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <span className="text-white/30 font-bold text-xs md:text-sm">YOUR SAVAGE LIBRARY</span>
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
 
       {/* Previous Roasts Section */}
@@ -95,10 +95,10 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
         className="space-y-6"
       >
         <div className="text-center space-y-2">
-          <h3 className="text-3xl md:text-4xl font-black text-white">
+          <h3 className="text-2xl md:text-3xl font-black text-white">
             Previous Roasts
           </h3>
-          <p className="text-lg text-gray-400">
+          <p className="text-base md:text-lg text-gray-400">
             {previousRoasts.length > 0
               ? `${previousRoasts.length} savage track${previousRoasts.length !== 1 ? "s" : ""} ready to share`
               : "No roasts yet – create your first masterpiece above!"}
@@ -107,44 +107,44 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <FaSpinner className="animate-spin text-exroast-gold text-4xl" />
+            <FaSpinner className="animate-spin text-orange-500 text-4xl" />
           </div>
         ) : previousRoasts.length === 0 ? (
-          <div className="card text-center py-16 bg-white/5">
-            <div className="text-7xl mb-4">🎵</div>
-            <p className="text-xl text-gray-400 font-bold">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg text-center py-16">
+            <div className="text-6xl md:text-7xl mb-4">🎵</div>
+            <p className="text-lg md:text-xl text-gray-400 font-bold">
               Your roasts will appear here
             </p>
-            <p className="text-gray-500 mt-2">
+            <p className="text-sm md:text-base text-gray-500 mt-2">
               Create your first one to build your savage library
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {previousRoasts.map((roast, index) => (
               <motion.div
                 key={roast.id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="card border-2 border-exroast-pink hover:border-exroast-gold cursor-pointer transition-all duration-300 bg-gradient-to-br from-red-900/10 to-black"
+                whileHover={{ scale: 1.03, y: -5 }}
+                className="bg-black/50 backdrop-blur-sm border border-red-900/40 hover:border-red-700/60 cursor-pointer transition-all duration-300 rounded-lg p-4 md:p-5 shadow-lg"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="text-4xl">🎵</div>
+                    <div className="text-3xl md:text-4xl">🎵</div>
                     {roast.mode && (
-                      <span className={`text-xs font-black px-2 py-1 rounded-full ${
+                      <span className={`text-[10px] md:text-xs font-black px-2 py-1 rounded-md ${
                         roast.mode === "petty" 
-                          ? "bg-exroast-pink/20 text-exroast-pink" 
-                          : "bg-exroast-gold/20 text-exroast-gold"
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                          : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                       }`}>
                         {roast.mode === "petty" ? "🔥 PETTY" : "👑 GLOW-UP"}
                       </span>
                     )}
                   </div>
                   
-                  <h4 className="text-lg md:text-xl font-black text-white line-clamp-2 min-h-[3.5rem]">
+                  <h4 className="text-base md:text-lg font-bold text-white line-clamp-2 min-h-[3rem]">
                     {roast.title || "Untitled Roast"}
                   </h4>
                   
@@ -159,21 +159,21 @@ export function RoastModeTab({ userId }: RoastModeTabProps) {
                         }}
                       />
                       <div className="flex gap-2">
-                        <button className="flex-1 bg-exroast-pink/20 hover:bg-exroast-pink/30 text-exroast-pink px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                        <button className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/40 px-3 py-2 rounded-md text-xs md:text-sm font-bold transition-colors flex items-center justify-center gap-2">
                           <FaPlay className="text-xs" /> Play
                         </button>
-                        <button className="flex-1 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                        <button className="flex-1 bg-white/5 hover:bg-white/10 text-white border border-white/10 px-3 py-2 rounded-md text-xs md:text-sm font-bold transition-colors flex items-center justify-center gap-2">
                           <FaDownload className="text-xs" /> Share
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-white/5 rounded-lg px-3 py-2 text-center">
+                    <div className="bg-white/5 rounded-md px-3 py-2 text-center border border-white/10">
                       <p className="text-xs text-gray-400">Audio not available</p>
                     </div>
                   )}
                   
-                  <div className="text-xs text-gray-400 text-center pt-2 border-t border-white/10">
+                  <div className="text-xs text-gray-500 text-center pt-2 border-t border-white/5">
                     {new Date(roast.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
