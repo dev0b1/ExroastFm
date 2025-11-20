@@ -68,10 +68,11 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
   }, [user]);
 
   useEffect(() => {
-    const el = document.getElementById('settings-menu');
+    // focus the first button inside the modal
+    const el = containerRef.current;
     if (el) {
-      const btn = el.querySelector('button');
-      (btn as HTMLElement | null)?.focus?.();
+      const btn = el.querySelector('button:not([disabled])') as HTMLElement | null;
+      btn?.focus?.();
     }
 
     const onKey = (e: KeyboardEvent) => {
@@ -79,10 +80,10 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
         onClose?.();
       }
       if (e.key === 'Tab') {
-        const container = document.getElementById('settings-menu');
+        const container = containerRef.current;
         if (!container) return;
         const focusable = Array.from(container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
-          .filter((n: any) => !n.hasAttribute('disabled')) as HTMLElement[];
+          .filter((n: any) => !n.hasAttribute('disabled') && (n as HTMLElement).offsetParent !== null) as HTMLElement[];
         if (focusable.length === 0) return;
         const idx = focusable.indexOf(document.activeElement as HTMLElement);
         if (e.shiftKey) {
@@ -103,21 +104,29 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  // lock background scroll while modal is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose?.();
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 md:p-8"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex sm:items-center items-start justify-center p-4 sm:p-6 md:p-8 overflow-auto"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="settings-menu-title"
       onClick={handleOverlayClick}
     >
       <div
         id="settings-menu"
         ref={containerRef}
-        className="w-full max-w-5xl bg-gradient-to-br from-[#0a0a0c] via-[#0f0a12] to-[#0a0a0c] border-2 border-exroast-pink/40 rounded-2xl shadow-[0_0_50px_rgba(255,0,110,0.3)] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300"
+        className="w-full max-w-5xl bg-gradient-to-br from-[#0a0a0c] via-[#0f0a12] to-[#0a0a0c] border-2 border-exroast-pink/40 rounded-2xl shadow-[0_0_50px_rgba(255,0,110,0.3)] overflow-auto max-h-[calc(100vh-96px)] sm:max-h-[calc(100vh-128px)] animate-in fade-in slide-in-from-bottom-4 duration-300"
       >
         {/* Header */}
         <div className="relative flex items-center justify-between p-6 border-b border-exroast-pink/20 bg-gradient-to-r from-exroast-pink/5 to-transparent">
@@ -137,7 +146,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
               </div>
             )}
             <div>
-              <div className="text-white font-black text-xl tracking-tight">{user?.email || 'Account'}</div>
+              <div id="settings-menu-title" className="text-white font-black text-xl tracking-tight">{user?.email || 'Account'}</div>
               <div className="text-sm text-white/60 mt-1">
                 Credits: <span className="font-bold text-exroast-pink">{credits ?? 0}</span>
               </div>
@@ -146,6 +155,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
 
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => { router.push('/checkout'); onClose?.(); }}
               className="hidden sm:inline-flex items-center bg-gradient-to-r from-[#ff006e] via-[#ff4791] to-[#ffd23f] text-black font-extrabold px-6 py-3 rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,110,0.6)] hover:scale-105 transition-all duration-200"
             >
@@ -153,6 +163,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
               <span className="ml-2">🔥</span>
             </button>
             <button
+              type="button"
               onClick={() => onClose?.()}
               aria-label="Close settings"
               className="text-white/60 hover:text-white hover:bg-white/10 p-2 rounded-full transition-all duration-200"
@@ -169,6 +180,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
           {/* Left column */}
           <div className="space-y-4">
             <button
+              type="button"
               onClick={() => { router.push('/account'); onClose?.(); }}
               className="group w-full text-left px-5 py-4 rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] hover:from-white/10 hover:to-white/5 border border-white/10 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
             >
@@ -199,6 +211,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                   <div className="text-5xl opacity-20">🎵</div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => { router.push('/checkout?tier=unlimited'); onClose?.(); }}
                   className="w-full bg-gradient-to-r from-exroast-pink to-purple-600 px-5 py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-[0_0_20px_rgba(255,0,110,0.4)] hover:scale-[1.02] transition-all duration-200"
                 >
@@ -212,6 +225,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
               <div className="text-sm text-white/60 font-semibold mb-3 px-1">Quick actions</div>
               <div className="space-y-2">
                 <button
+                  type="button"
                   onClick={() => { router.push('/checkout'); onClose?.(); }}
                   className="group w-full text-left px-5 py-4 rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] hover:from-exroast-pink/10 hover:to-purple-500/10 border border-white/10 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
                 >
@@ -255,6 +269,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                 <div className="space-y-2">
                   {roasts.slice(0, 8).map((r: any) => (
                     <button
+                      type="button"
                       key={r.id}
                       onClick={() => { onClose?.(); router.push(`/preview?songId=${r.id}`); }}
                       className="group w-full text-left px-4 py-3 rounded-lg bg-white/[0.02] hover:bg-gradient-to-r hover:from-exroast-pink/10 hover:to-purple-500/10 border border-white/5 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
@@ -285,6 +300,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
         <div className="px-6 pb-6">
           <div className="border-t border-white/10 pt-4">
             <button
+              type="button"
               onClick={handleSignOut}
               className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold shadow-lg hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
