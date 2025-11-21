@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { openTierCheckout } from "@/lib/checkout";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { Tooltip } from "@/components/Tooltip";
@@ -190,7 +191,16 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
 
         <div className="flex flex-col items-center space-y-3">
           <p className="text-center text-sm text-gray-400">Demo song (template) — full demo available. Upgrade for a personalized song.</p>
-           <button onClick={() => router.push('/checkout?tier=premium')} className="bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black font-bold px-6 py-3 rounded-md focus:outline-none focus:ring-4 focus:ring-exroast-gold/60">Upgrade for a personalized song</button>
+           <button onClick={async () => {
+             try {
+               // openTierCheckout will re-check auth and open Paddle. It also marks `inCheckout`.
+               await openTierCheckout('premium');
+             } catch (err) {
+               console.error('Failed to open checkout from RoastCreator', err);
+               // As a safe fallback, navigate to pricing so user can sign in / choose a plan.
+               try { window.location.href = '/pricing'; } catch (e) { }
+             }
+           }} className="bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black font-bold px-6 py-3 rounded-md focus:outline-none focus:ring-4 focus:ring-exroast-gold/60">Upgrade for a personalized song</button>
         </div>
       </div>
 

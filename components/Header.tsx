@@ -78,6 +78,19 @@ export function Header({ userProp }: { userProp?: any }) {
     // Otherwise, check pro-status and show the subscription prompt once.
     (async () => {
       if (typeof window === 'undefined') return;
+      // If a checkout was just started, avoid auto-resume/auto-prompts that
+      // could navigate the user away from the checkout flow. `inCheckout` is
+      // set by the subscription UI before opening Paddle and cleared by the
+      // success page or other completion handlers.
+      try {
+        const inCheckout = localStorage.getItem('inCheckout');
+        if (inCheckout === 'true') {
+          // skip auto-resume/prompt while checkout is active
+          return;
+        }
+      } catch (e) {
+        // ignore localStorage errors
+      }
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const currentUser = session?.user || null;

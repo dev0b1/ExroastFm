@@ -283,10 +283,12 @@ export function SubscriptionCTA({ songId, autoOpenSingle }: SubscriptionCTAProps
                   // handleSingleSongPurchase will redirect to Google sign-in if needed
                   // and then to checkout after auth. For other tiers, use subscription flow.
                   if (tier.id === 'one-time') {
-                    handleSingleSongPurchase({ songId: songId || undefined });
-                  } else {
-                    handleSubscribe(tier);
-                  }
+                      try { if (typeof window !== 'undefined') localStorage.setItem('inCheckout', 'true'); } catch (e) {}
+                      handleSingleSongPurchase({ songId: songId || undefined });
+                    } else {
+                      try { if (typeof window !== 'undefined') localStorage.setItem('inCheckout', 'true'); } catch (e) {}
+                      handleSubscribe(tier);
+                    }
                 }}
                 disabled={isLoading === tier.id}
                 className={

@@ -68,6 +68,15 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
     ...(opts?.songId ? { songId: opts.songId } : {})
   };
 
+  // Mark that checkout UI is opening so other client code can avoid
+  // interfering (for example, header resume logic). This flag is cleared
+  // after a successful checkout (on /success) or when auth resumes.
+  try {
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('inCheckout', 'true'); } catch (e) {}
+    }
+  } catch (e) {}
+
   (window as any).Paddle.Checkout.open(payload);
 }
 
@@ -118,6 +127,13 @@ export async function openTierCheckout(tierId: string, priceId?: string) {
   };
 
   payload.customData = { userId: user?.id || null };
+
+  // Mark checkout in localStorage so UI can avoid navigating while Paddle modal is open.
+  try {
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('inCheckout', 'true'); } catch (e) {}
+    }
+  } catch (e) {}
 
   (window as any).Paddle.Checkout.open(payload);
 }

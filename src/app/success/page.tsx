@@ -10,6 +10,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import ClaimPurchaseInline from '../../components/ClaimPurchaseInline';
 import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { useEffect } from 'react';
 
 export default function SuccessPage() {
   const supabase = createClientComponentClient();
@@ -30,6 +31,34 @@ export default function SuccessPage() {
       setSending(false);
     }
   };
+
+  useEffect(() => {
+    // If a pending client token exists (we saved it in checkout), try to
+    // claim the purchase automatically. This will link the purchase to an
+    // app user account on the server; it's best-effort and if it can't fully
+    // create a session the UI will fall back to the magic-link flow already
+    // provided below.
+    (async () => {
+      try {
+        if (typeof window === 'undefined') return;
+        const token = localStorage.getItem('pendingClientToken');
+        if (!token) return;
+        // Call claim endpoint
+        const res = await fetch('/api/claim-purchase', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientToken: token }) });
+        const data = await res.json();
+        if (data?.success && data?.claimed) {
+          // Clear pending token so we don't retry repeatedly
+          try { localStorage.removeItem('pendingClientToken'); } catch (e) {}
+          // Optionally you could refresh or navigate; we keep the page and
+          // let the user sign in if needed via the ClaimPurchaseInline.
+          console.log('Purchase claimed via token', data);
+        }
+      } catch (e) {
+        // ignore — fall back to claim UI
+        console.warn('Auto-claim attempt failed', e);
+      }
+    })();
+  }, []);
   return (
     <div className="min-h-screen bg-black">
       <AnimatedBackground />
