@@ -34,14 +34,26 @@ export default function CheckoutContent() {
   useEffect(() => {
     const processCheckout = async () => {
       try {
-        // Verify user is logged in
+        // Verify user is logged in (try getUser then fallback to getSession)
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          // redirect to consolidated auth page and return to checkout after login
-          router.push(`/auth?redirectTo=${encodeURIComponent('/checkout')}`);
+        let resolvedUser = user;
+        if (!resolvedUser) {
+          try {
+            const { data: sessionData } = await supabase.auth.getSession();
+            if (sessionData?.session?.user) resolvedUser = sessionData.session.user;
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        if (!resolvedUser) {
+          // If the user isn't signed in, send them to the pricing page rather
+          // than forcing an automatic OAuth flow. Pricing shows both one-time
+          // and subscription options.
+          router.push('/pricing');
           return;
         }
-        setUserEmail(user.email || null);
+        setUserEmail(resolvedUser.email || null);
 
         // Get tier from query params
         const tier = searchParams.get("tier") || "premium";

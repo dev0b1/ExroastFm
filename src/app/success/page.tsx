@@ -5,10 +5,31 @@ import Link from "next/link";
 import { FaCheckCircle, FaDownload, FaMusic } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import ClaimPurchaseInline from '../../components/ClaimPurchaseInline';
 import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function SuccessPage() {
+  const supabase = createClientComponentClient();
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const sendMagicLink = async () => {
+    setSending(true);
+    try {
+      const redirectTo = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`;
+      await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+      setSent(true);
+    } catch (e) {
+      console.error('Error sending magic link', e);
+      alert('Unable to send magic link. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-black">
       <AnimatedBackground />
@@ -75,6 +96,11 @@ export default function SuccessPage() {
                 A receipt has been sent to your email. You can manage your subscription 
                 and downloads from your account dashboard.
               </p>
+
+              {/* If user is not signed in, offer a simple way to claim the purchase */}
+              <div className="mt-4">
+                <ClaimPurchaseInline />
+              </div>
             </div>
           </motion.div>
         </div>

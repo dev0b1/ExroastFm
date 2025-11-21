@@ -43,16 +43,36 @@ export default function AuthCompleteClient() {
           return;
         }
 
-        const decoded = decodeURIComponent(returnToRaw);
-        if (!decoded.startsWith('/')) {
+        // Check if we persisted an intended purchase (resume flow)
+        let resumePath: string | null = null;
+        try {
+          const raw = localStorage.getItem('intendedPurchase');
+          if (raw) {
+            const payload = JSON.parse(raw);
+            if (payload && payload.type) {
+              if (payload.type === 'single') {
+                resumePath = payload.songId ? `/checkout?type=single&songId=${encodeURIComponent(payload.songId)}` : `/checkout?type=single`;
+              } else if (payload.type === 'tier') {
+                resumePath = payload.tierId ? `/checkout?tier=${encodeURIComponent(payload.tierId)}` : `/pricing`;
+              }
+            }
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+
+        const finalPath = resumePath || decodeURIComponent(returnToRaw || '/');
+        if (!finalPath.startsWith('/')) {
           router.push('/');
           return;
         }
 
         try {
           localStorage.setItem('justSignedIn', 'true');
+          // Clear intended purchase so it doesn't trigger repeatedly
+          localStorage.removeItem('intendedPurchase');
         } catch (e) {}
-        router.push(decoded);
+        router.push(finalPath);
       } catch (err) {
         console.error('Auth finalize error', err);
         router.push('/');

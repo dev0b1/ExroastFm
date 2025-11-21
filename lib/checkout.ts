@@ -23,31 +23,17 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
   }
 
   if (!resolvedUser) {
-    // Save the intended purchase so we can resume after sign-in.
+    // If user not signed in, don't automatically start OAuth anymore.
+    // Instead, redirect them to the pricing page so they can choose a plan
+    // or sign in explicitly. This avoids unexpected OAuth popups when the
+    // user's session is actually present but briefly uninitialized.
     if (typeof window !== 'undefined') {
       try {
+        // Persist intended purchase so the flow can be resumed if desired.
         const payload = { type: 'single', songId: opts?.songId || null, ts: Date.now() };
         localStorage.setItem('intendedPurchase', JSON.stringify(payload));
-      } catch (e) {
-        // ignore localStorage errors
-      }
-      // Start OAuth and redirect to our server callback so it can exchange
-      // the code for a session cookie. After exchange the callback will
-      // redirect back to the desired checkout path.
-      try {
-  const dest = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;
-  const redirectToFull = `${window.location.origin}/auth/callback`;
-        try {
-          if (typeof document !== 'undefined') {
-            document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
-          }
-        } catch (e) {}
-        await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectToFull } });
-      } catch (e) {
-        // fallback to simple flow if options unsupported
-        await supabase.auth.signInWithOAuth({ provider: 'google' });
-      }
-      return;
+      } catch (e) {}
+      window.location.href = '/pricing';
     }
     return;
   }
@@ -87,29 +73,25 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
 
 export async function openTierCheckout(tierId: string, priceId?: string) {
   const supabase = createClientComponentClient();
+  // Re-check session briefly to avoid stale nulls; prefer getUser then getSession.
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    // Save the intended tier purchase so we can resume after sign in.
+  let resolvedUser = user;
+  if (!resolvedUser) {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) resolvedUser = sessionData.session.user;
+    } catch (e) {}
+  }
+
+  if (!resolvedUser) {
+    // Don't auto-trigger OAuth. Send user to pricing so they can explicitly
+    // choose to sign in or pick a plan.
     if (typeof window !== 'undefined') {
       try {
         const payload = { type: 'tier', tierId, priceId: priceId || null, ts: Date.now() };
         localStorage.setItem('intendedPurchase', JSON.stringify(payload));
-      } catch (e) {
-        // ignore localStorage errors
-      }
-      try {
-  const dest = `/checkout?tier=${tierId}`;
-        const redirectToFull = `${window.location.origin}/auth/callback`;
-        try {
-          if (typeof document !== 'undefined') {
-            document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
-          }
-        } catch (e) {}
-        await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectToFull } });
-      } catch (e) {
-        await supabase.auth.signInWithOAuth({ provider: 'google' });
-      }
-      return;
+      } catch (e) {}
+      window.location.href = '/pricing';
     }
     return;
   }
