@@ -5,9 +5,24 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 export async function openSingleCheckout(opts?: { songId?: string | null }) {
   const supabase = createClientComponentClient();
 
-  // If user not signed in, start OAuth and redirect to /auth/complete
+  // If user not signed in, try to detect session first. There are cases where
+  // getUser() can return null briefly in client-rendered contexts; fall back
+  // to getSession() to avoid mis-detecting logged-in users and redirecting
+  // them to OAuth unexpectedly.
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
+  let resolvedUser = user;
+  if (!resolvedUser) {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) {
+        resolvedUser = sessionData.session.user;
+      }
+    } catch (e) {
+      // ignore and proceed to OAuth flow below
+    }
+  }
+
+  if (!resolvedUser) {
     // Save the intended purchase so we can resume after sign-in.
     if (typeof window !== 'undefined') {
       try {
@@ -21,7 +36,7 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
       // redirect back to the desired checkout path.
       try {
   const dest = opts?.songId ? `/checkout?songId=${opts.songId}` : `/checkout?type=single`;
-        const redirectToFull = `${window.location.origin}/auth/callback`;
+  const redirectToFull = `${window.location.origin}/auth/callback`;
         try {
           if (typeof document !== 'undefined') {
             document.cookie = `post_auth_redirect=${encodeURIComponent(dest)}; path=/; max-age=600`;
@@ -36,6 +51,8 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
     }
     return;
   }
+  // Use resolvedUser for checkout payload
+  const userToUse = resolvedUser;
 
   if (typeof window === 'undefined') return;
   if (!(window as any).Paddle) {
@@ -61,7 +78,7 @@ export async function openSingleCheckout(opts?: { songId?: string | null }) {
   };
 
   payload.customData = {
-    userId: user?.id || null,
+    userId: userToUse?.id || null,
     ...(opts?.songId ? { songId: opts.songId } : {})
   };
 

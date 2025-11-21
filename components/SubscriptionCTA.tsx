@@ -169,16 +169,11 @@ export function SubscriptionCTA({ songId, autoOpenSingle }: SubscriptionCTAProps
     }
   };
 
-  // If the component was mounted with autoOpenSingle and a songId, open checkout once
-  useEffect(() => {
-      if (autoOpenSingle && songId) {
-      // small next tick to allow Paddle to load
-      setTimeout(() => {
-        openSingleCheckout({ songId });
-      }, 200);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoOpenSingle, songId, user]);
+  // NOTE: autoOpenSingle previously automatically opened the single-song checkout
+  // when the component mounted. That caused accidental purchases when upstream
+  // flows set the flag (for example, after a preview/upsell). To avoid unexpected
+  // checkout openings, we intentionally DO NOT auto-open checkout here. Users
+  // must explicitly click the purchase button to start the checkout flow.
 
   return (
     <div className="space-y-8">

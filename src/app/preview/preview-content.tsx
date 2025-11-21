@@ -15,6 +15,7 @@ import { LyricsOverlay } from "@/components/LyricsOverlay";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { FaLock, FaDownload, FaPlay, FaPause } from "react-icons/fa";
 import { getDailySavageQuote } from "@/lib/suno-nudge";
+import { openSingleCheckout } from '@/lib/checkout';
 
 interface Song {
   id: string;
@@ -37,10 +38,6 @@ export default function PreviewContent() {
   const [showSubscription, setShowSubscription] = useState(false);
   const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-  // If the user selects the one-time unlock from the upsell, we set this to
-  // true so the SubscriptionCTA will auto-open the single-song checkout for
-  // this song (by passing songId + custom data to Paddle).
-  const [pendingSinglePurchase, setPendingSinglePurchase] = useState(false);
   const [showDailyQuoteOptIn, setShowDailyQuoteOptIn] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -216,7 +213,9 @@ export default function PreviewContent() {
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${song?.id}` : '';
 
   return (
-    <main className="pt-32 pb-20 relative z-10">
+    <div>
+      <Header />
+      <main className="pt-32 pb-20 relative z-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -363,7 +362,7 @@ export default function PreviewContent() {
               {/* Pass songId so single-song purchases attach custom_data for webhook fulfillment.
                   If pendingSinglePurchase is true, autoOpenSingle will cause SubscriptionCTA to
                   immediately open the single-song checkout. */}
-              <SubscriptionCTA songId={song?.id} autoOpenSingle={pendingSinglePurchase} />
+              <SubscriptionCTA songId={song?.id} autoOpenSingle={false} />
             </motion.div>
           )}
 
@@ -393,6 +392,7 @@ export default function PreviewContent() {
           </div>
         </motion.div>
       </div>
+      </main>
 
       <SubscriptionModal 
         isOpen={showFirstTimeModal} 
@@ -402,14 +402,18 @@ export default function PreviewContent() {
       <UpsellModal
         isOpen={showUpsellModal}
         onClose={() => setShowUpsellModal(false)}
-        onUpgrade={(tier) => {
+        onUpgrade={async (tier) => {
           console.log('Upgrading to:', tier);
           setShowUpsellModal(false);
-          // If the user selected the one-time full unlock, mark a pending single purchase
-          // so the SubscriptionCTA will auto-open the single-song checkout for this song.
+          // For one-time purchases we open the single-song checkout directly
+          // from the user's click. This keeps the flow explicit and avoids
+          // any accidental auto-open behavior.
           if (tier === 'one-time') {
-            setPendingSinglePurchase(true);
-            setShowSubscription(true);
+            try {
+              await openSingleCheckout({ songId: song?.id });
+            } catch (e) {
+              console.error('Error opening single checkout from upsell:', e);
+            }
           } else {
             setShowSubscription(true);
           }
@@ -427,6 +431,7 @@ export default function PreviewContent() {
         onOptIn={handleDailyQuoteOptIn}
         isPro={song?.isPurchased || false}
       />
-    </main>
+      <Footer />
+    </div>
   );
 }

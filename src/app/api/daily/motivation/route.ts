@@ -32,7 +32,9 @@ export async function POST(request: NextRequest) {
     // Decide whether to generate audio: honor client preferAudio flag but only proceed
     // if user has opted in or is Pro. We also compute a thumbnail for unsubscribed users
     // and return a previewDuration so the client enforces a 15s preview + upsell.
-    let motivationAudioUrl: string | undefined = undefined;
+  let motivationAudioUrl: string | undefined = undefined;
+  let audioLimitReached = false;
+  let audioLimitReason: string | null = null;
 
     // Fetch preferences/subscription once and reuse below
     const prefs = await getUserPreferences(userId);
@@ -49,9 +51,13 @@ export async function POST(request: NextRequest) {
         if (isFree && credits.audioNudgesThisWeek >= 1) {
           // free user exhausted weekly free audio nudges: skip generation and continue with text-only
           console.log('Free user weekly audio nudge limit reached, skipping audio generation');
+          audioLimitReached = true;
+          audioLimitReason = 'free_weekly_limit_reached';
         } else if (isPro && credits.creditsRemaining <= 0) {
           // pro user has no credits remaining
           console.log('Pro user has no credits remaining, skipping audio generation');
+          audioLimitReached = true;
+          audioLimitReason = 'pro_no_credits';
         } else {
           // Use streak as a basic day number context
           const streakData = await getUserStreak(userId);
@@ -110,7 +116,9 @@ export async function POST(request: NextRequest) {
       motivationAudioUrl: motivationAudioUrl || null,
       streak: reportedStreak,
       previewDuration,
-      thumbnailUrl
+      thumbnailUrl,
+      audioLimitReached,
+      audioLimitReason
     });
   } catch (error) {
     console.error('Error generating motivation:', error);
