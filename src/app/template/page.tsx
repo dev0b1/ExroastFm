@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { openTierCheckout } from '@/lib/checkout';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
@@ -220,7 +221,7 @@ export default function TemplatePage() {
                   Demo template — this plays the full demo. Upgrade to get a personalized song.
                 </p>
                 <button
-                  onClick={() => router.push('/checkout?tier=premium')}
+                  onClick={async () => { try { await openTierCheckout('premium'); } catch (e) { console.error('Open checkout failed', e); window.location.href = '/pricing'; } }}
                   className="bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black font-bold px-6 py-3 rounded-full focus:outline-none focus:ring-4 focus:ring-exroast-gold/60"
                 >
                   Upgrade for a personalized song

@@ -314,7 +314,7 @@ export function Header({ userProp }: { userProp?: any }) {
               className="md:hidden mt-4 pb-4 space-y-4"
             >
               <button
-                onClick={() => { setMobileMenuOpen(false); router.push('/checkout'); }}
+                onClick={async () => { setMobileMenuOpen(false); try { await openTierCheckout('premium'); } catch (e) { console.error('Open checkout failed', e); window.location.href = '/pricing'; } }}
                 className="w-full bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black px-4 py-3 rounded-full font-bold focus:outline-none focus:ring-4 focus:ring-exroast-gold/60"
               >
                 Upgrade

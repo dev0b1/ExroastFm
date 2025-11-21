@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { openTierCheckout } from '@/lib/checkout';
 import { motion } from "framer-motion";
 import { FaSpinner, FaMusic, FaFire } from "react-icons/fa";
 import { ConfettiPop } from "@/components/ConfettiPop";
@@ -343,9 +344,13 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
         <UpsellModal
           isOpen={showUpsellModal}
           onClose={() => setShowUpsellModal(false)}
-          onUpgrade={(tier) => {
-            // navigate to checkout with desired tier
-            window.location.href = `/checkout?tier=${tier === 'one-time' ? 'single' : 'premium'}`;
+          onUpgrade={async (tier) => {
+            try {
+              await openTierCheckout(tier === 'one-time' ? 'single' : 'premium');
+            } catch (err) {
+              console.error('Failed to open checkout from DailyCheckInTab', err);
+              try { window.location.href = `/pricing`; } catch (e) {}
+            }
           }}
         />
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from "next/navigation";
+import { openSingleCheckout, openTierCheckout } from "@/lib/checkout";
 
 export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: () => void }) {
   const supabase = createClientComponentClient();
@@ -156,7 +157,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => { router.push('/checkout'); onClose?.(); }}
+              onClick={async () => { onClose?.(); try { await openTierCheckout('premium'); } catch (e) { console.error('Open checkout failed', e); window.location.href = '/pricing'; } }}
               className="hidden sm:inline-flex items-center bg-gradient-to-r from-[#ff006e] via-[#ff4791] to-[#ffd23f] text-black font-extrabold px-6 py-3 rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(255,0,110,0.6)] hover:scale-105 transition-all duration-200"
             >
               <span>Upgrade</span>
@@ -212,7 +213,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                 </div>
                 <button
                   type="button"
-                  onClick={() => { router.push('/checkout?tier=unlimited'); onClose?.(); }}
+                  onClick={async () => { onClose?.(); try { await openTierCheckout('unlimited'); } catch (e) { console.error('Open checkout failed', e); window.location.href = '/pricing'; } }}
                   className="w-full bg-gradient-to-r from-exroast-pink to-purple-600 px-5 py-3 rounded-xl font-bold text-white shadow-lg hover:shadow-[0_0_20px_rgba(255,0,110,0.4)] hover:scale-[1.02] transition-all duration-200"
                 >
                   Go Unlimited 🚀
@@ -226,7 +227,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
               <div className="space-y-2">
                 <button
                   type="button"
-                  onClick={() => { router.push('/checkout'); onClose?.(); }}
+                  onClick={async () => { onClose?.(); try { await openSingleCheckout(); } catch (e) { console.error('Open single checkout failed', e); window.location.href = '/pricing'; } }}
                   className="group w-full text-left px-5 py-4 rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] hover:from-exroast-pink/10 hover:to-purple-500/10 border border-white/10 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
