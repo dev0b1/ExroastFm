@@ -1,5 +1,6 @@
 import { createSunoNudgeClient } from '../lib/suno-nudge';
 import { claimPendingJob, markJobSucceeded, markJobFailed, saveAudioNudge, refundCredit } from '../lib/db-service';
+import { createSunoClient } from '../lib/suno';
 import { eq } from 'drizzle-orm';
 
 async function sleep(ms: number) { return new Promise(res => setTimeout(res, ms)); }
@@ -30,6 +31,22 @@ async function processJob(job: any) {
       }
 
       await markJobSucceeded(jobId, result.audioUrl);
+    } else if (job.type === 'song') {
+      const { songId, userId, prompt, title, tags, style, reservedCredit } = payload;
+      const sunoSongClient = await import('../lib/suno');
+      const suno = sunoSongClient.createSunoClient();
+      const musicResult = await suno.generateSong({ prompt, title, tags, style });
+
+      // update songs table with returned URLs, duration, lyrics when available
+      try {
+        const { db } = await import('../server/db');
+        const { songs } = await import('../src/db/schema');
+        await db.update(songs).set({ previewUrl: musicResult.audioUrl, fullUrl: musicResult.videoUrl || musicResult.audioUrl, duration: musicResult.duration || 60, lyrics: musicResult.lyrics || undefined }).where(eq((songs as any).id, songId));
+      } catch (e) {
+        console.warn('Failed to update song record after generation:', e);
+      }
+
+      await markJobSucceeded(jobId, musicResult.audioUrl);
     } else {
       await markJobFailed(jobId, `Unsupported job type: ${job.type}`);
     }

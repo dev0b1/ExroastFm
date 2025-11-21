@@ -27,6 +27,19 @@ export default function AppPage() {
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
+    // Allow ?tab=roast or ?tab=daily to pre-select the tab when linking from preview
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        const tabParam = params.get('tab');
+        if (tabParam === 'roast' || tabParam === 'daily') {
+          setCurrentTab(tabParam as Tab);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
     let mounted = true;
     let authSubscription: any = null;
 

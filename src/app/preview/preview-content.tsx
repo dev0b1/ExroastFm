@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { SubscriptionCTA } from "@/components/SubscriptionCTA";
 import { SubscriptionModal } from "@/components/SubscriptionModal";
 import { UpsellModal } from "@/components/UpsellModal";
@@ -13,7 +12,8 @@ import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { FaLock, FaDownload, FaPlay, FaPause } from "react-icons/fa";
+import Link from "next/link";
+import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell } from "react-icons/fa";
 import { getDailySavageQuote } from "@/lib/suno-nudge";
 import { openSingleCheckout } from '@/lib/checkout';
 
@@ -332,21 +332,20 @@ export default function PreviewContent() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gradient mb-2">
-                  Unlock the Full Song
+                  Get Your Personalized Song
                 </h3>
                 <p className="text-white mb-4">
-                  Love what you hear? Get the complete song, download it as an MP3, 
-                  and share it with the world. Choose a subscription or buy just this one song.
+                  This preview is a polished demo. Want a personalized version tailored to your story — with exclusive mastering and a downloadable MP3? Upgrade to get the full, personalized track delivered to you.
                 </p>
                 {!showSubscription && (
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setShowSubscription(true)}
-                    className="btn-primary flex items-center space-x-2"
+                    className="btn-primary rounded-none flex items-center space-x-2"
                   >
                     <FaDownload />
-                    <span>Unlock Full Song</span>
+                    <span>Upgrade to Personalized</span>
                   </motion.button>
                 )}
               </div>
@@ -431,7 +430,34 @@ export default function PreviewContent() {
         onOptIn={handleDailyQuoteOptIn}
         isPro={song?.isPurchased || false}
       />
-      <Footer />
+      {/* Mobile Bottom Navigation Bar (replicated from app/page.tsx for preview route) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/20 h-20">
+        <div className="h-full flex items-stretch">
+          <Link
+            href="/app?tab=roast"
+            className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 text-gray-400`}
+          >
+            <FaFire className="text-2xl" />
+            <span className="text-xs font-bold">Roast</span>
+          </Link>
+
+          <Link
+            href="/app?tab=daily"
+            className="w-32 flex flex-col items-center justify-center bg-gradient-to-t from-purple-900/20 to-transparent border-x border-white/10"
+          >
+            <div className="text-lg font-black text-white leading-tight">Day</div>
+            <div className="text-xs text-gray-400 font-bold">strong</div>
+          </Link>
+
+          <Link
+            href="/app?tab=daily"
+            className={`relative flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 text-gray-400`}
+          >
+            <FaDumbbell className="text-2xl" />
+            <span className="text-xs font-bold">Daily</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   );
 }

@@ -71,10 +71,13 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
     try {
       const endpoint = isPro ? '/api/generate-song' : '/api/generate-preview';
 
+      const payload: any = { story, style };
+      if (userId) payload.userId = userId;
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story, style }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();

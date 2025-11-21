@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaFire, FaDumbbell } from "react-icons/fa";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function HomePage() {
@@ -117,6 +118,7 @@ export default function HomePage() {
           </section>
         </main>
       </div>
+      <Footer />
     </div>
   );
 }

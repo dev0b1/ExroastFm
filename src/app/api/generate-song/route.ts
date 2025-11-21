@@ -3,7 +3,7 @@ import { db } from '@/server/db';
 import { songs } from '@/src/db/schema';
 import { SongStyle } from '@/lib/lyrics';
 import { createOpenRouterClient } from '@/lib/openrouter';
-import { createSunoClient } from '@/lib/suno';
+import { enqueueAudioJob, reserveCredit, refundCredit } from '@/lib/db-service';
 
 interface GenerateSongRequest {
   story: string;
@@ -57,40 +57,13 @@ export async function POST(request: NextRequest) {
       console.log('Using fallback prompt template');
     }
 
-    let previewUrl = '';
-    let fullUrl = '';
+    let previewUrl = '/audio/placeholder-preview.mp3';
+    let fullUrl = '/audio/placeholder-full.mp3';
     let lyrics = promptResult.prompt;
     let duration = 30;
 
-    const sunoClient = createSunoClient();
-    
-    try {
-      console.log('Step 3: Generating music with Suno AI...');
-      
-      const musicResult = await sunoClient.generateSong({
-        prompt: promptResult.prompt,
-        title: promptResult.title,
-        tags: promptResult.tags,
-        style,
-      });
-
-      previewUrl = musicResult.audioUrl;
-      fullUrl = musicResult.videoUrl || musicResult.audioUrl;
-      duration = musicResult.duration || 60;
-      
-      if (musicResult.lyrics && musicResult.lyrics.length > lyrics.length) {
-        lyrics = musicResult.lyrics;
-      }
-
-      console.log('Music generated successfully');
-    } catch (musicError) {
-      console.warn('Suno music generation failed, using placeholder:', musicError);
-      
-      previewUrl = '/audio/placeholder-preview.mp3';
-      fullUrl = '/audio/placeholder-full.mp3';
-      duration = 10;
-    }
-
+    // Insert a song row immediately with placeholder URLs. We'll enqueue a background
+    // job to generate the actual audio and update this song when complete.
     const [song] = await db.insert(songs).values({
       title: promptResult.title,
       story,
@@ -103,13 +76,43 @@ export async function POST(request: NextRequest) {
       isPurchased: false,
     }).returning();
 
-    return NextResponse.json({
-      success: true,
+    // If the request provided a userId (or via header), attempt to reserve a credit
+    // for pro users before enqueueing the job. The client may pass userId in body.
+    const bodyJson = await request.json().catch(() => ({}));
+    const userId = (bodyJson && bodyJson.userId) || (request.headers.get('x-user-id') || null);
+    let reservedCredit = false;
+    if (userId) {
+      try {
+        reservedCredit = await reserveCredit(userId);
+        if (!reservedCredit) {
+          // return an error indicating no credits
+          return NextResponse.json({ success: false, error: 'no_credits' }, { status: 402 });
+        }
+      } catch (e) {
+        console.warn('Failed to reserve credit for user:', e);
+      }
+    }
+
+    const jobPayload = {
       songId: song.id,
+      userId: userId,
+      prompt: promptResult.prompt,
       title: promptResult.title,
-      lyrics: lyrics,
-      message: 'Song generated successfully',
-    });
+      tags: promptResult.tags,
+      style,
+      reservedCredit
+    };
+
+    const jobId = await enqueueAudioJob({ userId: userId || song.id, type: 'song', payload: jobPayload });
+    if (!jobId) {
+      // enqueue failed: refund reserved credit if any
+      if (reservedCredit && userId) {
+        try { await refundCredit(userId); } catch (e) { console.warn('Failed to refund credit after enqueue failure', e); }
+      }
+      return NextResponse.json({ success: false, error: 'failed_to_enqueue' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, songId: song.id, jobId, title: promptResult.title, lyrics });
   } catch (error) {
     console.error('Error generating song:', error);
     return NextResponse.json(
