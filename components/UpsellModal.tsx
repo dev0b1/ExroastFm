@@ -24,130 +24,77 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
             onClick={onClose}
           />
           
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto"
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto px-4"
           >
-            <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl p-8 border-2 border-exroast-pink/50 shadow-2xl">
+            <div className="bg-gradient-to-br from-[#0b0710] to-[#120816] rounded-2xl p-6 sm:p-8 border border-exroast-pink/30 shadow-2xl">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                aria-label="Close upsell"
               >
                 <FaTimes className="text-2xl" />
               </button>
 
-              <div className="text-center mb-8">
-                <h2 className="text-4xl md:text-5xl font-black mb-3">
-                  <span className="bg-gradient-to-r from-exroast-pink to-exroast-gold bg-clip-text text-transparent">
-                    That Template Slaps! 🔥
-                  </span>
+              <div className="text-center mb-4 sm:mb-6">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 text-white">
+                  This Was Only a Demo — Get Your Personalized Version 🎵
                 </h2>
-                <p className="text-xl text-gray-300">
-                  But imagine YOUR ex's EXACT crimes getting roasted...
+                <p className="text-sm sm:text-base text-gray-300 max-w-[46rem] mx-auto leading-relaxed">
+                  This track was a template demo.
+                  <br />
+                  Your personalized version will be fully rewritten using your story, your details, and your chosen style.
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-                  <h3 className="text-2xl font-black text-gray-400 mb-4">
-                    Free (Current)
-                  </h3>
-                  <ul className="space-y-3 text-gray-400">
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-gray-500 mt-1 flex-shrink-0" />
-                      <span>Fun library templates</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-gray-500 mt-1 flex-shrink-0" />
-                      <span>Matched to your vibe</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-gray-500 mt-1 flex-shrink-0" />
-                      <span>15-second previews</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaTimes className="text-red-500 mt-1 flex-shrink-0" />
-                      <span className="line-through">Personalized lyrics</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaTimes className="text-red-500 mt-1 flex-shrink-0" />
-                      <span className="line-through">Screenshot upload</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaTimes className="text-red-500 mt-1 flex-shrink-0" />
-                      <span className="line-through">Full song (30-35s)</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-gradient-to-br from-exroast-pink/20 to-exroast-gold/20 rounded-xl p-6 border-2 border-exroast-gold relative overflow-hidden">
-                  <div className="absolute top-2 right-2">
-                    <FaCrown className="text-exroast-gold text-3xl" />
-                  </div>
-                  
-                  <h3 className="text-2xl font-black text-exroast-gold mb-4">
-                    Pro (Upgrade)
-                  </h3>
-                  <ul className="space-y-3 text-white">
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                      <span><strong>Tailored Suno AI songs</strong> from YOUR story</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaImage className="text-exroast-gold mt-1 flex-shrink-0" />
-                      <span><strong>Upload chat screenshots</strong> for hyper-personal roasts</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                      <span><strong>Full 30-35s songs</strong> (no watermark)</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                      <span><strong>More relatable lyrics</strong> - zero robotic</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                      <span><strong>Ultra-petty digs</strong> on your ex's exact crimes</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <FaRocket className="text-exroast-gold mt-1 flex-shrink-0" />
-                      <span><strong>Unlimited history</strong> & sharing</span>
-                    </li>
-                  </ul>
-                </div>
+              <div className="space-y-4 sm:space-y-6 mb-4">
+                <ul className="max-w-[48rem] mx-auto space-y-3 text-gray-200 text-sm sm:text-base">
+                  <li className="flex items-start gap-3">
+                    <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
+                    <span>Custom lyrics tailored to your breakup</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
+                    <span>Your tone, names, emotions, and situation woven into the song</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
+                    <span>High-quality mastering + clean audio</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
+                    <span>Delivered instantly after purchase</span>
+                  </li>
+                </ul>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center mb-3">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => onUpgrade('one-time')}
-                  className="bg-gray-700 hover:bg-gray-600 text-white font-black py-4 px-6 rounded-full text-lg border-2 border-gray-600 transition-all"
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#ff6aa2] to-[#ffd23f] text-black font-extrabold py-3 px-6 rounded-full text-lg shadow-lg"
                 >
-                  <div className="text-2xl mb-1">{SINGLE_LABEL}</div>
-                  <div className="text-sm font-normal">{SINGLE_BUTTON_TEXT}</div>
+                  Get My Personalized Song – $4.99
                 </motion.button>
 
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={() => onUpgrade('unlimited')}
-                  className="bg-gradient-to-r from-exroast-pink to-exroast-gold text-white font-black py-4 px-6 rounded-full text-lg border-2 border-exroast-gold transition-all shadow-lg shadow-exroast-pink/50"
+                  className="text-sm text-gray-300 underline hover:text-white bg-transparent px-2 py-1"
                 >
-                  <div className="text-2xl mb-1">{PREMIUM_LABEL}</div>
-                  <div className="text-sm font-normal">{PREMIUM_BUTTON_TEXT}</div>
-                  <div className="text-xs font-normal mt-1">⭐ Most Popular</div>
-                </motion.button>
+                  Or unlock unlimited personalized tracks weekly
+                </button>
               </div>
 
-              <p className="text-center text-gray-500 text-sm mt-6">
-                Secure checkout powered by Paddle. Cancel anytime.
+              <p className="text-center text-gray-400 text-sm mt-2">
+                Join 10,000+ people turning their stories into powerful music.
               </p>
             </div>
           </motion.div>

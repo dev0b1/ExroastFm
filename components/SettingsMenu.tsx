@@ -180,24 +180,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left column */}
           <div className="space-y-4">
-            <button
-              type="button"
-              onClick={() => { router.push('/account'); onClose?.(); }}
-              className="group w-full text-left px-5 py-4 rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] hover:from-white/10 hover:to-white/5 border border-white/10 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-exroast-pink/20 flex items-center justify-center group-hover:bg-exroast-pink/30 transition-colors">
-                  <span className="text-xl">⚙️</span>
-                </div>
-                <div>
-                  <div className="font-bold text-white">Account</div>
-                  <div className="text-xs text-white/60">Manage profile</div>
-                </div>
-              </div>
-              <svg className="w-5 h-5 text-white/40 group-hover:text-exroast-pink transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            {/* Account panel removed per UX: we don't expose an account nav here */}
 
             <div className="relative bg-gradient-to-br from-[#1a0f1f] via-[#0f0a15] to-[#0a0a0c] p-6 rounded-xl border border-exroast-pink/30 shadow-lg overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-exroast-pink/10 rounded-full blur-3xl"></div>
@@ -238,6 +221,34 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    onClose?.();
+                    try {
+                      // prefer an explicit credits price id env var, fall back to premium price
+                      const creditsPrice = (process.env.NEXT_PUBLIC_PADDLE_PRICE_CREDITS || process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM) as string | undefined;
+                      if (creditsPrice) {
+                        await openTierCheckout('credits', creditsPrice);
+                      } else {
+                        // fallback to single checkout if no credits price configured
+                        await openSingleCheckout();
+                      }
+                    } catch (e) {
+                      console.error('Open buy credits failed', e);
+                      window.location.href = '/pricing';
+                    }
+                  }}
+                  className="group w-full text-left px-5 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">➕</span>
+                    <span className="font-semibold text-white">Buy Credits</span>
+                  </div>
+                  <svg className="w-5 h-5 text-white/40 group-hover:text-exroast-pink transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -272,7 +283,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                     <button
                       type="button"
                       key={r.id}
-                      onClick={() => { onClose?.(); router.push(`/preview?songId=${r.id}`); }}
+                      onClick={() => { onClose?.(); router.push('/app?tab=roast'); }}
                       className="group w-full text-left px-4 py-3 rounded-lg bg-white/[0.02] hover:bg-gradient-to-r hover:from-exroast-pink/10 hover:to-purple-500/10 border border-white/5 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">

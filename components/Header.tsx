@@ -247,25 +247,39 @@ export function Header({ userProp }: { userProp?: any }) {
             {/* Auth area */}
             {user ? (
               <div className="relative flex items-center gap-3">
-                {/* Desktop 'My Roasts' quick access (matches mobile) */}
-                <button
-                  onClick={() => setShowSettingsMenu(true)}
-                  className="hidden md:inline-flex items-center bg-white/5 px-3 py-2 rounded-full font-bold text-sm"
-                >
-                  My Roasts
-                </button>
+                {/* Desktop credits + upgrade/buy UI - non-navigable account area */}
+                <div className="hidden md:flex items-center gap-4">
+                  <div className="text-sm text-white/90">Credits: <span className="font-bold text-exroast-pink">{mobileCredits ?? 0}</span></div>
+                  <button
+                    onClick={async () => { try { await openTierCheckout('premium'); } catch (e) { console.error('Open checkout failed', e); window.location.href = '/pricing'; } }}
+                    className="hidden lg:inline-flex items-center bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black px-3 py-2 rounded-full font-bold"
+                  >
+                    Upgrade
+                  </button>
+                  <button
+                    onClick={async () => { try { await openSingleCheckout(); } catch (e) { console.error('Open single checkout failed', e); window.location.href = '/pricing'; } }}
+                    className="inline-flex items-center bg-white/5 px-3 py-2 rounded-full font-bold text-sm"
+                  >
+                    Buy Credits
+                  </button>
+                  <button
+                    onClick={() => router.push('/app?tab=roast')}
+                    className="inline-flex items-center bg-white/5 px-3 py-2 rounded-full font-bold text-sm"
+                  >
+                    History
+                  </button>
+                </div>
 
+                {/* avatar + email (click opens settings on desktop) */}
                 <button
                   onClick={() => setShowSettingsMenu(true)}
                   onMouseDown={(e) => e.preventDefault()}
                   aria-haspopup="menu"
                   aria-expanded={showSettingsMenu}
-                  aria-controls="settings-menu"
-                  className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-full"
                   title={user.email}
+                  className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-exroast-pink"
                 >
                   {user?.user_metadata?.avatar_url ? (
-                    // use a simple img tag to avoid next/image complications inside the header
                     <img
                       src={user.user_metadata.avatar_url}
                       alt="avatar"
@@ -277,7 +291,7 @@ export function Header({ userProp }: { userProp?: any }) {
                   <span className="text-sm text-white/90 truncate max-w-[120px]">{user.email}</span>
                 </button>
 
-                {/* Settings dropdown (opened by account button) */}
+                {/* keep settings modal available for mobile flows only */}
                 <div className="relative">
                   {showSettingsMenu && (
                     <div className="absolute right-0 mt-12" id="settings-menu">
