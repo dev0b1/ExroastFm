@@ -36,72 +36,51 @@ export function SubscriptionModal({ isOpen, onClose }: SubscriptionModalProps) {
             </button>
 
             <div className="text-center space-y-6">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring' }}
-                className="w-20 h-20 mx-auto bg-gradient-to-br from-rose-500 to-purple-500 rounded-full flex items-center justify-center"
-              >
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-rose-500 to-purple-500 rounded-full flex items-center justify-center">
                 <span className="text-4xl">🎵</span>
-              </motion.div>
+              </div>
 
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                  Love your song?
-                </h2>
-                <p className="text-gray-600">
-                  Get unlimited songs for $9/month
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Demo Over 🔥</h2>
+                <p className="text-gray-600 max-w-[36rem] mx-auto">
+                  This was just a template. Your real version will be 100% custom-written with your names, your story, and your chosen vibe.
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-rose-50 to-purple-50 rounded-2xl p-6 space-y-3 text-left">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center mt-0.5">
-                    <FaCheck className="text-white text-xs" />
-                  </div>
-                  <p className="text-gray-700">Unlimited songs, any time</p>
+              <div className="bg-gray-50 rounded-2xl p-4 space-y-2 text-left w-full">
+                <div className="flex items-start gap-3">
+                  <FaCheck className="text-exroast-pink mt-1" />
+                  <span>✓ Lyrics about "he cheated" + your exact details</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center mt-0.5">
-                    <FaCheck className="text-white text-xs" />
-                  </div>
-                  <p className="text-gray-700">No watermark on downloads</p>
+                <div className="flex items-start gap-3">
+                  <FaCheck className="text-exroast-pink mt-1" />
+                  <span>✓ High-quality vocals + clean mastering</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center mt-0.5">
-                    <FaCheck className="text-white text-xs" />
-                  </div>
-                  <p className="text-gray-700">Priority song generation</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center mt-0.5">
-                    <FaCheck className="text-white text-xs" />
-                  </div>
-                  <p className="text-gray-700">Cancel anytime, no commitment</p>
+                <div className="flex items-start gap-3">
+                  <FaCheck className="text-exroast-pink mt-1" />
+                  <span>✓ Downloadable MP3 + no watermark</span>
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 w-full">
                 <Link href="/pricing">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-pink-500 via-[#ff6aa2] to-yellow-400 text-black px-6 py-4 rounded-full font-extrabold text-lg shadow-2xl"
                   >
-                    Subscribe Now
+                    Unlock Full Song →
                   </motion.button>
                 </Link>
-                <button
-                  onClick={onClose}
-                  className="w-full text-gray-600 hover:text-gray-800 font-medium transition-colors"
-                >
-                  Maybe Later
-                </button>
+
+                <Link href="/pricing">
+                  <button className="w-full text-gray-600 hover:text-gray-800 font-medium transition-colors">
+                    Or go unlimited – $12.99/mo
+                  </button>
+                </Link>
               </div>
 
-              <p className="text-xs text-gray-500">
-                Join 10,000+ users healing through music
-              </p>
+              <p className="text-xs text-gray-500">Join 10,000+ people turning their stories into powerful music.</p>
             </div>
           </motion.div>
         </motion.div>

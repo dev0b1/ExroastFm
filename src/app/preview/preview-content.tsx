@@ -167,10 +167,13 @@ export default function PreviewContent() {
 
     if (isPlaying) {
       audioRef.current.pause();
+      setIsPlaying(false);
     } else {
+      // reset the shown-modal flag so replays can show the upsell again
+      hasShownModalRef.current = false;
       audioRef.current.play();
+      setIsPlaying(true);
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleTimeUpdate = () => {
@@ -187,13 +190,25 @@ export default function PreviewContent() {
     // Show subscription modal for first-time users after preview ends
     // Only for unpurchased songs
     if (!song.isPurchased && !hasShownModalRef.current && typeof window !== 'undefined') {
+      // Prioritize first-time modal for anonymous first generation
       const hasGeneratedFirstSong = localStorage.getItem('hasGeneratedFirstSong');
       if (!hasGeneratedFirstSong) {
         setTimeout(() => {
           setShowFirstTimeModal(true);
-          localStorage.setItem('hasGeneratedFirstSong', 'true');
+          try { localStorage.setItem('hasGeneratedFirstSong', 'true'); } catch (e) {}
           hasShownModalRef.current = true;
         }, 500);
+        return;
+      }
+
+      // If this is a demo/template track, always show the upsell modal after it finishes.
+      // We allow it on every replay by resetting hasShownModalRef when playback starts.
+      if (song.isTemplate) {
+        setTimeout(() => {
+          setShowUpsellModal(true);
+          hasShownModalRef.current = true;
+        }, 500);
+        return;
       }
     }
   };
@@ -314,14 +329,16 @@ export default function PreviewContent() {
                     </div>
                   </div>
 
-                  <div className="border-t border-white/10 pt-6">
-                    <h4 className="text-sm font-semibold text-white mb-3">Share Your Song</h4>
-                    <SocialShareButtons 
-                      url={shareUrl}
-                      title={song.title}
-                      message={`Check out my AI-generated breakup song: ${song.title}`}
-                    />
-                  </div>
+                  {song.isPurchased && (
+                    <div className="border-t border-white/10 pt-6">
+                      <h4 className="text-sm font-semibold text-white mb-3">Share Your Song</h4>
+                      <SocialShareButtons 
+                        url={shareUrl}
+                        title={song.title}
+                        message={`I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵`}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -367,30 +384,7 @@ export default function PreviewContent() {
             </motion.div>
           )}
 
-          <div className="card bg-black">
-            <div className="flex items-start space-x-3">
-              <div className="text-2xl">👑</div>
-              <div>
-                <h3 className="font-semibold text-gradient mb-2">
-                  Premium Members Get:
-                </h3>
-                <ul className="space-y-1 text-sm text-white">
-                  <li>• AI-powered savage roast advice tailored to your situation</li>
-                  <li>• No-contact tips and confidence affirmations</li>
-                  <li>• Exclusive roast playlists and power-up guides</li>
-                  <li>• Priority support from our savage community</li>
-                </ul>
-                {!showSubscription && (
-                  <button
-                    onClick={() => setShowSubscription(true)}
-                    className="mt-4 text-exroast-gold font-semibold hover:text-white transition-colors"
-                  >
-                    Learn More →
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          
         </motion.div>
       </div>
       </main>

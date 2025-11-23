@@ -17,6 +17,23 @@ export default function SuccessPage() {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // If this redirect was triggered by a single-song checkout, immediately
+  // route the user to the unlocked victory screen so they see the full-song UI.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const type = params.get('type');
+      const songId = params.get('songId');
+      if (type === 'single' && songId) {
+        // Replace the current history entry with the unlocked page
+        window.location.replace(`/song-unlocked?songId=${encodeURIComponent(songId)}`);
+      }
+    } catch (e) {
+      // ignore
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sendMagicLink = async () => {
     setSending(true);
@@ -31,34 +48,6 @@ export default function SuccessPage() {
       setSending(false);
     }
   };
-
-  useEffect(() => {
-    // If a pending client token exists (we saved it in checkout), try to
-    // claim the purchase automatically. This will link the purchase to an
-    // app user account on the server; it's best-effort and if it can't fully
-    // create a session the UI will fall back to the magic-link flow already
-    // provided below.
-    (async () => {
-      try {
-        if (typeof window === 'undefined') return;
-        const token = localStorage.getItem('pendingClientToken');
-        if (!token) return;
-        // Call claim endpoint
-        const res = await fetch('/api/claim-purchase', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientToken: token }) });
-        const data = await res.json();
-        if (data?.success && data?.claimed) {
-          // Clear pending token so we don't retry repeatedly
-          try { localStorage.removeItem('pendingClientToken'); } catch (e) {}
-          // Optionally you could refresh or navigate; we keep the page and
-          // let the user sign in if needed via the ClaimPurchaseInline.
-          console.log('Purchase claimed via token', data);
-        }
-      } catch (e) {
-        // ignore — fall back to claim UI
-        console.warn('Auto-claim attempt failed', e);
-      }
-    })();
-  }, []);
   return (
     <div className="min-h-screen bg-black">
       <AnimatedBackground />

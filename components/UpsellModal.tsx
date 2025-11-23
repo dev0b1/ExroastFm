@@ -45,57 +45,52 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
 
               <div className="text-center mb-4 sm:mb-6">
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 text-white">
-                  This Was Only a Demo — Get Your Personalized Version 🎵
+                  Demo Over 🔥
                 </h2>
-                <p className="text-sm sm:text-base text-gray-300 max-w-[46rem] mx-auto leading-relaxed">
-                  This track was a template demo.
-                  <br />
-                  Your personalized version will be fully rewritten using your story, your details, and your chosen style.
-                </p>
+                <div className="text-sm sm:text-base text-gray-300 max-w-[46rem] mx-auto leading-relaxed whitespace-pre-line">
+                  {`This was just a template.
+Your real version will be 100% custom-written
+with your names, your story, and your chosen vibe.`}
+                </div>
               </div>
 
-              <div className="space-y-4 sm:space-y-6 mb-4">
-                <ul className="max-w-[48rem] mx-auto space-y-3 text-gray-200 text-sm sm:text-base">
+              <div className="space-y-3 sm:space-y-4 mb-4">
+                <ul className="max-w-[48rem] mx-auto space-y-2 text-gray-200 text-sm sm:text-base text-left">
                   <li className="flex items-start gap-3">
                     <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
-                    <span>Custom lyrics tailored to your breakup</span>
+                    <span>✓ Lyrics about "he cheated" + your exact details</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
-                    <span>Your tone, names, emotions, and situation woven into the song</span>
+                    <span>✓ High-quality vocals + clean mastering</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
-                    <span>High-quality mastering + clean audio</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <FaCheck className="text-exroast-pink mt-1 flex-shrink-0" />
-                    <span>Delivered instantly after purchase</span>
+                    <span>✓ Downloadable MP3 + no watermark</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center mb-3">
+              <div className="text-center mb-4">
+                <div className="text-lg font-extrabold text-white mb-3">Get Your Real Song – $4.99</div>
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onUpgrade('one-time')}
-                  className="w-full sm:w-auto bg-gradient-to-r from-[#ff6aa2] to-[#ffd23f] text-black font-extrabold py-3 px-6 rounded-full text-lg shadow-lg"
+                  className="w-full sm:w-auto bg-gradient-to-r from-pink-500 via-[#ff6aa2] to-yellow-400 text-black font-extrabold py-3 px-6 rounded-full text-lg shadow-2xl"
                 >
-                  Get My Personalized Song – $4.99
+                  Unlock Full Song →
                 </motion.button>
-
-                <button
-                  onClick={() => onUpgrade('unlimited')}
-                  className="text-sm text-gray-300 underline hover:text-white bg-transparent px-2 py-1"
-                >
-                  Or unlock unlimited personalized tracks weekly
-                </button>
               </div>
 
-              <p className="text-center text-gray-400 text-sm mt-2">
-                Join 10,000+ people turning their stories into powerful music.
-              </p>
+              <div className="text-center">
+                <button
+                  onClick={() => onUpgrade('unlimited')}
+                  className="text-sm text-gray-300 hover:text-white underline"
+                >
+                  Or go unlimited – $12.99/mo
+                </button>
+              </div>
             </div>
           </motion.div>
         </>

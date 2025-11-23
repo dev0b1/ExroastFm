@@ -10,9 +10,10 @@ interface SocialShareButtonsProps {
   url?: string;
   title?: string;
   message?: string;
+  onShare?: (provider: string) => void;
 }
 
-export function SocialShareButtons({ songId, songTitle, url, title, message }: SocialShareButtonsProps) {
+export function SocialShareButtons({ songId, songTitle, url, title, message, onShare }: SocialShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   
   const shareUrl = url || (typeof window !== "undefined" && songId
@@ -22,27 +23,32 @@ export function SocialShareButtons({ songId, songTitle, url, title, message }: S
   const shareText = message || `Check out my AI-generated HeartHeal song: "${title || songTitle}" 💔🎵`;
 
   const handleTikTok = () => {
+    onShare?.('tiktok');
     const tiktokUrl = `https://www.tiktok.com/upload?caption=${encodeURIComponent(shareText + " " + shareUrl)}`;
     window.open(tiktokUrl, "_blank");
   };
 
   const handleInstagram = () => {
+    onShare?.('instagram');
     window.open("https://www.instagram.com/", "_blank");
     navigator.clipboard.writeText(shareUrl);
   };
 
   const handleWhatsApp = () => {
+    onShare?.('whatsapp');
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
     window.open(whatsappUrl, "_blank");
   };
 
   const handleTwitter = () => {
+    onShare?.('twitter');
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
     window.open(twitterUrl, "_blank");
   };
 
   const handleCopyLink = async () => {
     try {
+      onShare?.('copy');
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
