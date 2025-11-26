@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { eq } from 'drizzle-orm';
 import { songs } from '@/src/db/schema';
-import { createOpenRouterClient } from '@/lib/openrouter';
+// OpenRouter removed: use user story + style + musicStyle directly as prompt
 import { enqueueAudioJob, reserveCredit, refundCredit } from '@/lib/db-service';
 import { createSunoClient } from '@/lib/suno';
 
@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Step 1: Preparing song prompt...');
-    
+    console.log('Step 1: Preparing song prompt (user-provided flow)...');
+
     // If the client provided edited/override lyrics, use them directly.
     let promptResult;
     if (overrideLyrics && overrideLyrics.trim().length > 10) {
@@ -47,31 +47,15 @@ export async function POST(request: NextRequest) {
       };
       console.log('Using override lyrics provided by client');
     } else {
-      console.log('Generating song prompt with OpenRouter...');
-      try {
-        const openRouterClient = createOpenRouterClient();
-        promptResult = await openRouterClient.generateSongPrompt({
-          extractedText: story,
-          style,
-          musicStyle: musicStyle || undefined,
-        });
-        
-        if (!promptResult.prompt || promptResult.prompt.length < 20) {
-          throw new Error('Generated lyrics are too short');
-        }
-        
-        console.log('Prompt generated:', promptResult.title);
-      } catch (promptError) {
-        console.error('OpenRouter prompt generation failed:', promptError);
-        
-        promptResult = {
-          title: `${style.charAt(0).toUpperCase() + style.slice(1)} HeartHeal Song`,
-          tags: `${style}, emotional, heartbreak, healing`,
-          prompt: `A ${style} song about heartbreak, emotional healing, and moving forward.\n${story.substring(0, 200)}`,
-        };
-        
-        console.log('Using fallback prompt template');
-      }
+      // Use the raw user story + style + musicStyle as the generation prompt.
+      // Keep the prompt concise and explicit for the music provider.
+      const mode = musicStyle && musicStyle.trim() ? musicStyle.trim() : 'standard';
+      promptResult = {
+        title: `${style.charAt(0).toUpperCase() + style.slice(1)} Song`,
+        tags: `${style}${musicStyle && musicStyle.trim() ? `, ${musicStyle.trim()}` : ''}`,
+        prompt: `${story}\n\nStyle: ${style}\nMode: ${mode}\n\nWrite concise lyrics suitable for a ~60s song. Include a memorable hook and 2-3 lines of verse.`,
+      };
+      console.log('Using user story directly as prompt for generation');
     }
 
     let previewUrl = '/audio/placeholder-preview.mp3';
