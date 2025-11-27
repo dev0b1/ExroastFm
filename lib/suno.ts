@@ -37,27 +37,21 @@ export class SunoAPI {
     }
 
     try {
-      console.info('[suno] create song request', { 
-        title: params.title, 
-        hasCallback: !!params.callBackUrl 
-      });
-      
-      // ✅ CORRECT REQUEST BODY
+      console.info('[suno] generate request', { title: params.title, hasCallback: !!params.callBackUrl });
+
+      // Build the simplified request body following Suno example
       const createBody: any = {
-        gpt_description_prompt: params.prompt,
-        mv: 'chirp-v3-5',
-        make_instrumental: params.make_instrumental || false,
+        prompt: params.prompt,
+        title: params.title || undefined,
+        style: params.tags || params.style || undefined,
+        customMode: true,
+        instrumental: !!params.make_instrumental,
+        callBackUrl: params.callBackUrl || undefined,
       };
 
-      if (params.title) createBody.title = params.title;
-      if (params.tags) createBody.tags = params.tags;
-      if (params.callBackUrl) createBody.callBackUrl = params.callBackUrl;
-
       const start = Date.now();
-      
-      // ✅ CORRECT ENDPOINT
-      const createResponse = await axios.post(
-        `${this.baseUrl}/music/generate`,
+      const resp = await axios.post(
+        `${this.baseUrl}/generate`,
         createBody,
         {
           headers: {
@@ -68,32 +62,11 @@ export class SunoAPI {
       );
 
       const duration = Date.now() - start;
-      const responseData = createResponse.data.data || createResponse.data;
-      const songs = Array.isArray(responseData) ? responseData : [responseData];
-      
-      console.info('[suno] create response', { 
-        status: createResponse.status, 
-        durationMs: duration,
-        songsCount: songs.length,
-        songIds: songs.map(s => s.id)
-      });
+      const data = resp.data;
+      console.info('[suno] generate response', { status: resp.status, durationMs: duration, dataPreview: JSON.stringify(data).slice(0,500) });
 
-      // If callback URL provided, return immediately
-      if (params.callBackUrl) {
-        return songs.map(song => ({
-          id: song.id,
-          audioUrl: '',
-          status: 'pending',
-          taskId: song.id, // ✅ Use song.id as taskId
-          audioId: song.id,
-          title: song.title || params.title,
-        }));
-      }
-
-      // Otherwise poll
-      const songIds = songs.map(s => s.id);
-      const results = await this.pollForCompletion(songIds);
-      return results;
+      // Return raw provider data to caller to handle (may include task id or immediate URLs)
+      return Array.isArray(data) ? data : [data];
       
     } catch (error: any) {
       console.error('[suno] API Error:', error.response?.data || error.message);

@@ -9,17 +9,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    console.info('[api/song] GET hit', { id, url: request.url });
     
     const songResult = await db.select().from(songs).where(eq(songs.id, id)).limit(1);
     const song = songResult[0];
 
     if (!song) {
+      console.info('[api/song] song not found', { id });
       return NextResponse.json(
         { success: false, error: "Song not found" },
         { status: 404 }
       );
     }
 
+    console.info('[api/song] returning song', { id: song.id, isPurchased: song.isPurchased, hasFullUrl: !!song.fullUrl, previewUrl: !!song.previewUrl });
     return NextResponse.json({
       success: true,
       song: {

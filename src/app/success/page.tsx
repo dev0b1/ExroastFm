@@ -144,40 +144,15 @@ export default function SuccessPage() {
   // Auto-start generation on this page for single-song purchases.
   useEffect(() => {
     let mounted = true;
-    let pollInterval: any = null;
     let slowTimer: any = null;
-    let es: EventSource | null = null;
 
-    const pollForCompletion = async (id: string) => {
+    const checkStatusOnce = async (id: string) => {
       try {
         const res = await fetch(`/api/song/${encodeURIComponent(id)}`);
-        if (!res.ok) {
-          console.warn('pollForCompletion: non-ok response', { status: res.status });
-          addDebug(`pollForCompletion: non-ok response ${res.status}`);
-          return null;
-        }
+        if (!res.ok) return null;
         const body = await res.json();
-        console.debug('pollForCompletion: response body preview', { songId: id, bodyPreview: JSON.stringify(body).slice(0, 300) });
-        addDebug(`pollForCompletion: got song ${id} preview: ${JSON.stringify(body).slice(0,200)}`);
         return body.song;
       } catch (e) { return null; }
-    };
-
-    const startPolling = (id: string) => {
-      // fallback polling (used only if SSE unavailable)
-      pollInterval = setInterval(async () => {
-        const s = await pollForCompletion(id);
-        if (!mounted) return;
-        console.debug('pollForCompletion: polled song state', { songId: id, s });
-        addDebug(`poll: songId=${id} isPurchased=${!!s?.isPurchased} fullUrl=${!!s?.fullUrl}`);
-        if (s && s.isPurchased && s.fullUrl) {
-          clearInterval(pollInterval);
-          if (slowTimer) clearTimeout(slowTimer);
-          setIsSlow(false);
-          // redirect to the unlocked page which will show full song UI
-          window.location.href = `/song-unlocked?songId=${encodeURIComponent(id)}`;
-        }
-      }, 3000);
     };
 
     const doGenerate = async () => {
@@ -190,10 +165,10 @@ export default function SuccessPage() {
 
       setIsGenerating(true);
       setIsSlow(false);
-      setGrantMessage('Generating your personalized song — this can take a minute or two.');
-      addDebug(`doGenerate: starting generation for songId=${song.id}`);
+      setGrantMessage('Generation started — you can safely leave this page.');
+      addDebug(`doGenerate: started generation for songId=${song.id}`);
 
-      // start slow-request timer (40s) to show a UI-only spike indicator
+      // start slow-request timer (40s) to show a UI-only indicator if desired
       slowTimer = setTimeout(() => {
         if (!mounted) return;
         setIsSlow(true);
@@ -220,56 +195,18 @@ export default function SuccessPage() {
           return;
         }
 
-        // If provider returned a taskId we can subscribe to SSE for real-time updates
-        const taskId = data.taskId || null;
-        addDebug(`doGenerate: taskId=${taskId}`);
-        if (taskId && typeof window !== 'undefined' && 'EventSource' in window) {
-          try {
-            es = new EventSource(`/api/suno/stream/${encodeURIComponent(taskId)}`);
-            console.info('SSE: opened EventSource', { taskId });
-            addDebug(`SSE: opened EventSource for taskId=${taskId}`);
-            es.onopen = () => console.debug('SSE: connection opened', { taskId });
-            es.onmessage = (evt) => {
-              console.debug('SSE: message received', { taskId, dataPreview: evt.data?.slice(0,200) });
-              addDebug(`SSE: message received: ${evt.data?.slice(0,300)}`);
-              try {
-                const payload = JSON.parse(evt.data);
-                if (payload && payload.status === 'complete') {
-                  console.info('SSE: generation complete received', { taskId, songId: song.id });
-                  addDebug(`SSE: generation complete for taskId=${taskId}`);
-                  if (slowTimer) clearTimeout(slowTimer);
-                  setIsSlow(false);
-                  if (es) es.close();
-                  window.location.href = `/song-unlocked?songId=${encodeURIComponent(song.id)}`;
-                }
-              } catch (e) {
-                console.warn('SSE message parse error', e);
-                addDebug(`SSE parse error: ${String(e)}`);
-              }
-            };
-            es.onerror = (e) => {
-              console.warn('SSE connection error, falling back to polling', e);
-              addDebug(`SSE error, falling back to polling: ${String(e)}`);
-              if (es) es.close();
-              es = null;
-              startPolling(song.id);
-            };
-            // keep isGenerating true while waiting for SSE
-            return;
-          } catch (e) {
-            console.warn('Failed to open SSE, falling back to polling', e);
-            addDebug(`Failed to open SSE: ${String(e)}`);
-          }
-        }
+        // Persist pending song id so app can find it later
+        try { localStorage.setItem('pendingSingleSongId', data.songId); } catch (e) {}
 
-        // Fallback: start polling for the generated full song to appear.
-        startPolling(song.id);
+        // Do not block waiting for completion. Notify the user how to retrieve the song later.
+        setIsGenerating(false);
+        setGrantMessage('Generation started — we will update your account when it finishes. You can return to the app and use the "Check generated song" button.');
       } catch (e) {
         console.error('Auto-generate error:', e);
-          setGrantMessage('Network error. Generation failed — please retry from the app.');
+        setGrantMessage('Network error. Generation failed — please retry from the app.');
         setIsGenerating(false);
-          if (slowTimer) clearTimeout(slowTimer);
-          setIsSlow(false);
+        if (slowTimer) clearTimeout(slowTimer);
+        setIsSlow(false);
       }
     };
 
@@ -281,7 +218,6 @@ export default function SuccessPage() {
 
     return () => {
       mounted = false;
-      if (pollInterval) clearInterval(pollInterval);
       if (slowTimer) clearTimeout(slowTimer);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
