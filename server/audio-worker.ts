@@ -122,6 +122,61 @@ async function processJob(job: any) {
       }
 
       await markJobSucceeded(jobId, musicResult.audioUrl);
+    } else if (job.type === 'eleven') {
+      const { songId, story, style, mood, duration } = payload;
+      console.info('[worker] processing eleven job', { jobId, songId, style, mood });
+      try {
+        const { generateLyricsFromLLM, splitLyricsIntoLines } = await import('../lib/llm');
+        const { generateMusicWithEleven, downloadToFile } = await import('../lib/eleven');
+        const { makeLyricVideo } = await import('../lib/video');
+
+        const lyrics = await generateLyricsFromLLM(story, style, mood || 'savage', 10);
+        const lines = splitLyricsIntoLines(lyrics).slice(0, 12);
+
+        // update song with lyrics
+        try {
+          const { db } = await import('../server/db');
+          const { songs } = await import('../src/db/schema');
+          await db.update(songs).set({ lyrics, updatedAt: new Date() }).where(eq((songs as any).id, songId));
+        } catch (e) {
+          console.warn('[worker] failed to update song lyrics', e);
+        }
+
+        // call ElevenLabs
+        const elevenResp = await generateMusicWithEleven(lyrics, style, mood || 'savage', duration || 60);
+        const audioFilePath = require('path').join(process.cwd(), 'tmp', `${songId}.mp3`);
+        if (elevenResp.audioUrl) {
+          await downloadToFile(elevenResp.audioUrl, audioFilePath);
+        } else if (elevenResp.audioBuffer) {
+          const fs = await import('fs');
+          await fs.promises.mkdir(require('path').dirname(audioFilePath), { recursive: true });
+          await fs.promises.writeFile(audioFilePath, elevenResp.audioBuffer);
+        } else {
+          throw new Error('No audio returned from ElevenLabs');
+        }
+
+        // render video
+        const outDir = require('path').join(process.cwd(), 'public', 'generated');
+        await import('fs').then(fs => fs.default.mkdirSync(outDir, { recursive: true }));
+        const outPath = require('path').join(outDir, `${songId}.mp4`);
+
+        makeLyricVideo({ audioPath: audioFilePath, outPath, lyricsLines: lines, durationSeconds: duration || 60 });
+
+        // update song row with final URL
+        const publicUrl = `/generated/${songId}.mp4`;
+        try {
+          const { db } = await import('../server/db');
+          const { songs } = await import('../src/db/schema');
+          await db.update(songs).set({ previewUrl: publicUrl, fullUrl: publicUrl, isPurchased: true, updatedAt: new Date() }).where(eq((songs as any).id, songId));
+        } catch (e) {
+          console.warn('[worker] failed to update song with video url', e);
+        }
+
+        await markJobSucceeded(jobId, publicUrl);
+      } catch (err) {
+        console.error('[worker] eleven job failed', err);
+        await markJobFailed(jobId, (err instanceof Error) ? err.message : String(err));
+      }
     } else {
       await markJobFailed(jobId, `Unsupported job type: ${job.type}`);
     }

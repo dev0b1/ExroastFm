@@ -25,7 +25,6 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
-            onClick={onClose}
           />
           
           <motion.div
@@ -90,6 +89,9 @@ with your names, your story, and your chosen vibe.`}
                 >
                   Or go unlimited – $12.99/mo
                 </button>
+              </div>
+              <div className="text-center mt-4">
+                <p className="text-xs text-gray-400">All roasts are generated for entertainment only. Keep it light-hearted!</p>
               </div>
             </div>
           </motion.div>

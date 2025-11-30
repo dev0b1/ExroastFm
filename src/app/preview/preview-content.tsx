@@ -9,7 +9,6 @@ import { Header } from "@/components/Header";
 import { SubscriptionCTA } from "@/components/SubscriptionCTA";
 // import { SubscriptionModal } from "@/components/SubscriptionModal";
 import { UpsellModal } from "@/components/UpsellModal";
-import { DailyQuoteOptInModal } from "@/components/DailyQuoteOptInModal";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
@@ -17,7 +16,8 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { getSongObjectURL } from '../../lib/offline-store';
 import Link from "next/link";
 import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaInstagram, FaWhatsapp, FaTwitter, FaLink } from "react-icons/fa";
-import { getDailySavageQuote } from "@/lib/suno-nudge";
+// daily petty opt-in removed from preview flow
+// import { getDailySavageQuote } from "@/lib/suno-nudge";
 import { openSingleCheckout } from '@/lib/checkout';
 
 interface Song {
@@ -109,66 +109,7 @@ export default function PreviewContent() {
   };
 
   const handleDailyQuoteOptIn = async (audioEnabled: boolean) => {
-    const userId = songId || '';
-    const testQuote = getDailySavageQuote(1);
-    
-    console.log('Daily Quote Opt-In Flow:');
-    console.log('- User ID:', userId);
-    console.log('- Audio Enabled:', audioEnabled);
-    console.log('- Test Quote:', testQuote);
-    
-    if (audioEnabled) {
-      console.log('- Audio Nudge URL: [Will be generated via Suno AI on daily schedule]');
-      console.log('- Test Audio Generation: User would receive 15-20s motivational audio with lo-fi trap beats');
-    }
-
-    // If the user isn't authenticated (we don't have a UUID user id),
-    // save the opt-in locally and avoid calling the server which expects a
-    // real userId (uuid). This prevents server-side failures for anonymous
-    // visitors.
-    const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || '');
-
-    if (!isUuid(userId)) {
-      // Save preferences locally for anonymous users
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('hasSeenDailyQuoteOptIn', 'true');
-        localStorage.setItem('dailyQuotesEnabled', 'true');
-        localStorage.setItem('audioNudgesEnabled', audioEnabled ? 'true' : 'false');
-        alert(`🔥 You're in! Daily savage quotes activated locally.\n\nToday's quote: ${testQuote}\n\n${audioEnabled ? 'Audio nudges (local) enabled - upgrade to Pro for server-sent audio nudges!' : 'Text quotes only - upgrade to Pro for server audio nudges!'}`);
-      }
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/daily-quotes/opt-in', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, audioEnabled })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log('✅ Opt-in successful!');
-        console.log('Test quote from API:', data.testQuote);
-        console.log("Today's savage quote:", testQuote);
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('hasSeenDailyQuoteOptIn', 'true');
-          alert(`🔥 You're in! Daily savage quotes activated.\n\nToday's quote: ${testQuote}\n\n${audioEnabled ? 'Audio nudges enabled - you\'ll get personalized 15s motivation with beats!' : 'Text quotes only - upgrade to Pro for audio nudges!'}`);
-        }
-      } else {
-        console.error('Opt-in failed:', data.error);
-        if (typeof window !== 'undefined') {
-          alert('❌ Oops! Something went wrong. Please try again.');
-        }
-      }
-    } catch (error) {
-      console.error('Opt-in error:', error);
-      if (typeof window !== 'undefined') {
-        alert('❌ Network error. Please check your connection and try again.');
-      }
-    }
+    // Daily opt-in removed from preview flow. No-op.
   };
 
   if (loading) {
@@ -614,17 +555,7 @@ export default function PreviewContent() {
         </div>
       )}
 
-      <DailyQuoteOptInModal
-        isOpen={showDailyQuoteOptIn}
-        onClose={() => {
-          setShowDailyQuoteOptIn(false);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('hasSeenDailyQuoteOptIn', 'true');
-          }
-        }}
-        onOptIn={handleDailyQuoteOptIn}
-        isPro={song?.isPurchased || false}
-      />
+      {/* Daily petty power-up modal removed from preview flow */}
       {/* Mobile Bottom Navigation Bar (replicated from app/page.tsx for preview route) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-t border-white/20 h-20">
         <div className="h-full flex items-stretch">
