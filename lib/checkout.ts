@@ -92,6 +92,17 @@ async function ensurePaddleInitialized() {
   // Start new initialization
   paddleInitPromise = (async () => {
     try {
+      // If the Paddle global script was preloaded and exposes `Paddle`, use it directly
+      if (typeof window !== 'undefined' && (window as any).Paddle) {
+        try {
+          paddleInstance = (window as any).Paddle;
+          (window as any).__paddleReady = true;
+          console.log('[Paddle] Using preloaded window.Paddle instance');
+          return paddleInstance;
+        } catch (err) {
+          console.debug('[Paddle] Error using preloaded Paddle:', err);
+        }
+      }
       const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
       const environment = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT;
 
@@ -175,6 +186,33 @@ export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
     // Include customer email when available to help Paddle identify buyer; guest checkouts omit this.
     ...(user ? { customer: { email: user.email } } : {})
   };
+
+  // If no authenticated user, try to prefill email from localStorage or quick prompt
+  try {
+    if (!user && typeof window !== 'undefined') {
+      // Prefer the nicer modal-based flow if available
+      let guestEmail: string | null = null;
+      if (typeof window.__requestGuestEmail === 'function') {
+        try {
+          // Ask the modal to collect email (returns Promise<string|null>)
+          guestEmail = await window.__requestGuestEmail();
+        } catch (e) {
+          console.debug('[openSingleCheckout] guest modal failed', e);
+        }
+      }
+
+      // Fallback: localStorage
+      if (!guestEmail) {
+        try { guestEmail = localStorage.getItem('guestEmail'); } catch (e) { guestEmail = null; }
+      }
+
+      if (guestEmail) {
+        payload.customer = { email: guestEmail };
+      }
+    }
+  } catch (e) {
+    console.debug('[openSingleCheckout] guest email collection/storage failed', e);
+  }
 
   console.log('[openSingleCheckout] Opening checkout with payload:', {
     successUrl: payload.settings.successUrl,

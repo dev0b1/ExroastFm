@@ -6,7 +6,7 @@ export default function HowItWorksPage() {
       <h1 className="text-3xl font-bold mb-4">How It Works</h1>
       <p className="text-sm text-gray-600 mb-4">Last updated: {updated}</p>
 
-      <p className="mb-4 text-sm text-gray-700">ExRoast.fm delivers short, AI-generated entertainment tracks (typically
+      <p className="mb-4 text-sm text-gray-700">ExRoast.buzz delivers short, AI-generated entertainment tracks (typically
         20–45 seconds) created from a simple story you provide. We use automated models to produce the audio—no humans
         listen to your prompt unless you explicitly request a human edit. Everything is delivered as a downloadable MP3/MP4.
         This page explains the process so payment gateways can verify the product being sold.</p>

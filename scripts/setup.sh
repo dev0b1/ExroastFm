@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# ExRoast.fm - Quick Start Setup
+# ExRoast.buzz - Quick Start Setup
 # This script sets up the auth + templates system
 
 set -e
 
-echo "🚀 ExRoast.fm - Quick Start Setup"
+echo "🚀 ExRoast.buzz - Quick Start Setup"
 echo "=================================="
 echo ""
 

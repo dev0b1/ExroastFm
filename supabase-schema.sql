@@ -1,4 +1,4 @@
--- ExRoast.fm Supabase Database Schema
+-- ExRoast.buzz Supabase Database Schema
 -- Run this in your Supabase SQL Editor after creating a new project
 
 -- Enable UUID extension

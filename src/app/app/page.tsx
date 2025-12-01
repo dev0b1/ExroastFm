@@ -184,7 +184,7 @@ export default function AppPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-lg border-b border-white/10 h-14 md:h-16">
         <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
           <h1 className="text-lg md:text-xl font-black text-gradient">
-            ExRoast.fm 🔥
+            ExRoast.buzz 🔥
           </h1>
           
           {/* Profile Avatar Dropdown */}

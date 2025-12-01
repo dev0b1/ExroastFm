@@ -1,4 +1,4 @@
-# ExRoast.fm Deployment & Configuration Notes
+# ExRoast.buzz Deployment & Configuration Notes
 
 ## Known Limitations (MVP)
 

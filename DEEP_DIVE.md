@@ -1,4 +1,4 @@
-# ExRoast.fm - Complete Architecture Deep Dive
+# ExRoast.buzz - Complete Architecture Deep Dive
 
 **App**: AI-powered roast song generator for heartbroken users | **Tech**: Next.js 16 (App Router) + TypeScript + Tailwind + Drizzle ORM (Postgres) + Paddle Billing + Suno AI + OpenRouter LLM + Tesseract OCR
 
@@ -748,7 +748,7 @@ src/db/
 
 ## Summary
 
-**ExRoast.fm** is a **freemium Next.js app** that converts heartbreak stories into AI-generated roast songs:
+**ExRoast.buzz** is a **freemium Next.js app** that converts heartbreak stories into AI-generated roast songs:
 
 - **Free tier**: Template-matched previews (15s, watermarked).
 - **Pro tier**: AI-generated full roasts (30-35s, customizable, downloadable).

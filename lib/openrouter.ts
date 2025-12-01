@@ -44,7 +44,7 @@ CRITICAL RULES:
 - Style: ${params.style === 'petty' ? 'rap/trap with Cardi B/Eminem energy' : 'upbeat pop/EDM victory energy'}
 - Vocals: confident ${params.style === 'petty' ? 'female or male with attitude' : 'celebratory and upbeat'}
 - Length: 35 seconds max
-- End with spoken line: "Your ex just got roasted at ExRoast.fm — link in bio"
+ - End with spoken line: "Your ex just got roasted at ExRoast.buzz — link in bio"
 - Make it laugh-out-loud funny and TikTok-viral worthy
 
 Style requested: ${params.style} (${styleDescriptions[params.style as keyof typeof styleDescriptions] || 'savage'})
@@ -54,7 +54,7 @@ Return your response in this exact JSON format:
 {
   "title": "Petty Song Title Here",
   "tags": "genre, style, mood, tempo",
-  "prompt": "Create a brutal, hilarious, TikTok-viral 35-second ex-roast song. [INSERT USER STORY DETAILS]. Make it petty, specific, and laugh-out-loud. End with: 'Your ex just got roasted at ExRoast.fm — link in bio'"
+  "prompt": "Create a brutal, hilarious, TikTok-viral 35-second ex-roast song. [INSERT USER STORY DETAILS]. Make it petty, specific, and laugh-out-loud. End with: 'Your ex just got roasted at ExRoast.buzz — link in bio'"
 }`;
 
     try {
@@ -69,7 +69,7 @@ Return your response in this exact JSON format:
             },
             {
               role: 'user',
-              content: `Create a savage ExRoast.fm ${params.style} roast song from this breakup story:\n\n${params.extractedText}${params.musicStyle ? `\n\nMusic backing notes: ${params.musicStyle} — use appropriate instrumentation and tempo.` : ''}`,
+              content: `Create a savage ExRoast.buzz ${params.style} roast song from this breakup story:\n\n${params.extractedText}${params.musicStyle ? `\n\nMusic backing notes: ${params.musicStyle} — use appropriate instrumentation and tempo.` : ''}`,
             },
           ],
           response_format: { type: 'json_object' },
@@ -77,11 +77,11 @@ Return your response in this exact JSON format:
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://exroast.fm',
-            'X-Title': 'ExRoast.fm',
-          },
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://exroast.buzz',
+              'X-Title': 'ExRoast.buzz',
+            },
         }
       );
 

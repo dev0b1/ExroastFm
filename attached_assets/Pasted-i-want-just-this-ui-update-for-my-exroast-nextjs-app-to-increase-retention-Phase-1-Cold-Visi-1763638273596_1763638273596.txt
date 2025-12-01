@@ -1,13 +1,13 @@
 i want just this ui update for my exroast nextjs app, to increase retention
 
-### Phase 1 – Cold Visitor (exroast.fm – no account yet)
+### Phase 1 – Cold Visitor (exroast.buzz – no account yet)
 
-URL: https://exroast.fm/
+URL: https://exroast.buzz/
 
 ```text
 Header (sticky)
 ┌──────────────────────────────────────────────────────────┐
-│ ExRoast.fm 🔥                                   Sign In │
+│ ExRoast.buzz 🔥                                   Sign In │
 └──────────────────────────────────────────────────────────┘
 
 Hero
@@ -50,7 +50,7 @@ This is the screen that makes people come back every day and pay.
 ```text
 Fixed Top Bar (always visible, like TikTok)
 ┌────────────────────────────────────────────────────────────┐
-│ 🔥 ExRoast.fm                                              │
+│ 🔥 ExRoast.buzz                                              │
 │                                                            │
 │ Day 7 strong 🔥🔥🔥🔥🔥🔥🔥     ← huge streak counter         │
 │ [Roast Mode]  [Daily Check-In]   ← tabs                   │
@@ -106,7 +106,7 @@ Below: “Your Previous Roasts” – grid of past songs (click to play/download
 
 
 
-“Build the complete new flow for ExRoast.fm:
+"Build the complete new flow for ExRoast.buzz:
 
 1. Landing page (/): two big cards – ‘Roast Your Ex’ (links to /roast) and ‘Daily Glow-Up’ (links to /daily)
 2. After user generates first roast or first motivation → force login/signup

@@ -1,7 +1,7 @@
-# ExRoast.fm
+# ExRoast.buzz
 
 ## Overview
-ExRoast.fm is a Next.js web application designed to transform user breakup stories into savage, TikTok-viral AI roast songs. The project's vision is to offer a platform for users to express their post-breakup emotions through humor and empowerment, leveraging AI for creative content generation. It aims to capture a market seeking entertaining and cathartic digital experiences, with ambitions for viral social media engagement. Key capabilities include AI-driven song generation, personalized audio nudges, and a credit-based subscription model.
+ExRoast.buzz is a Next.js web application designed to transform user breakup stories into savage, TikTok-viral AI roast songs. The project's vision is to offer a platform for users to express their post-breakup emotions through humor and empowerment, leveraging AI for creative content generation. It aims to capture a market seeking entertaining and cathartic digital experiences, with ambitions for viral social media engagement. Key capabilities include AI-driven song generation, personalized audio nudges, and a credit-based subscription model.
 
 ## User Preferences
 - Mobile-first responsive design

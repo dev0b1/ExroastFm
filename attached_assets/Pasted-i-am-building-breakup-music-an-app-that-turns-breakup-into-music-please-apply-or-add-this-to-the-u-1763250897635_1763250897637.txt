@@ -36,6 +36,6 @@ Apply all these changes perfectly while keeping every button and feature working
    - Add the subtle neon fire particles (pink/orange/gold slow-moving sparks) using the tsParticles library you just added
    - Keep all functionality 100% working
 
-Make the particles low-key and beautiful — exactly like the background on exroast.fm or petty.fm. Do not make them too fast or too many.
+Make the particles low-key and beautiful — exactly like the background on exroast.buzz or petty.fm. Do not make them too fast or too many.
 
 Apply everything perfectly right now.

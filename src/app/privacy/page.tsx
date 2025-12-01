@@ -7,7 +7,7 @@ export default function PrivacyPage() {
       <p className="text-sm text-gray-600 mb-4">Last updated: {updated}</p>
 
       <p className="mb-4">
-        This Privacy Policy explains how Exroast.fm ("we", "us", "the Service") collects, uses,
+        This Privacy Policy explains how ExRoast.buzz ("we", "us", "the Service") collects, uses,
         and shares information when you use our website and services. Our goal is to collect only the
         information necessary to provide the product and to protect our users.
       </p>
@@ -50,8 +50,31 @@ export default function PrivacyPage() {
       <p className="mb-4 text-sm text-gray-700">If you are located in the EU or California, you have rights under
         GDPR/CCPA to access, correct, or delete personal data. To request deletion of your account or any
         user-submitted content (for example, a roast that includes a name), email <a
-        href="mailto:legal@exroast.fm" className="text-blue-600 underline">legal@exroast.fm</a> and we will
+        href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a> and we will
         respond within 30 days. Note that removing an item may not affect copies already downloaded by users.</p>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">Data Controller & Contact Details</h2>
+      <p className="mb-4 text-sm text-gray-700">Data controller: <strong>Opencipher Tech</strong> (trading as ExRoast.buzz).
+        For data, privacy, or legal inquiries contact <a href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.
+        Replace this contact with your official company email and physical address where required by local law or payment
+        providers.</p>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">Cookies and Tracking</h2>
+      <p className="mb-4 text-sm text-gray-700">We use cookies and similar technologies for analytics and to
+        enhance the user experience. You can opt out of non-essential cookies by adjusting your browser
+        settings. We use third-party analytics providers; consult those providers' privacy policies for details.</p>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">Third-Party Processors</h2>
+      <p className="mb-4 text-sm text-gray-700">We use third-party processors for payments and hosting. Key
+        examples: Paddle (payments), Supabase (data hosting), and any AI providers used to generate content.
+        These providers receive only the data necessary to perform their services. We recommend listing the
+        specific providers you rely on in production and linking to their privacy policies.</p>
+
+      <h2 className="text-lg font-semibold mt-6 mb-2">Delivery of Digital Goods</h2>
+      <p className="mb-4 text-sm text-gray-700">Digital goods are delivered immediately after successful
+        payment: a download link will appear on the purchase confirmation page and an email with the link will
+        be sent to the address you provided. If delivery fails, contact support at <a
+        href="mailto:support@exroast.buzz" className="text-blue-600 underline">support@exroast.buzz</a>.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Children</h2>
       <p className="mb-4 text-sm text-gray-700">The Service is not intended for children under 13. We do not knowingly
@@ -68,7 +91,7 @@ export default function PrivacyPage() {
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Contact</h2>
       <p className="text-sm text-gray-700">If you have questions about this policy, contact <a
-        href="mailto:legal@exroast.fm" className="text-blue-600 underline">legal@exroast.fm</a>.</p>
+        href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.</p>
     </div>
   );
 }

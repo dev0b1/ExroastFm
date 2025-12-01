@@ -1,4 +1,4 @@
-Replit, transform ExRoast.fm into the ultimate viral beast with these final upgrades—NO breaking functionality, just pure pop:
+Replit, transform ExRoast.buzz into the ultimate viral beast with these final upgrades—NO breaking functionality, just pure pop:
 
 1. **Neon Spark Storm (Better Than Particles)**: Ditch tsParticles if glitchy. Add CSS-only animated sparks: 60 tiny dots (pink #ff006e, gold #ffd23f, orange #ff4500) floating upward like embers from a fire pit. Low opacity (0.5-0.8), slow speed (2-4s keyframes), full-screen fixed bg. On button hovers ("Generate My Roast"), make 10 extra sparks "explode" outward. Code it in pure CSS (@keyframes float + animation). Example: .spark { position: fixed; width: 4px; height: 4px; background: radial-gradient(circle, #ff006e, transparent); animation: float 6s infinite linear; } with staggered delays. Subtle, mobile-fast, no JS.
 

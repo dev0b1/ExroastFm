@@ -237,7 +237,7 @@ export function Header({ userProp }: { userProp?: any }) {
               <span className="text-3xl">🔥</span>
             </motion.div>
             <span className="text-2xl font-black bg-gradient-to-r from-[#ff006e] to-[#ffd23f] bg-clip-text text-transparent">
-              ExRoast.fm
+              ExRoast.buzz
             </span>
           </Link>
           

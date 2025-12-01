@@ -1,6 +1,6 @@
-# ExRoast.fm Setup Guide
+# ExRoast.buzz Setup Guide
 
-This guide will help you set up the freemium template system for ExRoast.fm.
+This guide will help you set up the freemium template system for ExRoast.buzz.
 
 ## Prerequisites
 

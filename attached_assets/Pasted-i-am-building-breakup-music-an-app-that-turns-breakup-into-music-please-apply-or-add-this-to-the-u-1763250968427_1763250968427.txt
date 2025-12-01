@@ -1,4 +1,4 @@
-i am building breakup music, an app that turns breakup into music, please apply or add this to the ui design   Replit, please make my entire ExRoast.fm site look ultra-clean, premium, and TikTok-viral using ONLY these rules. Do not delete any functionality, just update colors, fonts, and vibes exactly as described:
+i am building breakup music, an app that turns breakup into music, please apply or add this to the ui design   Replit, please make my entire ExRoast.buzz site look ultra-clean, premium, and TikTok-viral using ONLY these rules. Do not delete any functionality, just update colors, fonts, and vibes exactly as described:
 
 1. Background of the entire site → pure solid black (#000000). Remove every white/orange/light gradient overlay completely. No exceptions.
 
@@ -36,6 +36,6 @@ Apply all these changes perfectly while keeping every button and feature working
    - Add the subtle neon fire particles (pink/orange/gold slow-moving sparks) using the tsParticles library you just added
    - Keep all functionality 100% working
 
-Make the particles low-key and beautiful — exactly like the background on exroast.fm or petty.fm. Do not make them too fast or too many.
+Make the particles low-key and beautiful — exactly like the background on exroast.buzz or petty.fm. Do not make them too fast or too many.
 
 Apply everything perfectly right now.  then after the ui update convert entire nextjs app to approuter instead of page router

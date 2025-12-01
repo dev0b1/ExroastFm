@@ -13,7 +13,7 @@ export function Footer() {
             <div className="flex items-center space-x-2">
               <span className="text-3xl">🔥</span>
               <span className="text-2xl font-black bg-gradient-to-r from-exroast-pink to-exroast-gold bg-clip-text text-transparent">
-                ExRoast.fm
+                ExRoast.buzz
               </span>
             </div>
             <p className="text-gray-400 text-sm font-bold">
@@ -60,6 +60,11 @@ export function Footer() {
                   Refund Policy
                 </Link>
               </li>
+              <li>
+                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors font-bold">
+                  Contact / Support
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -67,7 +72,7 @@ export function Footer() {
             <h3 className="text-exroast-gold font-black text-lg mb-4">Follow Us</h3>
             <div className="flex space-x-4">
               <a
-                href="https://tiktok.com/@exroastfm"
+                href="https://tiktok.com/@exroastbuzz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-exroast-pink transition-colors text-2xl"
@@ -75,7 +80,7 @@ export function Footer() {
                 <FaTiktok />
               </a>
               <a
-                href="https://instagram.com/exroastfm"
+                href="https://instagram.com/exroastbuzz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-exroast-pink transition-colors text-2xl"
@@ -83,7 +88,7 @@ export function Footer() {
                 <FaInstagram />
               </a>
               <a
-                href="https://twitter.com/exroastfm"
+                href="https://twitter.com/exroastbuzz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-exroast-pink transition-colors text-2xl"
@@ -100,8 +105,8 @@ export function Footer() {
               <span className="text-exroast-pink">Daily savage quotes + mood bangers waiting 🔥</span>
             </p>
           </div>
-          <p className="text-gray-500 text-sm font-bold text-center">
-            © {new Date().getFullYear()} ExRoast.fm. All rights reserved. Your ex? Not so much. 😈
+            <p className="text-gray-500 text-sm font-bold text-center">
+            © {new Date().getFullYear()} ExRoast.buzz. All rights reserved. Your ex? Not so much. 😈
           </p>
         </div>
       </div>

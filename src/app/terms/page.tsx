@@ -6,12 +6,28 @@ export default function TermsPage() {
       <h1 className="text-3xl font-bold mb-4">Terms of Service</h1>
       <p className="text-sm text-gray-600 mb-4">Last updated: {updated}</p>
 
-      <p className="mb-4 text-sm text-gray-700">These Terms of Service ("Terms") govern your use of Exroast.fm (the "Service").
+      <p className="mb-4 text-sm text-gray-700">These Terms of Service ("Terms") govern your use of ExRoast.buzz (the "Service").
         By accessing or using the Service you agree to these Terms. If you do not agree, do not use the Service.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Services</h2>
       <p className="mb-4 text-sm text-gray-700">The Service provides short, user-generated audio tracks and related
         digital goods based on user-provided prompts. We may change or discontinue features at any time.</p>
+
+          <h2 className="text-lg font-semibold mt-6 mb-2">Merchant & Business Information</h2>
+          <p className="mb-4 text-sm text-gray-700">Merchant name: <strong>Opencipher Tech</strong> (brand: ExRoast). Business/Legal name: <strong>Opencipher Tech</strong>.
+            Registered address: <strong>NO. 4 Mc Dermott Road, Warri, Delta State, Nigeria</strong>. Contact email for legal and billing matters:
+            <a href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.
+            Please verify these details in your Paddle account and update any corporate filings as needed.</p>
+
+          <h2 className="text-lg font-semibold mt-6 mb-2">Delivery & Licensing</h2>
+          <p className="mb-4 text-sm text-gray-700">Digital goods are delivered instantly after successful payment as a
+            download link and optional email. License: personal, non-commercial use only. Redistribution, resale, or
+            sublicensing of tracks is prohibited without express written permission.</p>
+
+          <h2 className="text-lg font-semibold mt-6 mb-2">Taxes and VAT</h2>
+          <p className="mb-4 text-sm text-gray-700">Prices may include applicable taxes where required; in some
+            jurisdictions taxes (such as VAT) will be calculated and collected during checkout by our payment
+            processor. You are responsible for any taxes associated with your purchase unless otherwise stated.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Accounts</h2>
       <p className="mb-4 text-sm text-gray-700">You are responsible for maintaining the confidentiality of your account
@@ -38,11 +54,11 @@ export default function TermsPage() {
       </p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Indemnity</h2>
-      <p className="mb-4 text-sm text-gray-700">You agree to indemnify and hold harmless Exroast.fm from any claims,
+      <p className="mb-4 text-sm text-gray-700">You agree to indemnify and hold harmless ExRoast.buzz from any claims,
         liabilities, damages, losses, and expenses arising out of your use of the Service or violation of these Terms.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Governing Law</h2>
-      <p className="mb-4 text-sm text-gray-700">These Terms are governed by the laws of the jurisdiction where Exroast.fm
+      <p className="mb-4 text-sm text-gray-700">These Terms are governed by the laws of the jurisdiction where ExRoast.buzz
         is operated, without regard to conflict of law principles.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Changes</h2>
@@ -50,7 +66,7 @@ export default function TermsPage() {
         date at the top of this page. Continued use of the Service after changes constitutes acceptance.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Contact</h2>
-      <p className="text-sm text-gray-700">For legal questions contact <a href="mailto:legal@exroast.fm" className="text-blue-600 underline">legal@exroast.fm</a>.</p>
+      <p className="text-sm text-gray-700">For legal questions contact <a href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.</p>
     </div>
   );
 }

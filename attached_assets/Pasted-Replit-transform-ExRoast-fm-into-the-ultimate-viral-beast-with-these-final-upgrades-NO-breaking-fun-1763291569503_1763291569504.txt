@@ -1,4 +1,4 @@
-Replit, transform ExRoast.fm into the ultimate viral beast with these final upgrades—NO breaking functionality, just pure pop:
+Replit, transform ExRoast.buzz into the ultimate viral beast with these final upgrades—NO breaking functionality, just pure pop:
 
 1. **Neon Spark Storm (Better Than Particles)**: Ditch tsParticles if glitchy. Add CSS-only animated sparks: 60 tiny dots (pink #ff006e, gold #ffd23f, orange #ff4500) floating upward like embers from a fire pit. Low opacity (0.5-0.8), slow speed (2-4s keyframes), full-screen fixed bg. On button hovers ("Generate My Roast"), make 10 extra sparks "explode" outward. Code it in pure CSS (@keyframes float + animation). Example: .spark { position: fixed; width: 4px; height: 4px; background: radial-gradient(circle, #ff006e, transparent); animation: float 6s infinite linear; } with staggered delays. Subtle, mobile-fast, no JS.
 
@@ -11,6 +11,6 @@ Replit, transform ExRoast.fm into the ultimate viral beast with these final upgr
    - Hero headline: Subtle typewriter effect on load (letters "ignite" with gold glow).
    - Social proof numbers: Animate counters from 0 to 50K/2.1M (JS countUp.js if easy, or CSS).
    - Ensure demo video + sparks don't overlap (z-index: sparks -1, video 10).
-5  also remove the onboarding flow if still present  lets use the tool tip , add 3 subtle tooltips to ExRoast.fm: 1. On input field: "Be specific for savage lyrics (e.g., 'Ghosted after tacos')". 2. On modes: "Petty = Brutal diss; Glow-Up = Victory banger". 3. On Generate button: "15s free preview—unlock full for $4.99". Hover/tap to show, pink/gold style, auto-hide. No blocks. Apply.
+5  also remove the onboarding flow if still present  lets use the tool tip , add 3 subtle tooltips to ExRoast.buzz: 1. On input field: "Be specific for savage lyrics (e.g., 'Ghosted after tacos')". 2. On modes: "Petty = Brutal diss; Glow-Up = Victory banger". 3. On Generate button: "15s free preview—unlock full for $4.99". Hover/tap to show, pink/gold style, auto-hide. No blocks. Apply.
 
 Test full flow: Load → See sparks dance → Hero video loops → Input → Generate (confetti bursts). Make it feel like a revenge party explosion. Deploy live now.
