@@ -22,6 +22,15 @@ interface Song {
   isPurchased: boolean;
 }
 
+interface PremiumSongMatch {
+  id: string;
+  title: string;
+  description?: string;
+  mp3?: string;
+  mp4?: string;
+  duration?: number;
+}
+
 export default function SongUnlockedClient() {
   const searchParams = useSearchParams();
   const songId = searchParams.get('songId');
@@ -36,6 +45,12 @@ export default function SongUnlockedClient() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [videoExists, setVideoExists] = useState(false);
   const [creatingVideo, setCreatingVideo] = useState(false);
+  const [premiumMp4Url, setPremiumMp4Url] = useState<string | null>(null);
+  const [premiumSongId, setPremiumSongId] = useState<string | null>(null);
+  const [premiumMatches, setPremiumMatches] = useState<PremiumSongMatch[] | null>(null);
+  const [showPremiumSelector, setShowPremiumSelector] = useState(false);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [previewPlayingId, setPreviewPlayingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!songId) return;
@@ -84,54 +99,54 @@ export default function SongUnlockedClient() {
     return () => { mounted = false; };
   }, [song?.id]);
 
-  // Create video: enqueue job and poll for generated file
+  // Create video / premium song: simplified flow
+  // Deprecated: enqueueing ffmpeg jobs. New flow: fetch best-match premium pre-made songs.
   const createVideo = async () => {
     if (!song?.id || creatingVideo) return;
     setCreatingVideo(true);
     try {
-      const res = await fetch(`/api/song/${song.id}/create-video`, { method: 'POST' });
+      const storyParam = encodeURIComponent(song.story || '');
+      // request up to 3 matches
+      const res = await fetch(`/api/premium-songs?story=${storyParam}&limit=3`);
       const data = await res.json();
-      if (!data?.success) {
-        console.warn('Failed to enqueue video job', data);
+      if (!data?.success || !Array.isArray(data.songs) || data.songs.length === 0) {
+        console.warn('No premium song matches found', data);
         setCreatingVideo(false);
         return;
       }
-      // Poll the job status endpoint for updates (more reliable than HEAD polling)
-      const jobId = data.jobId;
-      let attempts = 0;
-      const maxAttempts = 240; // ~20 minutes
-      const interval = setInterval(async () => {
-        attempts += 1;
-        try {
-          const r = await fetch(`/api/audio-job/${jobId}`);
-          const jd = await r.json();
-          if (jd?.success && jd.job) {
-            if (jd.job.status === 'succeeded' && jd.job.resultUrl) {
-              // use resultUrl provided by worker
-              setVideoExists(true);
-              setCreatingVideo(false);
-              clearInterval(interval);
-              return;
-            }
-            if (jd.job.status === 'failed') {
-              console.warn('Video job failed', jd.job.error);
-              setCreatingVideo(false);
-              clearInterval(interval);
-              return;
-            }
-          }
-        } catch (e) {
-          // ignore transient errors
+
+      // If only one match returned, auto-select it. Otherwise show selector.
+      if (data.songs.length === 1) {
+        const match = data.songs[0];
+        if (match.mp3) setSong((s) => s ? ({ ...s, fullUrl: match.mp3!, isPurchased: true }) : s);
+        if (match.mp4) {
+          setPremiumMp4Url(match.mp4);
+          setVideoExists(true);
         }
-        if (attempts >= maxAttempts) {
-          clearInterval(interval);
-          setCreatingVideo(false);
-        }
-      }, 5000);
+        setPremiumSongId(match.id || null);
+        setCreatingVideo(false);
+        return;
+      }
+
+      // Multiple matches: present selector to user
+      setPremiumMatches(data.songs.slice(0, 3));
+      setShowPremiumSelector(true);
+      setCreatingVideo(false);
     } catch (e) {
-      console.error('createVideo failed', e);
+      console.error('createVideo (premium) failed', e);
       setCreatingVideo(false);
     }
+  };
+
+  const selectPremiumMatch = (match: PremiumSongMatch) => {
+    if (match.mp3) setSong((s) => s ? ({ ...s, fullUrl: match.mp3!, isPurchased: true }) : s);
+    if (match.mp4) {
+      setPremiumMp4Url(match.mp4);
+      setVideoExists(true);
+    }
+    setPremiumSongId(match.id || null);
+    setPremiumMatches(null);
+    setShowPremiumSelector(false);
   };
 
   // Poll until purchase is registered (webhook) and fullUrl becomes available.
@@ -316,11 +331,11 @@ export default function SongUnlockedClient() {
 
                     {videoExists && (
                       <a
-                        href={`/generated/${song?.id}.mp4`}
+                        href={premiumMp4Url || `/generated/${song?.id}.mp4`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="bg-exroast-pink text-white px-6 py-3 rounded-full font-bold inline-flex items-center gap-2"
-                        onClick={() => track('view_video', { songId: song?.id })}
+                        onClick={() => track('view_video', { songId: premiumSongId || song?.id })}
                       >
                         View Video
                       </a>
@@ -340,6 +355,55 @@ export default function SongUnlockedClient() {
                     }}
                     onTimeUpdate={(e) => setCurrentTime((e.target as HTMLAudioElement).currentTime)}
                   />
+
+                  {/* Premium matches selector */}
+                  {showPremiumSelector && premiumMatches && (
+                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {premiumMatches.map((m) => (
+                                        <div key={m.id} className="p-4 border rounded bg-[#0b0910]">
+                                          <h3 className="text-white font-bold text-lg">{m.title}</h3>
+                                          {m.description && <p className="text-gray-400 text-sm mt-1">{m.description}</p>}
+                                          <div className="mt-3">
+                                            {m.mp3 && (
+                                              <div className="flex items-center gap-3">
+                                                <button
+                                                  onClick={() => {
+                                                    try {
+                                                      if (previewPlayingId === m.id) {
+                                                        previewAudioRef.current?.pause();
+                                                        previewAudioRef.current = null;
+                                                        setPreviewPlayingId(null);
+                                                        return;
+                                                      }
+                                                      // stop existing preview
+                                                      if (previewAudioRef.current) {
+                                                        previewAudioRef.current.pause();
+                                                        previewAudioRef.current = null;
+                                                      }
+                                                      const a = new Audio(m.mp3!);
+                                                      previewAudioRef.current = a;
+                                                      a.play().then(() => setPreviewPlayingId(m.id)).catch(() => {});
+                                                      a.onended = () => { setPreviewPlayingId(null); previewAudioRef.current = null; };
+                                                    } catch (e) {
+                                                      console.warn('preview play failed', e);
+                                                    }
+                                                  }}
+                                                  className="bg-exroast-pink text-white px-3 py-2 rounded font-bold"
+                                                >
+                                                  {previewPlayingId === m.id ? 'Stop' : 'Play Preview'}
+                                                </button>
+                                                <span className="text-sm text-gray-400">Sample</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="mt-3 flex gap-2">
+                                            <button onClick={() => selectPremiumMatch(m)} className="bg-exroast-pink text-white px-3 py-2 rounded font-bold">Use this song</button>
+                                            <a href={m.mp3} download className="bg-white text-black px-3 py-2 rounded font-bold">Download</a>
+                                          </div>
+                                        </div>
+                                      ))}
+                    </div>
+                  )}
 
                   <p className="text-gray-400 mt-4">Share this masterpiece and watch them cry</p>
 

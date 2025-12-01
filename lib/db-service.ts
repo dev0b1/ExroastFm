@@ -1,5 +1,5 @@
 import { db } from '@/server/db';
-import { templates, subscriptions, roasts, users, userPreferences, dailyQuotes, audioNudges, dailyCheckIns, audioGenerationJobs } from '@/src/db/schema';
+import { templates, subscriptions, roasts, users, userPreferences, dailyQuotes, audioNudges, dailyCheckIns, audioGenerationJobs, premiumSongs } from '@/src/db/schema';
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { Template } from './template-matcher';
 
@@ -239,6 +239,42 @@ export async function getUserPreferences(userId: string) {
   }
 }
 
+// Upsert premium songs manifest into DB
+export async function upsertPremiumSongs(manifest: Array<{ id: string; title: string; description?: string; tags?: string; mp3: string; mp4?: string; duration?: number; }>): Promise<boolean> {
+  try {
+    if (!Array.isArray(manifest) || manifest.length === 0) return true;
+
+    for (const m of manifest) {
+      await db.insert(premiumSongs).values({
+        id: m.id,
+        title: m.title,
+        description: m.description || null,
+        tags: m.tags || null,
+        mp3: m.mp3,
+        mp4: m.mp4 || null,
+        duration: m.duration || 30,
+        updatedAt: new Date(),
+      }).onConflictDoUpdate({
+        target: premiumSongs.id,
+        set: {
+          title: m.title,
+          description: m.description || null,
+          tags: m.tags || null,
+          mp3: m.mp3,
+          mp4: m.mp4 || null,
+          duration: m.duration || 30,
+          updatedAt: new Date(),
+        }
+      });
+    }
+
+    return true;
+  } catch (err) {
+    console.error('upsertPremiumSongs failed', err);
+    return false;
+  }
+}
+
 export async function createOrUpdateUserPreferences(
   userId: string,
   prefs: {
@@ -468,6 +504,11 @@ export async function saveAudioNudge(
 
 // Job queue helpers
 export async function enqueueAudioJob(job: { userId: string; type: string; payload: any; providerTaskId?: string }): Promise<string | null> {
+  // If running in PREMADE_ONLY mode, do not enqueue generation jobs.
+  if (process.env.PREMADE_ONLY === '1') {
+    console.info('[db-service] PREMADE_ONLY active — skipping enqueueAudioJob', { userId: job.userId, type: job.type });
+    return null;
+  }
   let payloadStr = '';
   try {
     // Try to stringify the payload. If it fails (circular refs etc), fall back

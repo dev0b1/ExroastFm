@@ -16,6 +16,15 @@ async function processJob(job: any) {
     await markJobFailed(jobId, 'Invalid job payload');
     return;
   }
+
+  // If the app is running in PREMADE_ONLY mode, skip heavy generation jobs.
+  // This mode is used when the app serves pre-made premium songs instead of
+  // generating audio/video via providers and ffmpeg.
+  if (process.env.PREMADE_ONLY === '1' && (job.type === 'song' || job.type === 'eleven')) {
+    console.info('[worker] PREMADE_ONLY mode active — skipping heavy job', { jobId, type: job.type });
+    await markJobFailed(jobId, 'deprecated_in_premade_mode');
+    return;
+  }
   try {
     const payloadSize = Buffer.byteLength(job.payload || '', 'utf8');
     console.debug('[worker] job payload parsed', { jobId, payloadSize, keys: Object.keys(payload || {}) });

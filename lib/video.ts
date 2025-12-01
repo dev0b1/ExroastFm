@@ -10,6 +10,10 @@ export interface MakeVideoOpts {
 }
 
 export function makeLyricVideo(opts: MakeVideoOpts) {
+  if (process.env.PREMADE_ONLY === '1') {
+    console.warn('[video] makeLyricVideo called but PREMADE_ONLY mode is active — video generation is disabled');
+    throw new Error('Video generation disabled in PREMADE_ONLY mode');
+  }
   const { audioPath, outPath, lyricsLines, durationSeconds = 60 } = opts;
   const fontFile = process.env.LYRIC_FONT_PATH || '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
   const w = 1280;

@@ -185,6 +185,23 @@ export type InsertDailyQuote = typeof dailyQuotes.$inferInsert;
 export type AudioNudge = typeof audioNudges.$inferSelect;
 export type InsertAudioNudge = typeof audioNudges.$inferInsert;
 
+export const premiumSongs = pgTable('premium_songs', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  description: text('description'),
+  tags: text('tags'),
+  mp3: text('mp3').notNull(),
+  mp4: text('mp4'),
+  duration: integer('duration').default(30).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  titleIdx: index('premium_songs_title_idx').on(table.title),
+}));
+
+export type PremiumSong = typeof premiumSongs.$inferSelect;
+export type InsertPremiumSong = typeof premiumSongs.$inferInsert;
+
 export const dailyCheckIns = pgTable('daily_check_ins', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull(),
