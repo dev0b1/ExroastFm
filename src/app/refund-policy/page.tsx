@@ -6,7 +6,7 @@ export default function RefundPolicyPage() {
 
       <p className="mb-4">
         We want you to be happy with your purchase. If you experience technical issues that prevent access to
-        the service, please contact support at <strong>hello@example.com</strong> and we will work to resolve the
+        the service, please contact support at <strong>contact@exroast.buzz</strong> and we will work to resolve the
         issue promptly.
       </p>
 
@@ -18,7 +18,7 @@ export default function RefundPolicyPage() {
         <li>30-day money-back guarantee for eligible purchases.</li>
         <li>For technical issues or unusable files, we will attempt to fix or remake the asset before issuing
           a refund.</li>
-        <li>To request a refund, email <strong>support@exroast.buzz</strong> with your order ID and a short
+        <li>To request a refund, email <strong>contact@exroast.buzz</strong> with your order ID and a short
           description of the issue. We aim to respond within 48 hours.</li>
       </ul>
 
@@ -28,7 +28,7 @@ export default function RefundPolicyPage() {
 
       <h2 className="text-xl font-semibold mt-6 mb-2">How to request a refund</h2>
       <ol className="list-decimal list-inside text-sm text-gray-600 space-y-2">
-        <li>Contact support at <strong>support@exroast.buzz</strong> with your order ID and issue description.</li>
+        <li>Contact support at <strong>contact@exroast.buzz</strong> with your order ID and issue description.</li>
         <li>We will investigate and attempt to resolve the issue or remake the asset.</li>
         <li>If a refund is approved, we will process it via Paddle and notify you by email. Refunds typically
           appear within 5-10 business days depending on the payment provider.</li>

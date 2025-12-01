@@ -50,13 +50,13 @@ export default function PrivacyPage() {
       <p className="mb-4 text-sm text-gray-700">If you are located in the EU or California, you have rights under
         GDPR/CCPA to access, correct, or delete personal data. To request deletion of your account or any
         user-submitted content (for example, a roast that includes a name), email <a
-        href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a> and we will
+          href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a> and we will
         respond within 30 days. Note that removing an item may not affect copies already downloaded by users.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Data Controller & Contact Details</h2>
       <p className="mb-4 text-sm text-gray-700">Data controller: <strong>Opencipher Tech</strong> (trading as ExRoast.buzz).
-        For data, privacy, or legal inquiries contact <a href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.
-        Replace this contact with your official company email and physical address where required by local law or payment
+        For data, privacy, or legal inquiries contact <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.
+          Replace this contact with your official company email and physical address where required by local law or payment
         providers.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Cookies and Tracking</h2>
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
       <p className="mb-4 text-sm text-gray-700">Digital goods are delivered immediately after successful
         payment: a download link will appear on the purchase confirmation page and an email with the link will
         be sent to the address you provided. If delivery fails, contact support at <a
-        href="mailto:support@exroast.buzz" className="text-blue-600 underline">support@exroast.buzz</a>.</p>
+          href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Children</h2>
       <p className="mb-4 text-sm text-gray-700">The Service is not intended for children under 13. We do not knowingly
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Contact</h2>
       <p className="text-sm text-gray-700">If you have questions about this policy, contact <a
-        href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.</p>
+          href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.</p>
     </div>
   );
 }

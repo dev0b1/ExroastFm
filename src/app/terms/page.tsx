@@ -1,8 +1,11 @@
+import BackButton from "@/components/BackButton";
+
 export default function TermsPage() {
   const updated = new Date().toISOString().split("T")[0];
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
+      <BackButton />
       <h1 className="text-3xl font-bold mb-4">Terms of Service</h1>
       <p className="text-sm text-gray-600 mb-4">Last updated: {updated}</p>
 
@@ -16,7 +19,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold mt-6 mb-2">Merchant & Business Information</h2>
           <p className="mb-4 text-sm text-gray-700">Merchant name: <strong>Opencipher Tech</strong> (brand: ExRoast). Business/Legal name: <strong>Opencipher Tech</strong>.
             Registered address: <strong>NO. 4 Mc Dermott Road, Warri, Delta State, Nigeria</strong>. Contact email for legal and billing matters:
-            <a href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.
+            <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.
             Please verify these details in your Paddle account and update any corporate filings as needed.</p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">Delivery & Licensing</h2>
@@ -66,7 +69,7 @@ export default function TermsPage() {
         date at the top of this page. Continued use of the Service after changes constitutes acceptance.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Contact</h2>
-      <p className="text-sm text-gray-700">For legal questions contact <a href="mailto:legal@exroast.buzz" className="text-blue-600 underline">legal@exroast.buzz</a>.</p>
+      <p className="text-sm text-gray-700">For legal questions contact <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.</p>
     </div>
   );
 }

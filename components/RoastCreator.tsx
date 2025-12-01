@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { openTierCheckout } from "@/lib/checkout";
+import { openSingleCheckout } from "@/lib/checkout";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { Tooltip } from "@/components/Tooltip";
@@ -223,14 +223,22 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
           <p className="text-center text-sm text-gray-400">Demo song (template) — full demo available. Upgrade for a personalized song.</p>
            <button onClick={async () => {
              try {
-               // openTierCheckout will re-check auth and open Paddle. It also marks `inCheckout`.
-               await openTierCheckout('premium');
+               // Prefer one-time checkout for upgrading a single preview -> full song.
+               // If the user recently generated a preview, pass the pending preview songId
+               // so the backend/webhook can attach the purchase to that generated preview.
+               let pendingSongId: string | null = null;
+               try {
+                 pendingSongId = typeof window !== 'undefined' ? localStorage.getItem('pendingPreviewSongId') : null;
+               } catch (e) {
+                 pendingSongId = null;
+               }
+
+               await openSingleCheckout(pendingSongId ? { songId: pendingSongId } : undefined);
              } catch (err) {
-               console.error('Failed to open checkout from RoastCreator', err);
-               // As a safe fallback, navigate to pricing so user can sign in / choose a plan.
+               console.error('Failed to open one-time checkout from RoastCreator', err);
                try { window.location.href = '/pricing'; } catch (e) { }
              }
-           }} className="bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black font-bold px-6 py-3 rounded-md focus:outline-none focus:ring-4 focus:ring-exroast-gold/60">Upgrade for a personalized song</button>
+           }} className="w-full md:w-auto bg-gradient-to-r from-[#ff006e] to-[#ffd23f] text-black font-bold px-6 py-3 rounded-md focus:outline-none focus:ring-4 focus:ring-exroast-gold/60">Upgrade for a personalized song</button>
         </div>
       </div>
 

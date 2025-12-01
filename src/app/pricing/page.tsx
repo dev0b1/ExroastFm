@@ -2,13 +2,13 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FaCheck, FaStar, FaCrown, FaShieldAlt, FaLock } from "react-icons/fa";
+import { FaCheck, FaStar, FaShieldAlt, FaLock } from "react-icons/fa";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { SINGLE_LABEL, SINGLE_AMOUNT, PREMIUM_LABEL, PREMIUM_AMOUNT, WEEKLY_LABEL, WEEKLY_AMOUNT, WEEKLY_PRICE_ID } from '@/lib/pricing';
-import { openSingleCheckout, openTierCheckout } from '@/lib/checkout';
+import { SINGLE_AMOUNT } from '@/lib/pricing';
+import { openSingleCheckout } from '@/lib/checkout';
 
 export default function PricingPage() {
   return (
@@ -43,46 +43,7 @@ export default function PricingPage() {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20">
-            {/* Weekly plan: 3 credits + 7 days daily check-in */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              whileHover={{ y: -10 }}
-              className="card text-center relative overflow-hidden tier-card"
-            >
-              <h3 className="text-2xl font-bold text-gradient mb-2">Weekly</h3>
-              <div className="text-5xl font-bold text-exroast-gold mb-6">
-                {`$${WEEKLY_AMOUNT.toFixed(2)}`}
-                <span className="text-white text-sm"> / week</span>
-              </div>
-              <p className="text-gray-400 text-sm mb-6">3 song-generation credits (use for full personalized songs)</p>
-              <ul className="space-y-4 text-left mb-8">
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>3 song generation credits</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>3 credits for full song generations</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>Download MP3s for unlocked songs</span>
-                </li>
-              </ul>
-              <button
-                className="btn-primary w-full"
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    openTierCheckout('weekly', WEEKLY_PRICE_ID);
-                  }
-                }}
-              >
-                Subscribe Weekly
-              </button>
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-20">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -112,14 +73,6 @@ export default function PricingPage() {
                   <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
                   <span>Watermarked shares</span>
                 </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-gray-600 mt-1 flex-shrink-0" />
-                  <span className="text-gray-600 line-through">Personalized lyrics</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-gray-600 mt-1 flex-shrink-0" />
-                  <span className="text-gray-600 line-through">Screenshot upload</span>
-                </li>
               </ul>
               <AuthAwareCTA className="btn-secondary w-full">
                 Try Free Now
@@ -141,7 +94,7 @@ export default function PricingPage() {
               <ul className="space-y-4 text-left mb-8">
                 <li className="flex items-start space-x-3">
                   <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span className="font-medium">Tailored Suno AI song</span>
+                  <span className="font-medium">Tailored AI song</span>
                 </li>
                 <li className="flex items-start space-x-3">
                   <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
@@ -159,82 +112,16 @@ export default function PricingPage() {
                   <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
                   <span>Download MP3</span>
                 </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-gray-600 mt-1 flex-shrink-0" />
-                  <span className="text-gray-600 line-through">Screenshot upload</span>
-                </li>
               </ul>
               <button
                 className="btn-primary w-full"
                 onClick={() => {
-                  // Reuse the same checkout flow as the preview page (no songId for general one-time)
                   if (typeof window !== 'undefined') {
                     openSingleCheckout();
                   }
                 }}
               >
                 Get One Song
-              </button>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              whileHover={{ y: -10 }}
-              className="card text-center border-4 border-exroast-pink relative shadow-2xl overflow-hidden tier-card"
-            >
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-exroast-pink text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg z-10">
-                Most Popular
-              </div>
-              <div className="absolute top-12 right-4 bg-exroast-gold text-black px-3 py-1 rounded-full text-xs font-bold z-10">
-                Cancel Anytime
-              </div>
-              <div className="flex items-center justify-center mb-2">
-                <FaCrown className="text-exroast-gold text-2xl mr-2" />
-                <h3 className="text-2xl font-bold text-gradient">Unlimited Pro</h3>
-              </div>
-              <div className="text-5xl font-bold text-exroast-gold mb-6">
-                {`$${PREMIUM_AMOUNT.toFixed(2)}`}
-                <span className="text-xl text-white">/month</span>
-              </div>
-              <p className="text-gray-400 text-sm mb-6">Unlimited Everything</p>
-              <ul className="space-y-4 text-left mb-8">
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span className="font-medium">UNLIMITED personalized songs</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span className="font-medium">Upload chat screenshots</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>AI reads chats for ultra-petty lines 💅</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>Ultra-petty digs on ex's exact crimes</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span className="font-medium">Unlimited history & saves</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <FaCheck className="text-exroast-gold mt-1 flex-shrink-0" />
-                  <span>Clean MP3 downloads (no watermark)</span>
-                </li>
-              </ul>
-              <button
-                className="btn-primary w-full"
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    // premium tier id 'unlimited' and premium price id will be used by helper
-                    openTierCheckout('unlimited');
-                  }
-                }}
-              >
-                Go Unlimited
               </button>
             </motion.div>
           </div>

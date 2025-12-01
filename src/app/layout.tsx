@@ -4,6 +4,7 @@ import { PaddleLoader } from "@/components/PaddleLoader";
 import ScrollToTop from "@/components/ScrollToTop";
 import PaddleInit from "@/components/PaddleInit";
 import GuestCheckoutModal from "@/components/GuestCheckoutModal";
+import NavWrapper from "@/components/NavWrapper";
 
 export const metadata: Metadata = {
   title: "🔥 ExRoast.buzz - Turn Your Breakup Into a Savage Roast Song",
@@ -28,7 +29,9 @@ export default function RootLayout({
         <PaddleInit />
         <GuestCheckoutModal />
         <PaddleLoader />
-        {children}
+        <NavWrapper>
+          {children}
+        </NavWrapper>
       </body>
     </html>
   );
