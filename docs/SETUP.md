@@ -62,7 +62,7 @@ Create at least 10-20 templates covering common breakup scenarios:
 ### Create Products
 1. Go to your Paddle dashboard
 2. Create two products:
-   - **One-Time Pro**: $4.99 one-time payment
+   - **One-Time Pro**: $9.99 one-time payment
    - **Unlimited Pro**: $12.99/month subscription
 3. Copy the price IDs for each
 
@@ -80,7 +80,7 @@ Create at least 10-20 templates covering common breakup scenarios:
 - `PADDLE_CLIENT_TOKEN`: Your Paddle client token
 - `PADDLE_API_KEY`: Your Paddle API key
 - `PADDLE_NOTIFICATION_WEBHOOK_SECRET`: Webhook secret
-- `NEXT_PUBLIC_PADDLE_PRICE_SINGLE`: Price ID for $4.99 one-time
+- `NEXT_PUBLIC_PADDLE_PRICE_SINGLE`: Price ID for $9.99 one-time
 - `NEXT_PUBLIC_PADDLE_PRICE_UNLIMITED`: Price ID for $12.99/month
 
 ## 4. Testing the Flow

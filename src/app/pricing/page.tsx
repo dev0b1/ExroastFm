@@ -209,7 +209,7 @@ export default function PricingPage() {
                 <div>
                   <h4 className="font-bold text-white mb-2">Can I buy individual songs instead?</h4>
                   <p className="text-white">
-                    Yes! You can purchase individual full songs for $4.99 each if you don't 
+                    Yes! You can purchase individual full songs for $9.99 each if you don't 
                     want a subscription. Just generate your song and choose the one-time purchase option.
                   </p>
                 </div>

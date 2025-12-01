@@ -2,7 +2,7 @@
 // Exports public (NEXT_PUBLIC_*) values for client components and server-side ids as well.
 
 export const SINGLE_PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE || "";
-export const SINGLE_AMOUNT = Number(process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE_AMOUNT) || 4.99;
+export const SINGLE_AMOUNT = Number(process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE_AMOUNT) || 9.99;
 export const SINGLE_LABEL = process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE_LABEL || `$${SINGLE_AMOUNT.toFixed(2)}`;
 export const SINGLE_BUTTON_TEXT = process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE_BUTTON_TEXT || `One-Time Full Unlock`;
 

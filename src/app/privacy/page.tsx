@@ -46,18 +46,45 @@ export default function PrivacyPage() {
         Service and to comply with legal obligations. We apply industry-standard security practices to protect
         your data but cannot guarantee absolute security.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">GDPR / CCPA and Deletion Requests</h2>
-      <p className="mb-4 text-sm text-gray-700">If you are located in the EU or California, you have rights under
-        GDPR/CCPA to access, correct, or delete personal data. To request deletion of your account or any
-        user-submitted content (for example, a roast that includes a name), email <a
-          href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a> and we will
-        respond within 30 days. Note that removing an item may not affect copies already downloaded by users.</p>
+      <h2 className="text-lg font-semibold mt-6 mb-2">GDPR / CCPA — Your Rights and How We Handle Personal Data</h2>
+      <p className="mb-4 text-sm text-gray-700">We take privacy and regulatory compliance seriously. Below is a clear summary
+        of how we handle personal data for users in the EU (GDPR) and California (CCPA). If you have additional questions
+        or would like to make a rights request, contact us at <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.</p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">Data Controller & Contact Details</h2>
-      <p className="mb-4 text-sm text-gray-700">Data controller: <strong>Opencipher Tech</strong> (trading as ExRoast.buzz).
-        For data, privacy, or legal inquiries contact <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.
-          Replace this contact with your official company email and physical address where required by local law or payment
-        providers.</p>
+      <h3 className="text-md font-semibold mt-4 mb-2">What personal data we process</h3>
+      <p className="mb-4 text-sm text-gray-700">When you use ExRoast.buzz we may collect or process the following categories of personal data:
+      user account email and profile fields, the short story or content you submit to generate a roast (which may include names or other personal details you choose to provide), transaction metadata (payment provider reference, amount, date), and technical logs (IP address, browser/user-agent, timestamps) used for fraud prevention and diagnostics.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Lawful basis for processing (GDPR)</h3>
+      <p className="mb-4 text-sm text-gray-700">Our primary lawful basis for processing your submitted content is <strong>consent</strong> — you voluntarily provide the short story/inputs used to generate content. For transactional data (payments) and fraud prevention we rely on legitimate interests and contractual necessity to fulfil purchases. If you create an account, processing of account-related data is necessary to provide the service and support.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Your rights (GDPR & CCPA)</h3>
+      <ul className="list-disc ml-6 mb-4 text-sm text-gray-700">
+        <li><strong>Access:</strong> Request a copy of personal data we hold about you.</li>
+        <li><strong>Rectification:</strong> Ask us to correct inaccurate personal data.</li>
+        <li><strong>Deletion:</strong> Request deletion of your account or user-submitted content (we will remove content from our systems and any public listings; please note copies already downloaded by other users cannot be recovered from their devices).</li>
+        <li><strong>Restriction / objection:</strong> Object to certain processing or request restriction where applicable.</li>
+        <li><strong>Portability:</strong> Request an export of your personal data in a commonly used format.</li>
+        <li><strong>CCPA-only:</strong> California residents can request disclosure of categories of personal data collected and opt-out of the sale of personal data (we do not sell personal data).</li>
+      </ul>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">How to make a rights request</h3>
+      <p className="mb-4 text-sm text-gray-700">Email <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a> with the subject line "Privacy Request" and include your account email and a short description of the request. We will verify your identity where necessary and respond within 30 days. For deletion requests we will remove your account and user-submitted content from our active systems and notify third-party processors where possible; complete removal from third-party backups may take longer.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Data minimization & retention</h3>
+      <p className="mb-4 text-sm text-gray-700">We retain only the data necessary to provide the service and for legal/operational purposes. User-submitted content (stories used to create roasts) is retained for {`90 days`} by default to support delivery and troubleshooting, and may be deleted earlier on request. Transaction metadata is retained as long as necessary for accounting and refunds (typically up to 7 years depending on local law). We anonymize or remove identifiers where feasible.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Moderation, safety & content policy</h3>
+      <p className="mb-4 text-sm text-gray-700">Content generated by ExRoast.buzz is intended for entertainment. Users are responsible for any personal information they include in submissions. We prohibit content that encourages violence, hate, or unlawful activity. We may remove content or suspend accounts that violate our Terms of Service. Moderation is a combination of automated safeguards and manual review where necessary to enforce policies.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Data sharing & third-party processors</h3>
+      <p className="mb-4 text-sm text-gray-700">We use third-party providers to deliver the service (examples: Paddle for payments, Supabase for data, and AI/audio providers for generation). These providers receive only the data necessary to perform their functions (for example, Paddle receives payment/billing info). We require processors to follow appropriate security and confidentiality obligations.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Security measures</h3>
+      <p className="mb-4 text-sm text-gray-700">We implement industry-standard security practices including encryption in transit (HTTPS), access controls, and regular audits. While we strive to protect your data, no system is 100% secure; report suspected breaches to <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.</p>
+
+      <h3 className="text-md font-semibold mt-4 mb-2">Data controller & contact details</h3>
+      <p className="mb-4 text-sm text-gray-700">Data controller: <strong>Opencipher Tech</strong> (trading as ExRoast.buzz). Registered address: NO. 4 Mc Dermott Road, Warri, Delta State, Nigeria. For data, privacy, or legal inquiries contact <a href="mailto:contact@exroast.buzz" className="text-blue-600 underline">contact@exroast.buzz</a>.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Cookies and Tracking</h2>
       <p className="mb-4 text-sm text-gray-700">We use cookies and similar technologies for analytics and to

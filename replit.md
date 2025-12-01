@@ -28,7 +28,7 @@ Core features include:
 
 ### Feature Specifications
 - **Landing Page (`/`)**: Focuses on savage messaging and TikTok-viral positioning. Features a "Daily Petty Power-Ups" section showcasing text quotes and audio nudges with visual cards explaining Free vs Pro tiers.
-- **Pricing Page (`/pricing`)**: Outlines free, one-time ($4.99), and unlimited ($12.99/month) tiers with clear benefits and visuals.
+- **Pricing Page (`/pricing`)**: Outlines free, one-time ($9.99), and unlimited ($12.99/month) tiers with clear benefits and visuals.
 - **Story Input Page (`/story`)**: Allows users to input breakup stories via text or screenshot, with mode selection (Petty Roast / Glow-Up Flex). Includes upfront daily motivation opt-in checkboxes (text quotes + optional audio nudges) before roast generation.
 - **Preview Page (`/preview`)**: Displays a 15-second watermarked song preview for free users, with options to unlock the full song.
 - **Share Page (`/share/[id]`)**: Public page for sharing generated songs, including a TikTok share button.

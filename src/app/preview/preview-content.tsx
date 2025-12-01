@@ -420,7 +420,7 @@ export default function PreviewContent() {
                       <SocialShareButtons
                         url={shareUrl}
                         title={song.title}
-                        message={song.isPurchased ? `I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this demo!`}
+                        message={song.isPurchased ? `I just paid $9.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this demo!`}
                       />
                       {!song.isPurchased && (
                         <button

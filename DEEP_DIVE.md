@@ -70,14 +70,14 @@ PADDLE_API_KEY=xxx_sandbox_api_key
 PADDLE_NOTIFICATION_WEBHOOK_SECRET=pdl_ntfset_xxx
 NEXT_PUBLIC_PADDLE_PRICE_STANDARD=pri_01xxx   # $9/month (5 songs)
 NEXT_PUBLIC_PADDLE_PRICE_PREMIUM=pri_01yyy    # $19/month (unlimited)
-NEXT_PUBLIC_PADDLE_PRICE_SINGLE=pri_01zzz     # $4.99 one-time
+NEXT_PUBLIC_PADDLE_PRICE_SINGLE=pri_01zzz     # $9.99 one-time
 ```
 
 ### Payment Tiers:
 | Tier | Price | Limit | Features |
 |------|-------|-------|----------|
 | **Free** | $0 | 15s template previews | Matched templates, watermarked |
-| **One-Time Pro** | $4.99 | 1 song | Full 30-35s custom AI song, no watermark, MP3 download |
+| **One-Time Pro** | $9.99 | 1 song | Full 30-35s custom AI song, no watermark, MP3 download |
 | **Unlimited Pro** | $12.99/mo | Unlimited | Unlimited songs, screenshot upload → OCR → personalized, no watermark |
 
 ### Webhook Handler (`/api/webhook/route.ts`):

@@ -151,7 +151,7 @@ POST /api/webhook         # Payment webhook
 | Tier | Price | Features |
 |------|-------|----------|
 | Free | $0 | 15-second preview, text input |
-| Single | $4.99 | 1 full song |
+| Single | $9.99 | 1 full song |
 | Pro | $9.99/mo | Unlimited full songs |
 
 ---
@@ -166,7 +166,7 @@ POST /api/webhook         # Payment webhook
 5. **Preview** → Hear 15-second sample
 6. **See lyrics** → Displayed on preview page
 7. **Love it?** → Click "Unlock Full Song"
-8. **Pay $4.99** → Get full MP3
+8. **Pay $9.99** → Get full MP3
 9. **Share** → Send link to friends
 
 ---
@@ -210,7 +210,7 @@ POST /api/webhook         # Payment webhook
 2. Generate a unique roast song
 3. Hear AI-generated, personalized lyrics
 4. Preview 15 seconds free
-5. Buy full song for $4.99
+5. Buy full song for $9.99
 6. Share with friends
 7. Subscribe for unlimited songs
 

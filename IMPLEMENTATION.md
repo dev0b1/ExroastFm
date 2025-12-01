@@ -112,7 +112,7 @@ const handleSubscribe = async (tier: SubscriptionTier) => {
 ```
 /checkout?tier=premium          → Open Premium tier ($19/mo)
 /checkout?tier=standard         → Open Standard tier ($9/mo)
-/checkout?type=single           → Open single purchase ($4.99)
+/checkout?type=single           → Open single purchase ($9.99)
 ```
 
 ---

@@ -97,7 +97,7 @@ Visit: `http://localhost:5000/pricing`
 ### ✅ Subscription
 - **Payment**: Paddle Billing (fully configured)
 - **Auto-Open**: Paddle checkout opens automatically after login
-- **Tiers**: Standard ($9), Premium ($19), Single ($4.99)
+- **Tiers**: Standard ($9), Premium ($19), Single ($9.99)
 
 ### ✅ Template System (Free Users)
 - **5 Default Templates**: petty, sad, healing, savage, vibe

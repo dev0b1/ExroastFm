@@ -412,7 +412,7 @@ export default function SongUnlockedClient() {
                       <SocialShareButtons
                         songId={song.id}
                         title={song.title}
-                        message={"I just paid $4.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵"}
+                        message={"I just paid $9.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵"}
                         onShare={(provider) => track('share_clicked', { provider, songId: song.id })}
                       />
                     </div>

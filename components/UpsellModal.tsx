@@ -71,7 +71,7 @@ with your names, your story, and your chosen vibe.`}
               </div>
 
               <div className="text-center mb-4">
-                <div className="text-lg font-extrabold text-white mb-3">Get Your Real Song – $4.99</div>
+                <div className="text-lg font-extrabold text-white mb-3">Get Your Real Song – $9.99</div>
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
