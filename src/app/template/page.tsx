@@ -9,8 +9,7 @@ import { DailyCheckInTab } from "@/components/DailyCheckInTab";
 import { RoastModeTab } from "@/components/RoastModeTab";
 import { ConfettiPop } from "@/components/ConfettiPop";
 import { FaSpinner, FaFire, FaDumbbell, FaArrowRight } from "react-icons/fa";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+// Header/Footer provided by NavWrapper in root layout
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { SparkStorm } from "@/components/SparkStorm";
@@ -275,7 +274,7 @@ export default function TemplatePage() {
     <div className="min-h-screen bg-black relative pb-20 md:pb-0">
       <AnimatedBackground />
       <SparkStorm />
-      <Header />
+      {/* Header rendered by NavWrapper */}
 
       {/* Fixed Streak Bar (guest mode shows generic text) */}
       <div
@@ -418,7 +417,7 @@ export default function TemplatePage() {
       </nav>
 
       {showConfetti && <ConfettiPop show={showConfetti} onComplete={() => setShowConfetti(false)} />}
-      <Footer />
+      {/* Footer rendered by NavWrapper */}
     </div>
   );
 }

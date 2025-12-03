@@ -5,7 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Header } from "@/components/Header";
+// Header provided by NavWrapper in root layout
 import { SubscriptionCTA } from "@/components/SubscriptionCTA";
 // import { SubscriptionModal } from "@/components/SubscriptionModal";
 import { UpsellModal } from "@/components/UpsellModal";
@@ -18,7 +18,7 @@ import Link from "next/link";
 import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaInstagram, FaWhatsapp, FaTwitter, FaLink } from "react-icons/fa";
 // daily petty opt-in removed from preview flow
 // import { getDailySavageQuote } from "@/lib/suno-nudge";
-import { openSingleCheckout } from '@/lib/checkout';
+import { openPrimaryCheckout } from '@/lib/checkout';
 
 interface Song {
   id: string;
@@ -278,7 +278,7 @@ export default function PreviewContent() {
 
   return (
     <div>
-      <Header />
+      {/* Header rendered by NavWrapper */}
       <main className="pt-32 pb-20 relative z-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -497,7 +497,7 @@ export default function PreviewContent() {
       <UpsellModal
         isOpen={showUpsellModal}
         onClose={() => setShowUpsellModal(false)}
-        onUpgrade={async (tier) => {
+          onUpgrade={async (tier) => {
           console.log('Upgrading to:', tier);
           setShowUpsellModal(false);
           // For one-time purchases we open the single-song checkout directly
@@ -505,7 +505,7 @@ export default function PreviewContent() {
           // any accidental auto-open behavior.
           if (tier === 'one-time') {
             try {
-              await openSingleCheckout({ songId: song?.id });
+              await openPrimaryCheckout({ songId: song?.id });
             } catch (e) {
               console.error('Error opening single checkout from upsell:', e);
             }

@@ -3,8 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaCheckCircle, FaDownload, FaMusic } from "react-icons/fa";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+// Header/Footer provided by NavWrapper in root layout
 import PendingClaimBanner from '@/components/PendingClaimBanner';
 import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";

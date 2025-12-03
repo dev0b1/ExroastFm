@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/Header";
+// Header provided by NavWrapper in root layout
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { SparkStorm } from "@/components/SparkStorm";
 import RoastCreator from "@/components/RoastCreator";
@@ -30,8 +30,7 @@ export default function StoryPage() {
     <div className="min-h-screen bg-black">
       <AnimatedBackground />
   <SparkStorm />
-      {/* Pass the fetched currentUser into Header to avoid UI flash of public links */}
-      <Header userProp={currentUser} />
+      {/* Header rendered by NavWrapper (it already handles session to avoid UI flash) */}
       
       <main className="pt-32 pb-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

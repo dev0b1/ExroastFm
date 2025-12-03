@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+// Header/Footer provided by NavWrapper in root layout
 import { FaUpload, FaCheckCircle } from 'react-icons/fa';
 
 export default function AdminPage() {
@@ -56,7 +55,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-exroast-black">
-      <Header />
+      {/* Header rendered by NavWrapper */}
       
       <main className="pt-32 pb-20 px-4">
         <div className="max-w-2xl mx-auto">
@@ -181,7 +180,7 @@ export default function AdminPage() {
         </div>
       </main>
 
-      <Footer />
+      {/* Footer rendered by NavWrapper */}
     </div>
   );
 }

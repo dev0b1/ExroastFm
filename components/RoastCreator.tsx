@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { openSingleCheckout } from "@/lib/checkout";
+import { openPrimaryCheckout } from "@/lib/checkout";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { Tooltip } from "@/components/Tooltip";
@@ -233,7 +233,7 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
                  pendingSongId = null;
                }
 
-               await openSingleCheckout(pendingSongId ? { songId: pendingSongId } : undefined);
+               await openPrimaryCheckout(pendingSongId ? { songId: pendingSongId } : undefined);
              } catch (err) {
                console.error('Failed to open one-time checkout from RoastCreator', err);
                try { window.location.href = '/pricing'; } catch (e) { }

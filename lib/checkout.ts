@@ -158,6 +158,17 @@ export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
     paddle = await ensurePaddleInitialized();
   } catch (e) {
     console.error('[openSingleCheckout] Failed to initialize Paddle:', e);
+    // Fallback to Dodo hosted checkout if configured
+    const dodoUrl = process.env.NEXT_PUBLIC_DODO_CHECKOUT_URL;
+    if (dodoUrl) {
+      console.log('[openSingleCheckout] Falling back to Dodo checkout');
+      try {
+        await openDodoCheckout(opts);
+        return;
+      } catch (err) {
+        console.error('[openSingleCheckout] Dodo fallback failed', err);
+      }
+    }
     alert('Payment system failed to load. Please refresh and try again.');
     return;
   }
@@ -303,4 +314,89 @@ export async function openTierCheckout(tierId: string, priceId?: string) {
     safeLocalStorage.removeItem('inCheckout');
     alert('Failed to open payment system. Please try again.');
   }
+}
+
+// Fallback Dodo checkout integration (simple hosted checkout URL)
+export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
+  console.log('[openDodoCheckout] Starting with opts:', opts);
+
+  // Resolve user for email prefills
+  const user = await resolveUser();
+
+  // Try creating a server-side checkout session via our `/checkout` route.
+  // This follows the Dodo Payments template which returns a `checkout_url`.
+  try {
+    const resp = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || undefined,
+        customerEmail: user?.email || undefined,
+        quantity: 1,
+        metadata: {
+          ...(user ? { userId: user.id } : {}),
+          ...(opts?.songId && { songId: opts.songId })
+        }
+      })
+    });
+
+    if (!resp.ok) {
+      throw new Error('Server checkout creation failed');
+    }
+
+    const json = await resp.json();
+    const url = json.checkout_url || json.checkoutUrl || json.url;
+    if (!url) throw new Error('No checkout url returned');
+
+    safeLocalStorage.setItem('inCheckout', 'true');
+    // Navigate the browser to the hosted checkout
+    window.location.href = url;
+    console.log('[openDodoCheckout] Redirecting to server-created Dodo checkout:', url);
+    return;
+  } catch (e) {
+    console.warn('[openDodoCheckout] Server checkout creation failed, falling back to hosted URL method', e);
+  }
+
+  // Fallback: if server route not configured, fall back to the older hosted URL env var
+  const base = process.env.NEXT_PUBLIC_DODO_CHECKOUT_URL;
+  if (!base) {
+    console.error('Dodo checkout URL not configured');
+    alert('Alternate payment provider not configured. Please contact support.');
+    return;
+  }
+
+  const successUrl = typeof window !== 'undefined' ? `${window.location.origin}/checkout/success?type=single${opts?.songId ? `&songId=${opts.songId}` : ''}` : '/checkout/success';
+
+  const customData: any = {
+    ...(user ? { userId: user.id } : {}),
+    ...(opts?.songId && { songId: opts.songId })
+  };
+
+  const params = new URL(base);
+  params.searchParams.set('success_url', successUrl);
+  params.searchParams.set('custom_data', encodeURIComponent(JSON.stringify(customData)));
+  if (user && user.email) params.searchParams.set('email', user.email);
+
+  // Mark checkout as in progress
+  safeLocalStorage.setItem('inCheckout', 'true');
+
+  try {
+    const url = params.toString();
+    window.open(url, '_blank');
+    console.log('[openDodoCheckout] Opened Dodo checkout (fallback):', url);
+  } catch (e) {
+    console.error('[openDodoCheckout] Failed to open Dodo checkout', e);
+    safeLocalStorage.removeItem('inCheckout');
+    alert('Failed to open alternate payment system. Please try again.');
+  }
+}
+
+// Primary checkout wrapper — currently routes to Dodo by default so we don't
+// need to modify existing Paddle code. Swap implementation here to change
+// primary provider later without touching call sites.
+export async function openPrimaryCheckout(opts?: SingleCheckoutOpts) {
+  console.log('[openPrimaryCheckout] Routing to primary checkout (Dodo for now) with opts:', opts);
+  // For now, use Dodo as the primary provider. Keep `openSingleCheckout`
+  // intact so Paddle logic remains available for future fallback.
+  return openDodoCheckout(opts);
 }

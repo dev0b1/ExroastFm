@@ -3,18 +3,16 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaCheck, FaStar, FaShieldAlt, FaLock } from "react-icons/fa";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+// Header/Footer provided by NavWrapper in root layout
 import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { SINGLE_AMOUNT } from '@/lib/pricing';
-import { openSingleCheckout } from '@/lib/checkout';
+import { openPrimaryCheckout } from '@/lib/checkout';
 
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-black">
       <AnimatedBackground />
-      <Header />
       
       <main className="pt-32 pb-20">
         <div className="section-container">
@@ -117,7 +115,7 @@ export default function PricingPage() {
                 className="btn-primary w-full"
                 onClick={() => {
                   if (typeof window !== 'undefined') {
-                    openSingleCheckout();
+                    openPrimaryCheckout();
                   }
                 }}
               >
@@ -248,7 +246,7 @@ export default function PricingPage() {
         </div>
       </main>
 
-      <Footer />
+      {/* Footer rendered by NavWrapper */}
       
       <style jsx global>{`
         @keyframes goldPulse {

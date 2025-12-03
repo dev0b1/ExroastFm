@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from "next/navigation";
-import { openSingleCheckout, openTierCheckout } from "@/lib/checkout";
+import { openPrimaryCheckout, openTierCheckout } from "@/lib/checkout";
 
 export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: () => void }) {
   const supabase = createClientComponentClient();
@@ -210,7 +210,7 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
               <div className="space-y-2">
                 <button
                   type="button"
-                  onClick={async () => { onClose?.(); try { await openSingleCheckout(); } catch (e) { console.error('Open single checkout failed', e); window.location.href = '/pricing'; } }}
+                  onClick={async () => { onClose?.(); try { await openPrimaryCheckout(); } catch (e) { console.error('Open single checkout failed', e); window.location.href = '/pricing'; } }}
                   className="group w-full text-left px-5 py-4 rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] hover:from-exroast-pink/10 hover:to-purple-500/10 border border-white/10 hover:border-exroast-pink/30 transition-all duration-200 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
@@ -231,8 +231,8 @@ export default function SettingsMenu({ user, onClose }: { user?: any; onClose?: 
                       if (creditsPrice) {
                         await openTierCheckout('credits', creditsPrice);
                       } else {
-                        // fallback to single checkout if no credits price configured
-                        await openSingleCheckout();
+                        // fallback to primary checkout if no credits price configured
+                        await openPrimaryCheckout();
                       }
                     } catch (e) {
                       console.error('Open buy credits failed', e);

@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaTimes } from "react-icons/fa";
 import SubscriptionPrompt from "./SubscriptionPrompt";
 import SettingsMenu from "./SettingsMenu";
-import { openSingleCheckout, openTierCheckout } from "@/lib/checkout";
+import { openPrimaryCheckout, openTierCheckout } from "@/lib/checkout";
 
 export function Header({ userProp }: { userProp?: any }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -109,10 +109,10 @@ export function Header({ userProp }: { userProp?: any }) {
               if (ageMs > TEN_MIN) {
                 // expired, fall back to normal subscription prompt flow
               } else {
-                // small delay to allow any client scripts (Paddle) to initialize
+                // small delay to allow any client scripts to initialize
                 setTimeout(() => {
                   if (parsed?.type === 'single') {
-                    openSingleCheckout({ songId: parsed.songId || null });
+                    openPrimaryCheckout({ songId: parsed.songId || null });
                   } else if (parsed?.type === 'tier') {
                     openTierCheckout(parsed.tierId, parsed.priceId || undefined);
                   }
@@ -281,7 +281,7 @@ export function Header({ userProp }: { userProp?: any }) {
                     Upgrade
                   </button>
                   <button
-                    onClick={async () => { try { await openSingleCheckout(); } catch (e) { console.error('Open single checkout failed', e); window.location.href = '/pricing'; } }}
+                    onClick={async () => { try { await openPrimaryCheckout(); } catch (e) { console.error('Open single checkout failed', e); window.location.href = '/pricing'; } }}
                     className="inline-flex items-center bg-white/5 px-3 py-2 rounded-full font-bold text-sm"
                   >
                     Buy Credits

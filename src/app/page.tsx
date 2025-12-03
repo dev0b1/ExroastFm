@@ -3,8 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaFire, FaDumbbell } from "react-icons/fa";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+// Header/Footer provided by NavWrapper in root layout
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function HomePage() {
@@ -12,7 +11,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-black relative">
       <AnimatedBackground />
       <div className="relative z-10">
-        <Header />
         
         <main className="pt-24 pb-20 px-4">
           {/* Hero Section */}
@@ -118,7 +116,7 @@ export default function HomePage() {
           </section>
         </main>
       </div>
-      <Footer />
+      {/* Footer rendered by NavWrapper */}
     </div>
   );
 }

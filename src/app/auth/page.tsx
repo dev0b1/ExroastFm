@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import AuthContent from "./auth-content";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+// Header/Footer provided by NavWrapper in root layout
 
 function AuthLoading() {
   return (
@@ -16,11 +15,10 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-black">
       <AnimatedBackground />
-      <Header />
       <Suspense fallback={<AuthLoading />}>
         <AuthContent />
       </Suspense>
-      <Footer />
+      {/* Footer rendered by NavWrapper */}
     </div>
   );
 }

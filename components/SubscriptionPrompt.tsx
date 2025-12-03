@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { openSingleCheckout, openTierCheckout } from "../lib/checkout";
+import { openPrimaryCheckout, openTierCheckout } from "../lib/checkout";
 import { PREMIUM_PRICE_ID } from "../lib/pricing";
 
 type Props = {
@@ -20,7 +20,7 @@ export default function SubscriptionPrompt({ onClose }: Props) {
           <button
             className="w-full rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
             onClick={() => {
-              openSingleCheckout();
+              openPrimaryCheckout();
               onClose();
             }}
           >

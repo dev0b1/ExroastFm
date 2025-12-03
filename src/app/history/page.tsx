@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+// Header/Footer provided by NavWrapper in root layout
 import AuthAwareCTA from '@/components/AuthAwareCTA';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 import { FaPlay, FaShare, FaLock, FaCrown } from 'react-icons/fa';
@@ -69,7 +68,7 @@ export default function HistoryPage() {
     return (
       <div className="min-h-screen bg-black relative">
         <AnimatedBackground />
-        <Header />
+        {/* Header rendered by NavWrapper */}
         <main className="pt-32 pb-20 relative z-10">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <p className="text-white text-xl">Loading your roasts... 🔥</p>
@@ -82,7 +81,6 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-black relative">
       <AnimatedBackground />
-      <Header />
       
       <main className="pt-32 pb-20 relative z-10">
         <div className="max-w-4xl mx-auto px-4">
@@ -198,7 +196,7 @@ export default function HistoryPage() {
         </div>
       </main>
 
-      <Footer />
+      {/* Footer rendered by NavWrapper */}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { FaCheck, FaStar, FaCrown } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { openSingleCheckout, openTierCheckout } from "@/lib/checkout";
+import { openPrimaryCheckout, openTierCheckout } from "@/lib/checkout";
 import {
   SINGLE_PRICE_ID,
   SINGLE_AMOUNT,
@@ -136,10 +136,10 @@ export function SubscriptionCTA({ songId, autoOpenSingle }: SubscriptionCTAProps
       // Delegate to centralized checkout helper which handles user resolution,
       // payload creation and Paddle initialization. This prevents duplicate
       // checkout codepaths and keeps behavior consistent across the app.
-      try {
-        await openSingleCheckout({ songId: opts?.songId || null });
+        try {
+        await openPrimaryCheckout({ songId: opts?.songId || null });
       } catch (e) {
-        console.error('handleSingleSongPurchase -> openSingleCheckout error', e);
+        console.error('handleSingleSongPurchase -> openPrimaryCheckout error', e);
         alert('Unable to open checkout. Please try again or contact support.');
       }
     } catch (error) {

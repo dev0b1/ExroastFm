@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/Header";
+// Header provided by NavWrapper in root layout
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { FaSpinner } from "react-icons/fa";
 
@@ -51,7 +51,7 @@ export default function DailyMotivationPage() {
       <div className="min-h-screen bg-black relative">
         <AnimatedBackground />
         <div className="relative z-10">
-          <Header />
+          {/* Header rendered by NavWrapper */}
           
           <main className="pt-32 pb-20 px-4">
             <motion.div
@@ -113,7 +113,7 @@ export default function DailyMotivationPage() {
     <div className="min-h-screen bg-black relative">
       <AnimatedBackground />
       <div className="relative z-10">
-        <Header />
+        {/* Header rendered by NavWrapper */}
         
         <main className="pt-32 pb-20 px-4">
           <motion.div
