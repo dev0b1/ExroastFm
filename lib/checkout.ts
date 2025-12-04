@@ -325,6 +325,7 @@ export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
 
   // Try creating a server-side checkout session via our `/checkout` route.
   // This follows the Dodo Payments template which returns a `checkout_url`.
+  let serverCheckoutError: any = null;
   try {
     const productId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || '';
     // Include productId and optional email in query params so the Checkout
@@ -359,6 +360,7 @@ export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
     console.log('[openDodoCheckout] Redirecting to server-created Dodo checkout:', url);
     return;
   } catch (e) {
+    serverCheckoutError = e;
     console.warn('[openDodoCheckout] Server checkout creation failed, falling back to hosted URL method', e);
   }
 
@@ -366,7 +368,11 @@ export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
   const base = process.env.NEXT_PUBLIC_DODO_CHECKOUT_URL;
   if (!base) {
     console.error('Dodo checkout URL not configured');
-    alert('Alternate payment provider not configured. Please contact support.');
+    // Provide a clearer message to help debugging common misconfigurations
+    const details = serverCheckoutError ? String(serverCheckoutError).slice(0, 300) : 'no server error available';
+    alert(
+      'Alternate payment provider not configured. Please set `NEXT_PUBLIC_DODO_CHECKOUT_URL` or ensure the server `POST /api/checkout` route works (env: DODO_PAYMENTS_API_KEY, DODO_PAYMENTS_RETURN_URL).\n\nDetails: ' + details
+    );
     return;
   }
 
