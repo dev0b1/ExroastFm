@@ -8,6 +8,7 @@
     "start": "next start -p 5000 -H localhost",
     "lint": "next lint",
     "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed-templates.ts",
     "db:import:premium": "tsx scripts/import-premium-songs.ts"
   },

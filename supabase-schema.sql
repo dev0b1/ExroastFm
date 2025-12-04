@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS templates (
 CREATE TABLE IF NOT EXISTS subscriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE,
-  paddle_subscription_id TEXT,
+  dodo_subscription_id TEXT,
   tier TEXT NOT NULL CHECK (tier IN ('free', 'one-time', 'unlimited')),
   status TEXT NOT NULL DEFAULT 'active',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

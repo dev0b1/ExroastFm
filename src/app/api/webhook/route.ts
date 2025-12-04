@@ -207,7 +207,7 @@ async function handleSubscriptionCreated(subscription: any) {
     .insert(subscriptions)
     .values({
       userId,
-      paddleSubscriptionId: subscription.id,
+        dodoSubscriptionId: subscription.id,
       tier,
       status: subscription.status || 'active',
   creditsRemaining: initialCredits,
@@ -216,7 +216,7 @@ async function handleSubscriptionCreated(subscription: any) {
     .onConflictDoUpdate({
       target: subscriptions.userId,
       set: {
-        paddleSubscriptionId: subscription.id,
+        dodoSubscriptionId: subscription.id,
         tier,
         status: subscription.status || 'active',
   creditsRemaining: initialCredits,
@@ -270,7 +270,7 @@ async function handleSubscriptionUpdated(subscription: any, eventType: string) {
       renewsAt: subscription.next_billed_at ? new Date(subscription.next_billed_at) : null,
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.paddleSubscriptionId, subscription.id));
+    .where(eq(subscriptions.dodoSubscriptionId, subscription.id));
 
   console.log(`[Webhook] Subscription ${subscription.id} updated - status: ${status}`);
 }
@@ -284,7 +284,7 @@ async function handleSubscriptionCanceled(subscription: any) {
       status: 'canceled',
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.paddleSubscriptionId, subscription.id));
+    .where(eq(subscriptions.dodoSubscriptionId, subscription.id));
   
   console.log(`[Webhook] Subscription ${subscription.id} marked as canceled`);
 }
@@ -298,7 +298,7 @@ async function handleSubscriptionPastDue(subscription: any) {
       status: 'past_due',
       updatedAt: new Date(),
     })
-    .where(eq(subscriptions.paddleSubscriptionId, subscription.id));
+    .where(eq(subscriptions.dodoSubscriptionId, subscription.id));
   
   console.log(`[Webhook] Subscription ${subscription.id} marked as past_due`);
 }

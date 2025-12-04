@@ -241,7 +241,7 @@ Response: {
 {
   id: uuid (primary),
   userId: uuid (unique),
-  paddleSubscriptionId: text,
+  dodoSubscriptionId: text,
   tier: text ('one-time' | 'unlimited'),
   status: text (default 'active'),
   songsRemaining: int (default 0),
@@ -428,7 +428,7 @@ STEP 5: WEBHOOK (Paddle → Server)
     ├─ Parse eventType: "transaction.completed"
     ├─ Find song + user from custom_data
     ├─ UPDATE songs SET isPurchased = true, purchaseTransactionId = "tx_123"
-    ├─ INSERT subscriptions (userId, paddleSubscriptionId, tier, status='active')
+    ├─ INSERT subscriptions (userId, dodoSubscriptionId, tier, status='active')
     └─ Return { received: true }
 
 STEP 6: POST-PURCHASE

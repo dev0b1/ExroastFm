@@ -60,7 +60,7 @@ export const songs = pgTable('songs', {
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().unique(),
-  paddleSubscriptionId: text('paddle_subscription_id'),
+  dodoSubscriptionId: text('dodo_subscription_id'),
   tier: text('tier').notNull(),
   status: text('status').default('active').notNull(),
   songsRemaining: integer('songs_remaining').default(0).notNull(),

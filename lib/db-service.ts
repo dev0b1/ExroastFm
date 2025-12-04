@@ -68,7 +68,7 @@ export async function getUserSubscriptionStatus(userId: string): Promise<{
     return {
       isPro: subscription.status === 'active',
       tier,
-      subscriptionId: subscription.paddleSubscriptionId || undefined
+      subscriptionId: subscription.dodoSubscriptionId || undefined
     };
   } catch (error) {
     console.error('Error fetching subscription:', error);
@@ -158,7 +158,7 @@ export async function createOrUpdateSubscription(
       .insert(subscriptions)
       .values({
         userId,
-        paddleSubscriptionId: paddleData.subscriptionId,
+        dodoSubscriptionId: paddleData.subscriptionId,
         tier: paddleData.tier,
         status: paddleData.status,
         updatedAt: new Date()
@@ -166,7 +166,7 @@ export async function createOrUpdateSubscription(
       .onConflictDoUpdate({
         target: subscriptions.userId,
         set: {
-          paddleSubscriptionId: paddleData.subscriptionId,
+          dodoSubscriptionId: paddleData.subscriptionId,
           tier: paddleData.tier,
           status: paddleData.status,
           updatedAt: new Date()

@@ -144,7 +144,7 @@ async function handleSubscriptionCreated(subscription: any) {
 
   await db.insert(subscriptions).values({
     userId,
-    paddleSubscriptionId: subscription.id,
+    dodoSubscriptionId: subscription.id,
     tier,
     status: subscription.status || 'active',
     creditsRemaining: initialCredits,
@@ -152,7 +152,7 @@ async function handleSubscriptionCreated(subscription: any) {
   }).onConflictDoUpdate({
     target: subscriptions.userId,
     set: {
-      paddleSubscriptionId: subscription.id,
+      dodoSubscriptionId: subscription.id,
       tier,
       status: subscription.status || 'active',
       creditsRemaining: initialCredits,
@@ -175,12 +175,12 @@ async function handleSubscriptionUpdated(subscription: any) {
     status,
     renewsAt: subscription.next_billed_at ? new Date(subscription.next_billed_at) : null,
     updatedAt: new Date(),
-  }).where(eq(subscriptions.paddleSubscriptionId, subscription.id));
+  }).where(eq(subscriptions.dodoSubscriptionId, subscription.id));
 
   console.log(`[DodoWebhook] Subscription updated for user ${userId}`);
 }
 
 async function handleSubscriptionCanceled(subscription: any) {
-  await db.update(subscriptions).set({ status: 'canceled', updatedAt: new Date() }).where(eq(subscriptions.paddleSubscriptionId, subscription.id));
+  await db.update(subscriptions).set({ status: 'canceled', updatedAt: new Date() }).where(eq(subscriptions.dodoSubscriptionId, subscription.id));
   console.log(`[DodoWebhook] Subscription canceled: ${subscription.id}`);
 }
