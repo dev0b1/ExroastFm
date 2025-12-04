@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { PaddleLoader } from "@/components/PaddleLoader";
+// Paddle removed: no client-side Paddle scripts
 import ScrollToTop from "@/components/ScrollToTop";
-import PaddleInit from "@/components/PaddleInit";
 import GuestCheckoutModal from "@/components/GuestCheckoutModal";
+import DodoConfigBanner from "@/components/DodoConfigBanner";
 import NavWrapper from "@/components/NavWrapper";
 
 export const metadata: Metadata = {
@@ -26,9 +26,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased bg-black min-h-screen font-sans">
         <ScrollToTop />
-        <PaddleInit />
         <GuestCheckoutModal />
-        <PaddleLoader />
+        <DodoConfigBanner />
+        
         <NavWrapper>
           {children}
         </NavWrapper>
