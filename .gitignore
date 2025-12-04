@@ -42,3 +42,4 @@ prisma/dev.db-journal
 
 # Ignore locally added premium song assets (large MP4s)
 public/premium-songs/
+backup-with-premium.bundle
