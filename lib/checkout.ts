@@ -326,12 +326,17 @@ export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
   // Try creating a server-side checkout session via our `/checkout` route.
   // This follows the Dodo Payments template which returns a `checkout_url`.
   try {
-    const resp = await fetch('/api/checkout', {
+    const productId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || '';
+    // Include productId and optional email in query params so the Checkout
+    // helper (which reads search params) receives them reliably.
+    const query = new URLSearchParams();
+    if (productId) query.set('productId', productId);
+    if (user?.email) query.set('customerEmail', user.email);
+
+    const resp = await fetch(`/api/checkout?${query.toString()}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        productId: process.env.NEXT_PUBLIC_DODO_PRODUCT_ID || undefined,
-        customerEmail: user?.email || undefined,
         quantity: 1,
         metadata: {
           ...(user ? { userId: user.id } : {}),

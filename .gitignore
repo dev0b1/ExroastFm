@@ -3,6 +3,8 @@
 /.pnp
 .pnp.js
 
+#folder
+/public/premium-songs
 # Testing
 /coverage
 
