@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import initializePaddle from '@/lib/paddle';
+import { openSingleCheckout, openPrimaryCheckout } from '@/lib/checkout';
 import { motion } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -60,73 +60,15 @@ export default function CheckoutContent() {
         const tier = searchParams.get("tier") || "premium";
         const type = searchParams.get("type");
 
-        // Initialize Paddle using helper which returns the paddle instance
-        let paddle: any;
-        try {
-          const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!;
-          paddle = await initializePaddle({ environment: process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === 'production' ? 'production' : 'sandbox', token: clientToken, eventCallback: (ev) => {
-            console.log('[Paddle Event]', ev?.name, ev);
-          }});
-        } catch (e) {
-          setError('Payment system failed to load. Please try again.');
-          setIsLoading(false);
-          return;
-        }
-
-        let priceId: string;
-        let successUrl: string;
-
         const songId = searchParams.get('songId');
 
-        if (type === "single") {
-          priceId = SINGLE_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE || "pri_single";
-          successUrl = `${window.location.origin}/success?type=single${songId ? `&songId=${songId}` : ''}`;
+        // Route checkout to Dodo (primary provider). For single-item purchases
+        // call `openSingleCheckout`, otherwise open the primary/tier checkout.
+        if (type === 'single') {
+          await openSingleCheckout({ songId: songId || undefined });
         } else {
-          // support 'premium' and 'standard' tiers; prefer centralized PREMIUM_PRICE_ID for premium
-          if (tier === 'premium') {
-            priceId = PREMIUM_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM || tiers['premium'].priceId;
-          } else {
-            const tierConfig = tiers[tier];
-            if (!tierConfig) {
-              setError("Invalid tier selected");
-              setIsLoading(false);
-              return;
-            }
-            priceId = tierConfig.priceId;
-          }
-          successUrl = `${window.location.origin}/success?tier=${tier}`;
+          await openPrimaryCheckout({ songId: songId || undefined });
         }
-
-        // Validate price ID format (allow shorter sandbox ids but warn)
-        const isPaddleFormatStrict = /^pri_[0-9a-zA-Z]{20,}$/.test(priceId);
-        const isPaddleFormatLoose = /^pri_[0-9a-zA-Z]{5,}/.test(priceId);
-        if (!isPaddleFormatLoose) {
-          setError("Payment system not configured. Please contact support.");
-          setIsLoading(false);
-          return;
-        }
-        if (!isPaddleFormatStrict) {
-          console.warn('Paddle price id appears shorter than mainnet format; this may be a sandbox id and is allowed for dev.');
-        }
-
-        // Build checkout payload. If we have a songId and user, attach custom_data so
-        // webhook can unlock the specific song after transaction completion.
-        const checkoutPayload: any = {
-          items: [ { priceId: priceId, quantity: 1 } ],
-          settings: { successUrl: successUrl, theme: 'light' }
-        };
-
-        if (songId) {
-          checkoutPayload.customData = { songId, userId: user?.id || null };
-        } else if (user) {
-          checkoutPayload.customData = { userId: user.id };
-        }
-
-        // Open Paddle checkout using the initialized instance
-        paddle.Checkout.open({
-          ...checkoutPayload,
-          customer: { email: resolvedUser.email }
-        });
 
         setIsLoading(false);
       } catch (err) {
