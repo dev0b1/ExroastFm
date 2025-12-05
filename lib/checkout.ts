@@ -1,6 +1,7 @@
 "use client";
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import * as DodoPaymentsPkg from 'dodopayments-checkout';
 
 interface SingleCheckoutOpts {
   songId?: string | null;
@@ -166,4 +167,51 @@ export async function openDodoClientCheckout(opts?: SingleCheckoutOpts) {
 
   // Redirect to Dodo hosted checkout
   window.location.href = params.toString();
+}
+
+// Open Dodo overlay/modal checkout using the official client SDK.
+// This expects a public key to be available as `NEXT_PUBLIC_DODO_PUBLIC_KEY`.
+export async function openDodoOverlayCheckout(options: {
+  amount: number;
+  currency?: string;
+  customer?: { email?: string; name?: string };
+  metadata?: Record<string, any>;
+}) {
+  if (typeof window === 'undefined') throw new Error('openDodoOverlayCheckout only runs in browser');
+  const { amount, currency = 'USD', customer, metadata } = options;
+  const publicKey = process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY || (window as any).__DODO_PUBLIC_KEY;
+  if (!publicKey) {
+    console.error('Missing Dodo public key for overlay checkout');
+    throw new Error('Missing Dodo public key (NEXT_PUBLIC_DODO_PUBLIC_KEY)');
+  }
+
+  try {
+    // Prefer the packaged SDK installed via npm. Fall back to a global `window.DodoPayments` for compatibility.
+    const DodoPaymentsCtor: any = (DodoPaymentsPkg && (DodoPaymentsPkg as any).DodoPayments) || (DodoPaymentsPkg && (DodoPaymentsPkg as any).default) || DodoPaymentsPkg || (window as any).DodoPayments;
+
+    if (!DodoPaymentsCtor) {
+      throw new Error('DodoPayments SDK not available. Install `dodopayments-checkout` or expose `window.DodoPayments`.');
+    }
+
+    const dodo = new (DodoPaymentsCtor as any)(publicKey);
+    const resp = await dodo.checkout({
+      amount,
+      currency,
+      customer: customer || {},
+      mode: 'overlay',
+      metadata: metadata || {},
+    } as any);
+
+    return resp;
+  } catch (e) {
+    console.error('openDodoOverlayCheckout failed', e);
+    throw e;
+  }
+}
+
+// Express overlay for Google Pay / Apple Pay buttons — wraps `openDodoOverlayCheckout`.
+export async function openDodoExpressCheckout(options: { amount: number; currency?: string; customer?: { email?: string } }) {
+  // For express checkout we simply call the overlay checkout and rely on Dodo
+  // to surface payment method buttons (Google Pay / Apple Pay) where available.
+  return openDodoOverlayCheckout({ amount: options.amount, currency: options.currency, customer: options.customer });
 }
