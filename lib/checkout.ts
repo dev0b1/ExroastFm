@@ -200,3 +200,51 @@ export async function openPrimaryCheckout(opts?: SingleCheckoutOpts) {
   // intact so Paddle logic remains available for future fallback.
   return openDodoCheckout(opts);
 }
+
+// Client-side hosted checkout: builds hosted Dodo checkout URL and redirects the browser.
+// This allows a purely frontend checkout flow (no server session creation required).
+export async function openDodoClientCheckout(opts?: SingleCheckoutOpts) {
+  if (typeof window === 'undefined') {
+    throw new Error('openDodoClientCheckout can only be used in the browser');
+  }
+
+  const productId = process.env.NEXT_PUBLIC_DODO_PRODUCT_ID;
+  if (!productId) {
+    alert('Checkout is not configured: missing NEXT_PUBLIC_DODO_PRODUCT_ID');
+    throw new Error('Missing NEXT_PUBLIC_DODO_PRODUCT_ID');
+  }
+
+  const environment = (process.env.NEXT_PUBLIC_DODO_ENVIRONMENT || 'test').toLowerCase();
+  const baseUrl = environment === 'production' ? 'https://checkout.dodopayments.com' : 'https://test.checkout.dodopayments.com';
+
+  const successUrl = typeof window !== 'undefined' ? `${window.location.origin}/checkout/success${opts?.songId ? `?songId=${opts.songId}` : ''}` : '/checkout/success';
+
+  const params = new URL(`${baseUrl}/buy/${productId}`);
+  params.searchParams.set('quantity', '1');
+  params.searchParams.set('redirect_url', process.env.DODO_PAYMENTS_RETURN_URL || successUrl);
+
+  // Attach custom data for server-side webhook processing
+  try {
+    const customData: any = {
+      ...(opts?.songId ? { songId: opts.songId } : {}),
+    };
+    if (Object.keys(customData).length > 0) {
+      params.searchParams.set('custom_data', encodeURIComponent(JSON.stringify(customData)));
+    }
+  } catch (e) {
+    console.debug('Failed to set custom_data for Dodo client checkout', e);
+  }
+
+  // If we have a fallback public checkout URL env var, use it to preserve any additional query params
+  const fallback = process.env.NEXT_PUBLIC_DODO_CHECKOUT_URL;
+  if (fallback) {
+    // merge params onto fallback URL
+    const fb = new URL(fallback);
+    params.searchParams.forEach((v, k) => fb.searchParams.set(k, v));
+    window.location.href = fb.toString();
+    return;
+  }
+
+  // Redirect to Dodo hosted checkout
+  window.location.href = params.toString();
+}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { openSingleCheckout, openPrimaryCheckout } from '@/lib/checkout';
+import { openSingleCheckout, openPrimaryCheckout, openDodoClientCheckout } from '@/lib/checkout';
 import { motion } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -62,12 +62,24 @@ export default function CheckoutContent() {
 
         const songId = searchParams.get('songId');
 
-        // Route checkout to Dodo (primary provider). For single-item purchases
-        // call `openSingleCheckout`, otherwise open the primary/tier checkout.
-        if (type === 'single') {
-          await openSingleCheckout({ songId: songId || undefined });
-        } else {
-          await openPrimaryCheckout({ songId: songId || undefined });
+        // Prefer client-side hosted Dodo checkout to reduce server complexity.
+        // If you prefer server-created sessions, switch to `openSingleCheckout` / `openPrimaryCheckout`.
+        try {
+          if (type === 'single') {
+            // Client-side checkout for single item
+            await openDodoClientCheckout({ songId: songId || undefined });
+          } else {
+            // Client-side checkout for tier/product path
+            await openDodoClientCheckout({ songId: songId || undefined });
+          }
+        } catch (err) {
+          // fallback to server flow if client checkout fails
+          console.warn('[checkout-content] client checkout failed, falling back to server flow', err);
+          if (type === 'single') {
+            await openSingleCheckout({ songId: songId || undefined });
+          } else {
+            await openPrimaryCheckout({ songId: songId || undefined });
+          }
         }
 
         setIsLoading(false);
