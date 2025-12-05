@@ -4,15 +4,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { openDodoOverlayCheckout, openDodoExpressCheckout } from '@/lib/checkout';
-import DodoExpressCheckout from '@/components/DodoExpressCheckout';
 import { SINGLE_AMOUNT, SINGLE_LABEL } from '@/lib/pricing';
 import { motion } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-import {
-  SINGLE_PRICE_ID,
-  PREMIUM_PRICE_ID,
-} from '@/lib/pricing';
+// NOTE: pricing values are provided via `SINGLE_LABEL`/`SINGLE_AMOUNT`.
 
 // Note: pricing is centralized in `lib/pricing`; no local tiers needed here.
 
