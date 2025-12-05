@@ -116,6 +116,20 @@ export const transactions = pgTable('transactions', {
   userIdIdx: index('transactions_user_id_idx').on(table.userId),
 }));
 
+export const purchases = pgTable('purchases', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id'),
+  guestEmail: text('guest_email'),
+  modes: text('modes'), // JSON array string
+  musicStyles: text('music_styles'), // JSON array string
+  story: text('story'),
+  status: text('status').default('pending').notNull(),
+  assignedSongId: text('assigned_song_id'),
+  purchaseTransactionId: text('purchase_transaction_id'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 

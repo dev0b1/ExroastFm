@@ -210,8 +210,8 @@ export async function openDodoOverlayCheckout(options: {
 }
 
 // Express overlay for Google Pay / Apple Pay buttons — wraps `openDodoOverlayCheckout`.
-export async function openDodoExpressCheckout(options: { amount: number; currency?: string; customer?: { email?: string } }) {
+export async function openDodoExpressCheckout(options: { amount: number; currency?: string; customer?: { email?: string }, metadata?: Record<string, any> }) {
   // For express checkout we simply call the overlay checkout and rely on Dodo
   // to surface payment method buttons (Google Pay / Apple Pay) where available.
-  return openDodoOverlayCheckout({ amount: options.amount, currency: options.currency, customer: options.customer });
+  return openDodoOverlayCheckout({ amount: options.amount, currency: options.currency, customer: options.customer, metadata: options.metadata });
 }

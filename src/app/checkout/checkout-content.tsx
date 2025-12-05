@@ -39,10 +39,11 @@ export default function CheckoutContent() {
   const [loading, setLoading] = useState(false);
 
   // Poll the verification endpoint for up to `retries` attempts (interval ms)
-  async function pollVerify(opts: { transactionId?: string; songId?: string }, retries = 12, interval = 1000) {
+  async function pollVerify(opts: { transactionId?: string; songId?: string; purchaseId?: string }, retries = 12, interval = 1000) {
     const payload = {} as any;
     if (opts.transactionId) payload.transactionId = opts.transactionId;
     if (opts.songId) payload.songId = opts.songId;
+    if (opts.purchaseId) payload.purchaseId = opts.purchaseId;
 
     for (let i = 0; i < retries; i++) {
       try {
@@ -147,22 +148,28 @@ export default function CheckoutContent() {
                 onClick={async () => {
                   setLoading(true);
                   try {
-                    const resp: any = await openDodoExpressCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email } });
+                    // Create a pending purchase on the server so webhook can correlate
+                    const createRes = await fetch('/api/purchases/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guestEmail: email }) });
+                    const createBody = await createRes.json();
+                    const purchaseId = createBody?.purchaseId;
 
-                    // Try to extract a transaction/checkout id from the SDK response
-                    const txId = resp?.id || resp?.transaction?.id || resp?.data?.id || resp?.transactionId || resp?.checkout_id || resp?.checkoutId;
+                    if (!purchaseId) {
+                      alert('Failed to create purchase. Please try again.');
+                      setLoading(false);
+                      return;
+                    }
 
-                    if (txId) {
-                      // Poll the server-side verification endpoint which checks DB (webhook should insert the record)
-                      const verified = await pollVerify({ transactionId: String(txId) });
-                      if (verified) {
-                        router.push('/checkout/success');
-                      } else {
-                        // fallback: show pending/awaiting-verification page
-                        router.push('/checkout/success?pending=true');
-                      }
+                    // Pass purchaseId into the Dodo SDK as metadata/custom_data
+                    const resp: any = await openDodoExpressCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email }, metadata: { purchaseId } });
+
+                    // Prefer to poll by purchaseId (webhook will mark the purchase)
+                    const verified = await pollVerify({ songId: undefined, transactionId: undefined, /* keep signature */ } as any, 12, 1000);
+                    // Note: pollVerify extended to accept purchaseId via payload below; call explicitly
+                    const verifiedByPurchase = await pollVerify({ purchaseId });
+
+                    if (verifiedByPurchase) {
+                      router.push('/checkout/success');
                     } else {
-                      // If SDK did not return an id, conservatively show pending state
                       router.push('/checkout/success?pending=true');
                     }
                   } catch (e) {
@@ -221,16 +228,21 @@ export default function CheckoutContent() {
                   if (!email) { alert('Please enter your email'); return; }
                   setLoading(true);
                   try {
-                    const resp: any = await openDodoOverlayCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email } });
+                    // create pending purchase
+                    const createRes = await fetch('/api/purchases/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guestEmail: email }) });
+                    const createBody = await createRes.json();
+                    const purchaseId = createBody?.purchaseId;
+                    if (!purchaseId) {
+                      alert('Failed to create purchase. Please try again.');
+                      setLoading(false);
+                      return;
+                    }
 
-                    const txId = resp?.id || resp?.transaction?.id || resp?.data?.id || resp?.transactionId || resp?.checkout_id || resp?.checkoutId;
-                    if (txId) {
-                      const verified = await pollVerify({ transactionId: String(txId) });
-                      if (verified) {
-                        router.push('/checkout/success');
-                      } else {
-                        router.push('/checkout/success?pending=true');
-                      }
+                    const resp: any = await openDodoOverlayCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email }, metadata: { purchaseId } });
+
+                    const verifiedByPurchase = await pollVerify({ purchaseId });
+                    if (verifiedByPurchase) {
+                      router.push('/checkout/success');
                     } else {
                       router.push('/checkout/success?pending=true');
                     }
