@@ -1,6 +1,7 @@
 "use client";
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { SINGLE_AMOUNT } from '@/lib/pricing';
 import * as DodoPaymentsPkg from 'dodopayments-checkout';
 
 interface SingleCheckoutOpts {
@@ -123,7 +124,7 @@ export async function openPrimaryCheckout(opts?: SingleCheckoutOpts) {
   try {
     // Prefer opening the overlay with the single-item price. If callers
     // wanted a different amount they can call overlay/express directly.
-    const amount = (process.env.NEXT_PUBLIC_SINGLE_AMOUNT ? Number(process.env.NEXT_PUBLIC_SINGLE_AMOUNT) : undefined) || 999;
+    const amount = SINGLE_AMOUNT || (process.env.NEXT_PUBLIC_SINGLE_AMOUNT ? Number(process.env.NEXT_PUBLIC_SINGLE_AMOUNT) : undefined) || 999;
     return await openDodoOverlayCheckout({ amount, currency: 'USD', customer: {}, metadata: { songId: opts?.songId ?? null } });
   } catch (e) {
     console.warn('[openPrimaryCheckout] overlay failed, falling back to hosted checkout', e);
@@ -151,7 +152,8 @@ export async function openDodoClientCheckout(opts?: SingleCheckoutOpts) {
 
   const params = new URL(`${baseUrl}/buy/${productId}`);
   params.searchParams.set('quantity', '1');
-  params.searchParams.set('redirect_url', process.env.DODO_PAYMENTS_RETURN_URL || successUrl);
+  // Use NEXT_PUBLIC prefixed env var for client-side redirect configuration
+  params.searchParams.set('redirect_url', process.env.NEXT_PUBLIC_DODO_PAYMENTS_RETURN_URL || process.env.DODO_PAYMENTS_RETURN_URL || successUrl);
 
   // Attach custom data for server-side webhook processing
   try {
