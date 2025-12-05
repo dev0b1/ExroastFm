@@ -134,7 +134,9 @@ export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
     });
 
     if (!resp.ok) {
-      throw new Error('Server checkout creation failed');
+      const bodyText = await resp.text().catch(() => 'Unable to read response body');
+      console.error('[openDodoCheckout] server checkout creation failed', resp.status, bodyText);
+      throw new Error('Server checkout creation failed: ' + bodyText);
     }
 
     const json = await resp.json();
