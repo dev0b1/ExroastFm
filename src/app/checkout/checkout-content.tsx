@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { openSingleCheckout, openPrimaryCheckout, openDodoClientCheckout } from '@/lib/checkout';
+import { openDodoOverlayCheckout, openDodoExpressCheckout } from '@/lib/checkout';
+import DodoExpressCheckout from '@/components/DodoExpressCheckout';
+import { SINGLE_AMOUNT, SINGLE_LABEL } from '@/lib/pricing';
 import { motion } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -32,65 +34,50 @@ export default function CheckoutContent() {
   const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  useEffect(() => {
-    const processCheckout = async () => {
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Poll the verification endpoint for up to `retries` attempts (interval ms)
+  async function pollVerify(opts: { transactionId?: string; songId?: string }, retries = 12, interval = 1000) {
+    const payload = {} as any;
+    if (opts.transactionId) payload.transactionId = opts.transactionId;
+    if (opts.songId) payload.songId = opts.songId;
+
+    for (let i = 0; i < retries; i++) {
       try {
-        // Verify user is logged in (try getUser then fallback to getSession)
-        const { data: { user } } = await supabase.auth.getUser();
-        let resolvedUser = user;
-        if (!resolvedUser) {
-          try {
-            const { data: sessionData } = await supabase.auth.getSession();
-            if (sessionData?.session?.user) resolvedUser = sessionData.session.user;
-          } catch (e) {
-            // ignore
-          }
+        const res = await fetch('/api/transactions/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!res.ok) {
+          // if 4xx/5xx, retry a few times
+          console.debug('[pollVerify] verify endpoint returned', res.status);
+        } else {
+          const body = await res.json();
+          if (body?.verified) return true;
         }
-
-        if (!resolvedUser) {
-          // If the user isn't signed in, send them to the pricing page rather
-          // than forcing an automatic OAuth flow. Pricing shows both one-time
-          // and subscription options.
-          router.push('/pricing');
-          return;
-        }
-        setUserEmail(resolvedUser.email || null);
-
-        // Get tier from query params
-        const tier = searchParams.get("tier") || "premium";
-        const type = searchParams.get("type");
-
-        const songId = searchParams.get('songId');
-
-        // Prefer client-side hosted Dodo checkout to reduce server complexity.
-        // If you prefer server-created sessions, switch to `openSingleCheckout` / `openPrimaryCheckout`.
-        try {
-          if (type === 'single') {
-            // Client-side checkout for single item
-            await openDodoClientCheckout({ songId: songId || undefined });
-          } else {
-            // Client-side checkout for tier/product path
-            await openDodoClientCheckout({ songId: songId || undefined });
-          }
-        } catch (err) {
-          // fallback to server flow if client checkout fails
-          console.warn('[checkout-content] client checkout failed, falling back to server flow', err);
-          if (type === 'single') {
-            await openSingleCheckout({ songId: songId || undefined });
-          } else {
-            await openPrimaryCheckout({ songId: songId || undefined });
-          }
-        }
-
-        setIsLoading(false);
       } catch (err) {
-        console.error("Checkout error:", err);
-        setError("Something went wrong. Please try again.");
+        console.debug('[pollVerify] request failed', err);
+      }
+      // wait
+      await new Promise((r) => setTimeout(r, interval));
+    }
+    return false;
+  }
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const resolvedUser = user || null;
+        setUserEmail(resolvedUser?.email || null);
+        if (resolvedUser?.email) setEmail(resolvedUser.email);
+      } catch (e) {
+        console.debug('[checkout-content] failed to resolve user', e);
+      } finally {
         setIsLoading(false);
       }
     };
 
-    processCheckout();
+    init();
   }, [router, searchParams, supabase]);
 
   if (isLoading) {
@@ -148,11 +135,122 @@ export default function CheckoutContent() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 text-center space-y-4"
+        className="relative z-10 text-center space-y-6 card max-w-md p-6"
       >
-        <FaSpinner className="text-5xl text-exroast-gold animate-spin mx-auto" />
-        <h2 className="text-3xl font-bold text-white">Opening checkout...</h2>
-        <p className="text-gray-400">Redirecting to Paddle</p>
+        <h2 className="text-2xl font-bold text-gray-900">Upgrade to Pro</h2>
+        <p className="text-sm text-gray-600">One-time payment • {SINGLE_LABEL}</p>
+
+        {!showCardForm ? (
+          <>
+            <div className="space-y-3 mb-6">
+              <button
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const resp: any = await openDodoExpressCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email } });
+
+                    // Try to extract a transaction/checkout id from the SDK response
+                    const txId = resp?.id || resp?.transaction?.id || resp?.data?.id || resp?.transactionId || resp?.checkout_id || resp?.checkoutId;
+
+                    if (txId) {
+                      // Poll the server-side verification endpoint which checks DB (webhook should insert the record)
+                      const verified = await pollVerify({ transactionId: String(txId) });
+                      if (verified) {
+                        router.push('/checkout/success');
+                      } else {
+                        // fallback: show pending/awaiting-verification page
+                        router.push('/checkout/success?pending=true');
+                      }
+                    } else {
+                      // If SDK did not return an id, conservatively show pending state
+                      router.push('/checkout/success?pending=true');
+                    }
+                  } catch (e) {
+                    console.error('Express checkout failed', e);
+                    alert('Express checkout failed.');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                className="w-full bg-black text-white rounded-lg py-4 px-6 font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                Pay with Google/Apple Pay
+              </button>
+
+              <button
+                onClick={() => setShowCardForm(true)}
+                className="w-full bg-white border-2 border-purple-600 text-purple-600 rounded-lg py-4 px-6 font-medium hover:bg-purple-50 transition-colors flex items-center justify-center gap-2"
+              >
+                Pay with card
+              </button>
+            </div>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500">or</span>
+              </div>
+            </div>
+
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <p className="text-sm font-medium text-gray-700">Powered by <span className="font-bold text-gray-900">Dodo Payments</span></p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-4 text-left">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-2">We'll email your receipt and license key</p>
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!email) { alert('Please enter your email'); return; }
+                  setLoading(true);
+                  try {
+                    const resp: any = await openDodoOverlayCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email } });
+
+                    const txId = resp?.id || resp?.transaction?.id || resp?.data?.id || resp?.transactionId || resp?.checkout_id || resp?.checkoutId;
+                    if (txId) {
+                      const verified = await pollVerify({ transactionId: String(txId) });
+                      if (verified) {
+                        router.push('/checkout/success');
+                      } else {
+                        router.push('/checkout/success?pending=true');
+                      }
+                    } else {
+                      router.push('/checkout/success?pending=true');
+                    }
+                  } catch (e) {
+                    console.error('Overlay checkout failed', e);
+                    alert('Failed to open payment form');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading || !email}
+                className="w-full bg-purple-600 text-white rounded-lg py-4 px-6 font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Processing...' : `Pay ${SINGLE_LABEL}`}
+              </button>
+
+              <button onClick={() => setShowCardForm(false)} className="w-full text-gray-600 text-sm hover:text-gray-900 transition-colors">← Back to express checkout</button>
+            </div>
+          </>
+        )}
       </motion.div>
     </div>
   );
