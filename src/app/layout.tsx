@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from 'next/script';
 import "./globals.css";
 // Paddle removed: no client-side Paddle scripts
 import ScrollToTop from "@/components/ScrollToTop";
@@ -25,6 +26,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased bg-black min-h-screen font-sans">
+        {/*
+          Dodo SDK loader: if you set `NEXT_PUBLIC_DODO_SDK_URL` to a CDN
+          URL for the Dodo payments SDK, this will dynamically inject the
+          script after the page is interactive. This avoids bundling the
+          SDK while still allowing the overlay to work in browsers.
+        */}
+        {process.env.NEXT_PUBLIC_DODO_SDK_URL && (
+          <Script id="dodo-sdk-loader" strategy="afterInteractive">
+            {`(function(){if(!window.DodoPayments){var s=document.createElement('script');s.src="${process.env.NEXT_PUBLIC_DODO_SDK_URL}";s.async=true;document.head.appendChild(s);}})();`}
+          </Script>
+        )}
         <ScrollToTop />
         <GuestCheckoutModal />
         <DodoConfigBanner />
