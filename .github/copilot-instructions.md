@@ -27,12 +27,12 @@ Developer workflows & exact commands
 - Seed templates: `npm run db:seed` (runs `tsx scripts/seed-templates.ts`).
 
 Environment & secrets (where to look)
-- Paddle/Payments: `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN`, `PADDLE_API_KEY`, `PADDLE_NOTIFICATION_WEBHOOK_SECRET`, `NEXT_PUBLIC_PADDLE_ENVIRONMENT` — used by webhook verification and client flows.
+-- Payments: Dodo is the primary checkout provider. Dodo envs include `DODO_PAYMENTS_API_KEY`, `DODO_PAYMENTS_ENVIRONMENT`, `DODO_PAYMENTS_RETURN_URL`, and `NEXT_PUBLIC_DODO_PRODUCT_ID` used by server and client flows.
 - Provider keys: check `lib/*` for exact env var names for OpenRouter, Suno, OpenAI, ElevenLabs, etc.
 
 Data & control flows (concrete examples)
 - Generation flow: POST body { story, style } → `generate-song/route.ts` constructs prompt (via `lib/openrouter`), calls `lib/suno` to create audio, then inserts into `songs` with `isPurchased=false` and preview/full URLs.
-- Purchase flow: frontend initiates Paddle checkout; Paddle sends webhook → `webhook/route.ts` verifies signature, writes `transactions`, and calls fulfillment helpers to mark `songs.isPurchased = true` and set `purchaseTransactionId`.
+-- Purchase flow: frontend initiates checkout via our server `/api/checkout`; Dodo sends webhooks → `src/app/api/webhooks/payments/route.ts` verifies signature and writes `transactions` (stored in `provider_data`), then marks `songs.isPurchased = true` and sets `purchaseTransactionId`.
 
 Conventions & repository patterns
 - API routes: use App Router handlers and return `NextResponse` objects.
