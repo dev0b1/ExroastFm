@@ -1,7 +1,6 @@
 "use client";
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import initializePaddle from './paddle';
 
 interface SingleCheckoutOpts {
   songId?: string | null;
@@ -74,246 +73,34 @@ async function resolveUser() {
   }
 }
 
-// Initialize Paddle once and cache the instance
-let paddleInstance: any = null;
-let paddleInitPromise: Promise<any> | null = null;
-
-async function ensurePaddleInitialized() {
-  // Return cached instance if available
-  if (paddleInstance) {
-    return paddleInstance;
-  }
-
-  // If initialization is already in progress, wait for it
-  if (paddleInitPromise) {
-    return paddleInitPromise;
-  }
-
-  // Start new initialization
-  paddleInitPromise = (async () => {
-    try {
-      // If the Paddle global script was preloaded and exposes `Paddle`, use it directly
-      if (typeof window !== 'undefined' && (window as any).Paddle) {
-        try {
-          paddleInstance = (window as any).Paddle;
-          (window as any).__paddleReady = true;
-          console.log('[Paddle] Using preloaded window.Paddle instance');
-          return paddleInstance;
-        } catch (err) {
-          console.debug('[Paddle] Error using preloaded Paddle:', err);
-        }
-      }
-      const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-      const environment = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT;
-
-      if (!clientToken) {
-        throw new Error('NEXT_PUBLIC_PADDLE_CLIENT_TOKEN not configured');
-      }
-
-      console.log('[Paddle] Initializing with environment:', environment);
-
-      const instance = await initializePaddle({
-        environment: environment === 'production' ? 'production' : 'sandbox',
-        token: clientToken,
-        eventCallback: (ev) => {
-          console.log('[Paddle Event]', ev?.name);
-          if (ev?.name === 'checkout.closed' || ev?.name === 'checkout.completed') {
-            safeLocalStorage.removeItem('inCheckout');
-          }
-        }
-      });
-
-      paddleInstance = instance;
-      return instance;
-    } catch (e) {
-      console.error('[Paddle] Initialization failed:', e);
-      paddleInitPromise = null; // Reset so retry is possible
-      throw e;
-    }
-  })();
-
-  return paddleInitPromise;
-}
+// Paddle removed — Dodo is primary provider. Paddle initialization and SDK
+// code were intentionally removed to avoid confusion during testing.
 
 export async function openSingleCheckout(opts?: SingleCheckoutOpts) {
-  console.log('[openSingleCheckout] Starting with opts:', opts);
-  
-  const user = await resolveUser();
-  console.log('[openSingleCheckout] User resolved:', user ? `${user.email} (${user.id})` : 'null');
-
-  if (!user) {
-    // Allow anonymous users to open the single-song checkout (guest flow).
-    // We persist a pendingSingleSongId so the client can poll for fulfillment
-    // and store the full audio locally after webhook unlocks the song.
-    console.log('[openSingleCheckout] No authenticated user — opening guest checkout');
-    if (typeof window !== 'undefined' && opts?.songId) {
-      try { safeLocalStorage.setItem('pendingSingleSongId', opts.songId); } catch (e) { console.warn('Failed to write pendingSingleSongId', e); }
-    }
-    // continue without returning — we'll open Paddle below without a user
+  console.log('[openSingleCheckout] Routing single checkout to Dodo with opts:', opts);
+  // Keep guest/pending song behavior for later fulfillment
+  if (typeof window !== 'undefined' && opts?.songId) {
+    try { safeLocalStorage.setItem('pendingSingleSongId', opts.songId); } catch (e) { console.warn('Failed to write pendingSingleSongId', e); }
   }
 
-  // Initialize Paddle
-  let paddle: any;
-  try {
-    paddle = await ensurePaddleInitialized();
-  } catch (e) {
-    console.error('[openSingleCheckout] Failed to initialize Paddle:', e);
-    // Fallback to Dodo hosted checkout if configured
-    const dodoUrl = process.env.NEXT_PUBLIC_DODO_CHECKOUT_URL;
-    if (dodoUrl) {
-      console.log('[openSingleCheckout] Falling back to Dodo checkout');
-      try {
-        await openDodoCheckout(opts);
-        return;
-      } catch (err) {
-        console.error('[openSingleCheckout] Dodo fallback failed', err);
-      }
-    }
-    alert('Payment system failed to load. Please refresh and try again.');
-    return;
-  }
-
-  const singlePriceId = process.env.NEXT_PUBLIC_PADDLE_PRICE_SINGLE;
-  console.log('[openSingleCheckout] singlePriceId:', singlePriceId);
-
-  if (!singlePriceId) {
-    console.error('Single price ID not configured');
-    alert('Payment system not configured. Please contact support.');
-    return;
-  }
-
-  const payload: any = {
-    items: [{ priceId: singlePriceId, quantity: 1 }],
-    settings: {
-      successUrl: `${window.location.origin}/success?type=single${opts?.songId ? `&songId=${opts.songId}` : ''}`,
-      theme: 'light',
-      allowLogout: false
-    },
-    customData: {
-      // If user exists, include userId so webhook can attach credits/subscription.
-      ...(user ? { userId: user.id } : {}),
-      ...(opts?.songId && { songId: opts.songId })
-    },
-    // Include customer email when available to help Paddle identify buyer; guest checkouts omit this.
-    ...(user ? { customer: { email: user.email } } : {})
-  };
-
-  // If no authenticated user, try to prefill email from localStorage or quick prompt
-  try {
-    if (!user && typeof window !== 'undefined') {
-      // Prefer the nicer modal-based flow if available
-      let guestEmail: string | null = null;
-      if (typeof window.__requestGuestEmail === 'function') {
-        try {
-          // Ask the modal to collect email (returns Promise<string|null>)
-          guestEmail = await window.__requestGuestEmail();
-        } catch (e) {
-          console.debug('[openSingleCheckout] guest modal failed', e);
-        }
-      }
-
-      // Fallback: localStorage
-      if (!guestEmail) {
-        try { guestEmail = localStorage.getItem('guestEmail'); } catch (e) { guestEmail = null; }
-      }
-
-      if (guestEmail) {
-        payload.customer = { email: guestEmail };
-      }
-    }
-  } catch (e) {
-    console.debug('[openSingleCheckout] guest email collection/storage failed', e);
-  }
-
-  console.log('[openSingleCheckout] Opening checkout with payload:', {
-    successUrl: payload.settings.successUrl,
-    customData: payload.customData
-  });
-
-  // Mark checkout as in progress
-  safeLocalStorage.setItem('inCheckout', 'true');
-
-  try {
-    paddle.Checkout.open(payload);
-    console.log('[openSingleCheckout] Checkout opened successfully');
-  } catch (error) {
-    console.error('[openSingleCheckout] Error opening checkout:', error);
-    safeLocalStorage.removeItem('inCheckout');
-    alert('Failed to open payment system. Please try again.');
-  }
+  // Simple: always use Dodo as the single-item checkout provider
+  await openDodoCheckout(opts);
 }
 
 export async function openTierCheckout(tierId: string, priceId?: string) {
-  console.log('[openTierCheckout] Starting with tierId:', tierId, 'priceId:', priceId);
-  
+  console.log('[openTierCheckout] Routing tier checkout to Dodo (via server) for tier:', tierId);
+  // For now route to the primary checkout which is Dodo. Keep the existing
+  // intendedPurchase flow for anonymous users.
   const user = await resolveUser();
-  console.log('[openTierCheckout] User resolved:', user ? `${user.email} (${user.id})` : 'null');
-
   if (!user) {
-    console.log('[openTierCheckout] User is null, redirecting to /pricing');
-    if (typeof window !== 'undefined') {
-      const payload: IntendedPurchase = {
-        type: 'tier',
-        tierId,
-        priceId: priceId || null,
-        ts: Date.now()
-      };
-      safeLocalStorage.setItem('intendedPurchase', JSON.stringify(payload));
-      window.location.href = '/pricing';
-    }
+    const payload: IntendedPurchase = { type: 'tier', tierId, priceId: priceId || null, ts: Date.now() };
+    safeLocalStorage.setItem('intendedPurchase', JSON.stringify(payload));
+    if (typeof window !== 'undefined') window.location.href = '/pricing';
     return;
   }
 
-  // Initialize Paddle
-  let paddle: any;
-  try {
-    paddle = await ensurePaddleInitialized();
-  } catch (e) {
-    console.error('[openTierCheckout] Failed to initialize Paddle:', e);
-    alert('Payment system failed to load. Please refresh and try again.');
-    return;
-  }
-
-  const priceToUse = priceId || process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM;
-  console.log('[openTierCheckout] priceToUse:', priceToUse);
-
-  if (!priceToUse) {
-    console.error('Tier priceId not configured');
-    alert('Payment system not configured. Please contact support.');
-    return;
-  }
-
-  const payload: any = {
-    items: [{ priceId: priceToUse, quantity: 1 }],
-    settings: {
-      successUrl: `${window.location.origin}/success?tier=${tierId}`,
-      theme: 'light',
-      allowLogout: false
-    },
-    customData: {
-      userId: user.id
-    },
-    customer: {
-      email: user.email
-    }
-  };
-
-  console.log('[openTierCheckout] Opening checkout with payload:', {
-    successUrl: payload.settings.successUrl,
-    customData: payload.customData
-  });
-
-  // Mark checkout as in progress
-  safeLocalStorage.setItem('inCheckout', 'true');
-
-  try {
-    paddle.Checkout.open(payload);
-    console.log('[openTierCheckout] Checkout opened successfully');
-  } catch (error) {
-    console.error('[openTierCheckout] Error opening checkout:', error);
-    safeLocalStorage.removeItem('inCheckout');
-    alert('Failed to open payment system. Please try again.');
-  }
+  // Primary provider is Dodo — use the same server-side checkout flow.
+  await openPrimaryCheckout();
 }
 
 // Fallback Dodo checkout integration (simple hosted checkout URL)

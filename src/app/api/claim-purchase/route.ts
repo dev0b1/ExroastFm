@@ -8,7 +8,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 // Claim purchases that were made while the user was logged out. We match
-// transactions whose `paddleData` contains the buyer email and which are not
+// transactions whose `providerData` contains the buyer email and which are not
 // yet associated with a user. For each matched transaction we:
 // - attach transactions.userId = provided userId
 // - if it's a credits/subscription action, create/update the subscription row
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ ok: false, message: 'Invalid session' }, { status: 400 });
 		}
 
-		// Find transactions that appear to belong to this buyer (paddleData contains email)
-		const matches = await db.select().from(transactions).where(sql`paddle_data ILIKE ${'%' + email + '%'} AND user_id IS NULL`);
+		// Find transactions that appear to belong to this buyer (providerData contains email)
+		const matches = await db.select().from(transactions).where(sql`provider_data ILIKE ${'%' + email + '%'} AND user_id IS NULL`);
 
 		if (!matches || matches.length === 0) {
 			return NextResponse.json({ ok: true, claimed: 0, message: 'No matching transactions' });
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 			if (tx.userId) continue;
 
 			let parsed: any = null;
-			try { parsed = JSON.parse(tx.paddleData); } catch (e) { parsed = null; }
+			try { parsed = JSON.parse(tx.providerData); } catch (e) { parsed = null; }
 
 			// try to extract price id similar to webhook
 			let priceId: string | null = null;

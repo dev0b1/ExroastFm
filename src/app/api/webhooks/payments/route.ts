@@ -44,7 +44,7 @@ export async function POST(request: Request) {
           amount: data.amount || data.total || "0",
           currency: data.currency || data.currency_code || 'USD',
           status: data.status || event || 'unknown',
-          paddleData: JSON.stringify(data),
+          providerData: JSON.stringify(data),
         });
       } catch (e: any) {
         // Check for duplicate key violation (Postgres code 23505)

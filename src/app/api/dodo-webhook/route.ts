@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       amount: data.amount || data.total || "0",
       currency: data.currency || data.currency_code || 'USD',
       status: data.status || event || 'unknown',
-      paddleData: JSON.stringify(data),
+      providerData: JSON.stringify(data),
     });
 
     // Handle completed-like events

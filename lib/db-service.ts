@@ -147,9 +147,9 @@ export async function pickNextDemoVariantForUser(userId: string, candidates: str
 
 export async function createOrUpdateSubscription(
   userId: string,
-  paddleData: {
+  providerData: {
     subscriptionId?: string;
-    tier: 'one-time' | 'unlimited';
+    tier: 'one-time' | 'unlimited' | 'weekly';
     status: string;
   }
 ): Promise<boolean> {
@@ -158,17 +158,17 @@ export async function createOrUpdateSubscription(
       .insert(subscriptions)
       .values({
         userId,
-        dodoSubscriptionId: paddleData.subscriptionId,
-        tier: paddleData.tier,
-        status: paddleData.status,
+        dodoSubscriptionId: providerData.subscriptionId,
+        tier: providerData.tier,
+        status: providerData.status,
         updatedAt: new Date()
       })
       .onConflictDoUpdate({
         target: subscriptions.userId,
         set: {
-          dodoSubscriptionId: paddleData.subscriptionId,
-          tier: paddleData.tier,
-          status: paddleData.status,
+          dodoSubscriptionId: providerData.subscriptionId,
+          tier: providerData.tier,
+          status: providerData.status,
           updatedAt: new Date()
         }
       });

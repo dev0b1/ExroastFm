@@ -109,7 +109,7 @@ export const transactions = pgTable('transactions', {
   amount: text('amount').notNull(),
   currency: text('currency').notNull(),
   status: text('status').notNull(),
-  paddleData: text('paddle_data').notNull(),
+  providerData: text('provider_data').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   songIdIdx: index('transactions_song_id_idx').on(table.songId),

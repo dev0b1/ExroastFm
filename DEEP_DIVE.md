@@ -54,23 +54,21 @@
 
 ---
 
-## 3. Paddle Payment Integration
+## 3. Payments (Dodo)
 
 ### Architecture:
-1. **Frontend**: `PaddleLoader` (Next.js Script) initializes Paddle.js SDK with client token & environment.
-2. **Checkout Flow**: User clicks "Subscribe" → `handleSubscribe()` calls `Paddle.Checkout.open()` with `priceId`.
-3. **Webhook**: Paddle POSTs to `/api/webhook` on transaction completion → validates signature → upserts `transactions` + `subscriptions` tables.
-4. **Success Page**: Redirects to `/success?tier={id}` after payment.
+1. **Frontend**: Minimal client integration — the app opens a server-created Dodo checkout URL. A dev-only `DodoConfigBanner` helps surface missing envs during development.
+2. **Checkout Flow**: User clicks "Subscribe" → frontend calls our server `/api/checkout` endpoint which creates a Dodo checkout session and returns a redirect / checkout URL.
+3. **Webhook**: Dodo POSTs to `/api/webhooks/payments` on transaction completion → server validates the webhook (signature/secret) → upserts `transactions` + `subscriptions` tables and stores the raw provider payload in `provider_data`.
+4. **Success Page**: Redirects to `/success?tier={id}` after payment completion.
 
-### Paddle Credentials (in `.env.local`):
+### Dodo Credentials (in `.env.local`):
 ```
-NEXT_PUBLIC_PADDLE_CLIENT_TOKEN=xxx_sandbox_token
-NEXT_PUBLIC_PADDLE_ENVIRONMENT=sandbox        # 'sandbox' or 'production'
-PADDLE_API_KEY=xxx_sandbox_api_key
-PADDLE_NOTIFICATION_WEBHOOK_SECRET=pdl_ntfset_xxx
-NEXT_PUBLIC_PADDLE_PRICE_STANDARD=pri_01xxx   # $9/month (5 songs)
-NEXT_PUBLIC_PADDLE_PRICE_PREMIUM=pri_01yyy    # $19/month (unlimited)
-NEXT_PUBLIC_PADDLE_PRICE_SINGLE=pri_01zzz     # $9.99 one-time
+DODO_PAYMENTS_API_KEY=xxx_sandbox_api_key
+DODO_PAYMENTS_ENVIRONMENT=sandbox        # 'sandbox' or 'production'
+DODO_PAYMENTS_RETURN_URL=https://your-app.example.com/checkout/return
+NEXT_PUBLIC_DODO_PRODUCT_ID=prod_XXXX    # client-side product id used to build checkout
+NEXT_PUBLIC_DODO_CHECKOUT_URL=https://checkout.dodo.example.com  # optional fallback
 ```
 
 ### Payment Tiers:
@@ -80,23 +78,23 @@ NEXT_PUBLIC_PADDLE_PRICE_SINGLE=pri_01zzz     # $9.99 one-time
 | **One-Time Pro** | $9.99 | 1 song | Full 30-35s custom AI song, no watermark, MP3 download |
 | **Unlimited Pro** | $12.99/mo | Unlimited | Unlimited songs, screenshot upload → OCR → personalized, no watermark |
 
-### Webhook Handler (`/api/webhook/route.ts`):
+### Webhook Handler (`/api/webhooks/payments/route.ts`):
 ```typescript
 1. Extract signature + body from request
-2. Verify signature with Paddle SDK (rejects invalid)
-3. Insert transaction record: { id, songId, userId, amount, currency, status, paddleData }
+2. Verify signature with Dodo webhook secret (reject invalid requests)
+3. Insert transaction record: { id, songId, userId, amount, currency, status, provider_data }
 4. Switch on eventType:
-   - "transaction.completed" → unlock song (set isPurchased=true)
-   - "subscription.created" → upsert subscriptions table
-   - "subscription.updated" / "canceled" → update status
+  - "transaction.completed" or equivalent → unlock song (set isPurchased=true)
+  - "subscription.created" → upsert subscriptions table (populate `dodo_subscription_id`)
+  - "subscription.updated" / "canceled" → update status
 ```
 
 ### Key Files:
-- `components/PaddleLoader.tsx` – Loads Paddle SDK.
+- `components/DodoConfigBanner.tsx` – Dev helper that queries `/api/checkout/config` to show missing Dodo envs.
 - `src/app/pricing/page.tsx` – Pricing page with tier cards.
-- `components/SubscriptionCTA.tsx` – Checkout handler.
+- `components/SubscriptionCTA.tsx` – Checkout handler (server-driven for Dodo).
 - `components/SubscriptionModal.tsx` – First-time upsell modal.
-- `src/app/api/webhook/route.ts` – Webhook verification & fulfillment.
+- `src/app/api/webhooks/payments/route.ts` – Dodo webhook verification & fulfillment (stores `provider_data`).
 - `src/app/api/success/route.ts` (not shown) – Handles redirect after payment.
 
 ---
