@@ -14,16 +14,7 @@ import {
   PREMIUM_PRICE_ID,
 } from '@/lib/pricing';
 
-const tiers: { [key: string]: { priceId: string; name: string } } = {
-  standard: {
-    priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_STANDARD || "pri_standard",
-    name: "Standard",
-  },
-  premium: {
-    priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_PREMIUM || "pri_premium",
-    name: "Premium",
-  },
-};
+// Note: pricing is centralized in `lib/pricing`; no local tiers needed here.
 
 export default function CheckoutContent() {
   const router = useRouter();
@@ -97,7 +88,7 @@ export default function CheckoutContent() {
           ) : (
             <div className="text-sm text-gray-400">Signing in...</div>
           )}
-          <p className="text-gray-400">Redirecting to Paddle</p>
+          <p className="text-gray-400">Opening payment form…</p>
         </motion.div>
       </div>
     );
@@ -162,9 +153,7 @@ export default function CheckoutContent() {
                     // Pass purchaseId into the Dodo SDK as metadata/custom_data
                     const resp: any = await openDodoExpressCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email }, metadata: { purchaseId } });
 
-                    // Prefer to poll by purchaseId (webhook will mark the purchase)
-                    const verified = await pollVerify({ songId: undefined, transactionId: undefined, /* keep signature */ } as any, 12, 1000);
-                    // Note: pollVerify extended to accept purchaseId via payload below; call explicitly
+                    // Poll for webhook verification by purchaseId (webhook will mark the purchase)
                     const verifiedByPurchase = await pollVerify({ purchaseId });
 
                     if (verifiedByPurchase) {
