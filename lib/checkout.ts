@@ -115,10 +115,20 @@ export async function openDodoCheckout(opts?: SingleCheckoutOpts) {
 // need to modify existing Paddle code. Swap implementation here to change
 // primary provider later without touching call sites.
 export async function openPrimaryCheckout(opts?: SingleCheckoutOpts) {
-  console.log('[openPrimaryCheckout] Routing to primary checkout (Dodo for now) with opts:', opts);
-  // For now, use Dodo as the primary provider. Keep `openSingleCheckout`
-  // intact so Paddle logic remains available for future fallback.
-  return openDodoCheckout(opts);
+  console.log('[openPrimaryCheckout] Routing to primary checkout (Dodo overlay) with opts:', opts);
+  // Use the in-app Dodo overlay as the primary checkout UI so users stay
+  // inside the app and can use express payment buttons (Google/Apple Pay)
+  // where available. We include any `songId` in metadata so webhooks can
+  // correlate if callers pass it.
+  try {
+    // Prefer opening the overlay with the single-item price. If callers
+    // wanted a different amount they can call overlay/express directly.
+    const amount = (process.env.NEXT_PUBLIC_SINGLE_AMOUNT ? Number(process.env.NEXT_PUBLIC_SINGLE_AMOUNT) : undefined) || 999;
+    return await openDodoOverlayCheckout({ amount, currency: 'USD', customer: {}, metadata: { songId: opts?.songId ?? null } });
+  } catch (e) {
+    console.warn('[openPrimaryCheckout] overlay failed, falling back to hosted checkout', e);
+    return openDodoCheckout(opts);
+  }
 }
 
 // Client-side hosted checkout: builds hosted Dodo checkout URL and redirects the browser.
