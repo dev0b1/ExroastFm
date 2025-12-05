@@ -18,7 +18,8 @@ import Link from "next/link";
 import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaInstagram, FaWhatsapp, FaTwitter, FaLink } from "react-icons/fa";
 // daily petty opt-in removed from preview flow
 // import { getDailySavageQuote } from "@/lib/suno-nudge";
-import { openPrimaryCheckout } from '@/lib/checkout';
+import { openPrimaryCheckout, openDodoOverlayCheckout } from '@/lib/checkout';
+import { SINGLE_AMOUNT } from '@/lib/pricing';
 
 interface Song {
   id: string;
@@ -505,9 +506,21 @@ export default function PreviewContent() {
           // any accidental auto-open behavior.
           if (tier === 'one-time') {
             try {
-              await openPrimaryCheckout({ songId: song?.id });
+              // Create a pending purchase so webhook can correlate and assign the song.
+              const createRes = await fetch('/api/purchases/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guestEmail: null, songId: song?.id }) });
+              const createBody = await createRes.json();
+              const purchaseId = createBody?.purchaseId;
+              if (!purchaseId) {
+                // Fallback to the primary checkout which will open overlay/hosted flow
+                await openPrimaryCheckout({ songId: song?.id });
+                return;
+              }
+
+              // Open the Dodo overlay directly with purchase metadata
+              await openDodoOverlayCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: {}, metadata: { purchaseId, songId: song?.id } });
             } catch (e) {
               console.error('Error opening single checkout from upsell:', e);
+              try { await openPrimaryCheckout({ songId: song?.id }); } catch (err) { console.error('Fallback openPrimaryCheckout also failed', err); }
             }
           } else {
             setShowSubscription(true);
