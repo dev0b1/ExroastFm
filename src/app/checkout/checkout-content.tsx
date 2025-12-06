@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { FaSpinner, FaCreditCard, FaBolt } from 'react-icons/fa';
-import { openDodoOverlayCheckout, openDodoExpressCheckout } from '@/lib/checkout';
+import { openDodoOverlayCheckout, openDodoExpressCheckout, openDodoOverlayByUrl } from '@/lib/checkout';
 import { SINGLE_AMOUNT, SINGLE_LABEL } from '@/lib/pricing';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 
@@ -76,9 +76,19 @@ export default function CheckoutContent() {
         setLoading(false);
         return;
       }
+      // Create a server-side checkout URL which includes `purchaseId` so
+      // the webhook can correlate and fulfill the purchase. Then open the
+      // overlay by URL (SDK or popup fallback).
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purchaseId, songId, guestEmail: email || null, amount: SINGLE_AMOUNT, method })
+      });
+      if (!res.ok) throw new Error('failed to create checkout session');
+      const body = await res.json();
+      const checkoutUrl = body?.checkoutUrl;
+      if (!checkoutUrl) throw new Error('no checkout url returned');
 
-      // call Dodo express (overlay) — Dodo will surface Apple/Google pay if available
-      await openDodoExpressCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: { email }, metadata: { purchaseId, songId, method } });
+      await openDodoOverlayByUrl(checkoutUrl);
 
       const verified = await pollVerify({ purchaseId });
       if (verified) router.push('/checkout/success');

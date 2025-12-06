@@ -227,3 +227,50 @@ export async function openDodoExpressCheckout(options: { amount: number; currenc
   // to surface payment method buttons (Google Pay / Apple Pay) where available.
   return openDodoOverlayCheckout({ amount: options.amount, currency: options.currency, customer: options.customer, metadata: options.metadata });
 }
+
+// Attempt to open a Dodo checkout by a pre-built checkout URL. Some Dodo
+// integrations expose an SDK method to open an existing checkout URL in an
+// in-app overlay; if that API is not available we fallback to a centered
+// popup window and finally to a full redirect.
+export async function openDodoOverlayByUrl(checkoutUrl: string) {
+  if (typeof window === 'undefined') throw new Error('openDodoOverlayByUrl only runs in browser');
+
+  const publicKey = process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY || (window as any).__DODO_PUBLIC_KEY;
+  try {
+    const DodoPaymentsCtor: any = (DodoPaymentsPkg && (DodoPaymentsPkg as any).DodoPayments) || (DodoPaymentsPkg && (DodoPaymentsPkg as any).default) || DodoPaymentsPkg || (window as any).DodoPayments;
+    if (DodoPaymentsCtor) {
+      const dodo = new (DodoPaymentsCtor as any)(publicKey);
+      // Try common SDK hooks that might exist. These are best-effort and
+      // intentionally tolerant — if the method doesn't exist we'll fall back.
+      if (typeof (dodo as any).open === 'function') {
+        try { return await (dodo as any).open(checkoutUrl); } catch (e) { console.debug('dodo.open(checkoutUrl) failed', e); }
+      }
+      if (typeof (dodo as any).openCheckout === 'function') {
+        try { return await (dodo as any).openCheckout({ url: checkoutUrl }); } catch (e) { console.debug('dodo.openCheckout failed', e); }
+      }
+    }
+  } catch (e) {
+    console.debug('[openDodoOverlayByUrl] SDK attempt failed', e);
+  }
+
+  // Popup fallback (centered)
+  try {
+    const w = 520;
+    const h = 720;
+    const left = Math.floor((window.screen.width / 2) - (w / 2));
+    const top = Math.floor((window.screen.height / 2) - (h / 2));
+    const features = `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+    const win = window.open(checkoutUrl, 'dodo_checkout', features);
+    if (!win) {
+      // If popup blocked, do a full redirect.
+      window.location.href = checkoutUrl;
+      return { opened: 'redirect' };
+    }
+    win.focus();
+    return { opened: 'popup' };
+  } catch (e) {
+    console.debug('[openDodoOverlayByUrl] popup failed, redirecting', e);
+    window.location.href = checkoutUrl;
+    return { opened: 'redirect' };
+  }
+}
