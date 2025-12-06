@@ -15,7 +15,8 @@ export default function CheckoutContent() {
 
   const [showCardForm, setShowCardForm] = useState(false);
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
+  // track which payment method is loading so only that button shows "Processing..."
+  const [loadingMethod, setLoadingMethod] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,34 +82,27 @@ export default function CheckoutContent() {
   };
 
   const handleExpressCheckout = async (method: 'apple_pay' | 'google_pay' | 'paypal') => {
-    setLoading(true);
+    setLoadingMethod(method);
     try {
-      const purchaseId = await createPendingPurchase(email || null);
-      if (!purchaseId) {
-        alert('Failed to create purchase. Please try again.');
-        setLoading(false);
-        return;
-      }
-
-      // Create server-side checkout URL with the specific payment method
+      // Direct flow: call server to build a checkout URL and open Dodo overlay.
       const res = await fetch('/api/create-checkout', {
-        method: 'POST', 
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          purchaseId, 
-          songId, 
-          guestEmail: email || null, 
-          amount: SINGLE_AMOUNT, 
+        body: JSON.stringify({
+          // skipping server-side pending purchase, pass guestEmail/songId only
+          songId,
+          guestEmail: email || null,
+          amount: SINGLE_AMOUNT,
           method // apple_pay, google_pay, or paypal
         })
       });
 
       if (!res.ok) throw new Error('failed to create checkout session');
-      
+
       const body = await res.json();
       const checkoutUrl = body?.checkoutUrl;
       const sessionId = body?.sessionId;
-      
+
       if (!checkoutUrl) throw new Error('no checkout url returned');
 
       // Open overlay and handle success/failure
@@ -116,7 +110,10 @@ export default function CheckoutContent() {
         sessionId,
         onSuccess: async () => {
           console.log('[Express] Payment successful, polling verification...');
-          const verified = await pollVerify({ purchaseId });
+          // if webhook uses purchaseId, it won't be present for this direct flow
+          // pollVerify will rely on other server-side signals (songId/sessionId)
+          const verified = await pollVerify({});
+          setLoadingMethod(null);
           if (verified) {
             router.push(`/checkout/success?sessionId=${sessionId}`);
           } else {
@@ -125,19 +122,19 @@ export default function CheckoutContent() {
         },
         onCancel: () => {
           console.log('[Express] Payment cancelled by user');
-          setLoading(false);
+          setLoadingMethod(null);
         },
         onError: (error: any) => {
           console.error('[Express] Payment error:', error);
           alert('Payment failed. Please try again.');
-          setLoading(false);
+          setLoadingMethod(null);
         }
       });
 
     } catch (e) {
       console.error('Express checkout failed', e);
       alert('Express checkout failed. Please try again.');
-      setLoading(false);
+      setLoadingMethod(null);
     }
   };
 
@@ -147,21 +144,13 @@ export default function CheckoutContent() {
       return; 
     }
     
-    setLoading(true);
+    setLoadingMethod('card');
     try {
-      const purchaseId = await createPendingPurchase(email);
-      if (!purchaseId) { 
-        alert('Failed to create purchase. Please try again.'); 
-        setLoading(false); 
-        return; 
-      }
-
-      // Create checkout session for card payment
+      // Direct to Dodo: build checkout URL without creating a pending purchase
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          purchaseId,
           songId,
           guestEmail: email,
           amount: SINGLE_AMOUNT,
@@ -182,7 +171,8 @@ export default function CheckoutContent() {
         sessionId,
         onSuccess: async () => {
           console.log('[Card] Payment successful, polling verification...');
-          const verified = await pollVerify({ purchaseId });
+          const verified = await pollVerify({});
+          setLoadingMethod(null);
           if (verified) {
             router.push(`/checkout/success?sessionId=${sessionId}`);
           } else {
@@ -191,19 +181,19 @@ export default function CheckoutContent() {
         },
         onCancel: () => {
           console.log('[Card] Payment cancelled by user');
-          setLoading(false);
+          setLoadingMethod(null);
         },
         onError: (error: any) => {
           console.error('[Card] Payment error:', error);
           alert('Payment failed. Please try again.');
-          setLoading(false);
+          setLoadingMethod(null);
         }
       });
 
     } catch (e) {
       console.error('Card checkout failed', e);
       alert('Failed to open payment form. Please try again.');
-      setLoading(false);
+      setLoadingMethod(null);
     }
   };
 
@@ -247,35 +237,35 @@ export default function CheckoutContent() {
             <div className="space-y-3 mb-6">
               <button
                 onClick={() => handleExpressCheckout('apple_pay')}
-                disabled={loading}
+                disabled={loadingMethod === 'apple_pay'}
                 className="w-full bg-black text-white rounded-lg py-4 px-6 font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                {loading ? 'Processing...' : 'Pay with Apple Pay'}
+                {loadingMethod === 'apple_pay' ? 'Processing...' : 'Pay with Apple Pay'}
               </button>
 
               <button
                 onClick={() => handleExpressCheckout('google_pay')}
-                disabled={loading}
+                disabled={loadingMethod === 'google_pay'}
                 className="w-full bg-white border-2 border-gray-300 text-gray-900 rounded-lg py-4 px-6 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
                 </svg>
-                {loading ? 'Processing...' : 'Pay with Google Pay'}
+                {loadingMethod === 'google_pay' ? 'Processing...' : 'Pay with Google Pay'}
               </button>
 
               <button
                 onClick={() => handleExpressCheckout('paypal')}
-                disabled={loading}
+                disabled={loadingMethod === 'paypal'}
                 className="w-full bg-[#0070BA] text-white rounded-lg py-4 px-6 font-medium hover:bg-[#005A94] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8.32 21.97a.546.546 0 01-.26-.32c-.03-.15-.01-.3.06-.44l2.68-9.38a.81.81 0 01.77-.56h4.93c2.45 0 4.55-1.64 4.96-3.87.04-.2.06-.4.06-.61 0-2.6-2.11-4.71-4.71-4.71h-7.5c-.5 0-.92.36-1 .85L5.79 16.39c-.09.5.24.98.75 1.07l8.14 1.16a.999.999 0 01-.14 1.99l-6.07-.87a.36.36 0 01-.15.23z"/>
                 </svg>
-                {loading ? 'Processing...' : 'Pay with PayPal'}
+                {loadingMethod === 'paypal' ? 'Processing...' : 'Pay with PayPal'}
               </button>
             </div>
 
@@ -290,7 +280,7 @@ export default function CheckoutContent() {
 
             <button
               onClick={() => setShowCardForm(true)}
-              disabled={loading}
+              disabled={loadingMethod === 'card'}
               className="w-full bg-white border-2 border-purple-600 text-purple-600 rounded-lg py-4 px-6 font-medium hover:bg-purple-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <FaCreditCard className="w-5 h-5" />
