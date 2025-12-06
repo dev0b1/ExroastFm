@@ -61,14 +61,19 @@ export default function CheckoutContent() {
 
   const createPendingPurchase = async (guestEmail?: string | null) => {
     try {
-      const res = await fetch('/api/purchases/create', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ guestEmail: guestEmail || null, songId }) 
+      console.debug('[createPendingPurchase] creating pending purchase', { guestEmail, songId });
+      const res = await fetch('/api/purchases/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestEmail: guestEmail || null, songId })
       });
-      if (!res.ok) throw new Error('create purchase failed');
-      const body = await res.json();
-      return body?.purchaseId;
+      let body: any = null;
+      try { body = await res.json(); } catch (err) { body = null; }
+      if (!res.ok) {
+        console.error('[createPendingPurchase] server error', res.status, body);
+        return null;
+      }
+      return body?.purchaseId || null;
     } catch (e) {
       console.error('createPendingPurchase error', e);
       return null;
