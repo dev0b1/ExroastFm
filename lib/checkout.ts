@@ -234,7 +234,7 @@ export async function openDodoExpressCheckout(options: { amount: number; currenc
 // popup window and finally to a full redirect.
 export async function openDodoOverlayByUrl(
   checkoutUrl: string,
-  options?: { sessionId?: string; onSuccess?: (data: any) => void; onCancel?: () => void }
+  options?: { sessionId?: string; onSuccess?: (data: any) => void; onCancel?: () => void; onError?: (err: any) => void }
 ) {
   if (typeof window === 'undefined') throw new Error('openDodoOverlayByUrl only runs in browser');
 
@@ -268,6 +268,7 @@ export async function openDodoOverlayByUrl(
             }
           } as any);
         } catch (e) {
+          try { if (options?.onError) options.onError(e); } catch (err) { console.debug('onError handler threw', err); }
           console.debug('dodo.checkout(checkoutUrl) failed', e);
         }
       }
