@@ -505,23 +505,17 @@ export default function PreviewContent() {
           // from the user's click. This keeps the flow explicit and avoids
           // any accidental auto-open behavior.
           if (tier === 'one-time') {
+            // Always show the in-app checkout UI first so guest users see the
+            // `CheckoutContent` UI you provided before any Dodo overlay/redirect
+            // is attempted. The checkout page will create the pending purchase
+            // and open the overlay from there.
             try {
-              // Create a pending purchase so webhook can correlate and assign the song.
-              const createRes = await fetch('/api/purchases/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guestEmail: null, songId: song?.id }) });
-              const createBody = await createRes.json();
-              const purchaseId = createBody?.purchaseId;
-              if (!purchaseId) {
-                // Fallback to the primary checkout which will open overlay/hosted flow
-                await openPrimaryCheckout({ songId: song?.id });
-                return;
-              }
-
-              // Open the Dodo overlay directly with purchase metadata
-              await openDodoOverlayCheckout({ amount: SINGLE_AMOUNT, currency: 'USD', customer: {}, metadata: { purchaseId, songId: song?.id } });
+              router.push(`/checkout${song?.id ? `?songId=${song.id}` : ''}`);
             } catch (e) {
-              console.error('Error opening single checkout from upsell:', e);
+              console.error('Failed to route to in-app checkout from upsell, falling back to primary checkout', e);
               try { await openPrimaryCheckout({ songId: song?.id }); } catch (err) { console.error('Fallback openPrimaryCheckout also failed', err); }
             }
+            return;
           } else {
             setShowSubscription(true);
           }
