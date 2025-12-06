@@ -25,9 +25,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing DODO product id' }, { status: 500 });
     }
 
-    // Success redirect URL
-    const successRedirect = process.env.NEXT_PUBLIC_DODO_PAYMENTS_RETURN_URL || 
-      (process.env.NEXT_PUBLIC_URL ? `${process.env.NEXT_PUBLIC_URL}/checkout/success` : '/checkout/success');
+    // Success redirect URL (default to the app domain `exroast.buzz` if no env override)
+    const successRedirect = process.env.NEXT_PUBLIC_DODO_PAYMENTS_RETURN_URL ||
+      (process.env.NEXT_PUBLIC_URL ? `${process.env.NEXT_PUBLIC_URL}/checkout/success` : 'https://exroast.buzz/checkout/success');
 
     // ✅ FIX: Correct URL construction syntax
     const params = new URL(`${baseUrl}/buy/${productId}`);
