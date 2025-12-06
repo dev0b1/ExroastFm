@@ -37,8 +37,11 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Protected routes that require authentication
-  const protectedPaths = ['/checkout', '/dashboard', '/app', '/account'];
+  // Protected routes that require authentication. Note: `/checkout` is
+  // intentionally excluded so guest users can access the in-app checkout
+  // UI (we create pending purchases for anonymous users and rely on
+  // webhook-driven fulfillment).
+  const protectedPaths = ['/dashboard', '/app', '/account'];
   const isProtectedPath = protectedPaths.some(path => 
     request.nextUrl.pathname.startsWith(path)
   );
