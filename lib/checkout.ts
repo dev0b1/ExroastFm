@@ -232,16 +232,47 @@ export async function openDodoExpressCheckout(options: { amount: number; currenc
 // integrations expose an SDK method to open an existing checkout URL in an
 // in-app overlay; if that API is not available we fallback to a centered
 // popup window and finally to a full redirect.
-export async function openDodoOverlayByUrl(checkoutUrl: string) {
+export async function openDodoOverlayByUrl(
+  checkoutUrl: string,
+  options?: { sessionId?: string; onSuccess?: (data: any) => void; onCancel?: () => void }
+) {
   if (typeof window === 'undefined') throw new Error('openDodoOverlayByUrl only runs in browser');
 
+  const { sessionId, onSuccess, onCancel } = options || {};
   const publicKey = process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY || (window as any).__DODO_PUBLIC_KEY;
   try {
     const DodoPaymentsCtor: any = (DodoPaymentsPkg && (DodoPaymentsPkg as any).DodoPayments) || (DodoPaymentsPkg && (DodoPaymentsPkg as any).default) || DodoPaymentsPkg || (window as any).DodoPayments;
     if (DodoPaymentsCtor) {
       const dodo = new (DodoPaymentsCtor as any)(publicKey);
-      // Try common SDK hooks that might exist. These are best-effort and
-      // intentionally tolerant — if the method doesn't exist we'll fall back.
+
+      // Preferred SDK API: checkout by URL with overlay mode and callbacks.
+      if (typeof (dodo as any).checkout === 'function') {
+        try {
+          return await (dodo as any).checkout({
+            checkoutUrl,
+            mode: 'overlay',
+            onSuccess: (data: any) => {
+              try {
+                if (onSuccess) onSuccess(data);
+                // If no custom handler provided, redirect to the success page
+                // including the session id for server-side correlation.
+                if (!onSuccess && sessionId) {
+                  window.location.href = `/checkout/success?sessionId=${encodeURIComponent(sessionId)}`;
+                }
+              } catch (e) {
+                console.debug('dodo.checkout onSuccess handler error', e);
+              }
+            },
+            onCancel: () => {
+              try { if (onCancel) onCancel(); } catch (e) { console.debug('dodo.checkout onCancel handler error', e); }
+            }
+          } as any);
+        } catch (e) {
+          console.debug('dodo.checkout(checkoutUrl) failed', e);
+        }
+      }
+
+      // Older SDKs might expose open/openCheckout — fall back to those.
       if (typeof (dodo as any).open === 'function') {
         try { return await (dodo as any).open(checkoutUrl); } catch (e) { console.debug('dodo.open(checkoutUrl) failed', e); }
       }

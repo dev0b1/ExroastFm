@@ -86,9 +86,15 @@ export default function CheckoutContent() {
       if (!res.ok) throw new Error('failed to create checkout session');
       const body = await res.json();
       const checkoutUrl = body?.checkoutUrl;
+      const sessionId = body?.sessionId;
       if (!checkoutUrl) throw new Error('no checkout url returned');
 
-      await openDodoOverlayByUrl(checkoutUrl);
+      await openDodoOverlayByUrl(checkoutUrl, {
+        sessionId,
+        onSuccess: () => {
+          try { window.location.href = `/checkout/success?sessionId=${encodeURIComponent(sessionId)}`; } catch (e) { console.debug('onSuccess redirect failed', e); }
+        }
+      });
 
       const verified = await pollVerify({ purchaseId });
       if (verified) router.push('/checkout/success');
