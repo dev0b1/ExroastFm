@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { FaSpinner, FaCreditCard, FaBolt } from 'react-icons/fa';
-import { openDodoOverlayCheckout, openDodoExpressCheckout, openDodoOverlayByUrl } from '@/lib/checkout';
+import { openDodoOverlayByUrl } from '@/lib/checkout';
 import { SINGLE_AMOUNT, SINGLE_LABEL } from '@/lib/pricing';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
 
@@ -15,7 +15,6 @@ export default function CheckoutContent() {
 
   const [showCardForm, setShowCardForm] = useState(false);
   const [email, setEmail] = useState('');
-  // track which payment method is loading so only that button shows "Processing..."
   const [loadingMethod, setLoadingMethod] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +37,8 @@ export default function CheckoutContent() {
 
   async function pollVerify(retries = 12, interval = 1000) {
     const payload: any = {};
-    // prefer checking by songId which we include in Dodo `custom_data`
     if (songId) payload.songId = songId;
+    
     for (let i = 0; i < retries; i++) {
       try {
         const res = await fetch('/api/transactions/verify', { 
@@ -61,38 +60,35 @@ export default function CheckoutContent() {
     return false;
   }
 
-  // pending-purchase flow removed: we rely on Dodo webhooks with `custom_data.songId`
-
   const handleExpressCheckout = async (method: 'apple_pay' | 'google_pay' | 'paypal') => {
     setLoadingMethod(method);
     try {
-      // Direct flow: call server to build a checkout URL and open Dodo overlay.
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // skipping server-side pending purchase, pass guestEmail/songId only
           songId,
           guestEmail: email || null,
           amount: SINGLE_AMOUNT,
-          method // apple_pay, google_pay, or paypal
+          method
         })
       });
 
-      if (!res.ok) throw new Error('failed to create checkout session');
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody?.error || 'Failed to create checkout session');
+      }
 
       const body = await res.json();
       const checkoutUrl = body?.checkoutUrl;
       const sessionId = body?.sessionId;
 
-      if (!checkoutUrl) throw new Error('no checkout url returned');
+      if (!checkoutUrl) throw new Error('No checkout URL returned');
 
-      // Open overlay and handle success/failure
       await openDodoOverlayByUrl(checkoutUrl, {
         sessionId,
         onSuccess: async () => {
           console.log('[Express] Payment successful, polling verification...');
-          // poll by songId (included in Dodo custom_data)
           const verified = await pollVerify();
           setLoadingMethod(null);
           if (verified) {
@@ -112,9 +108,9 @@ export default function CheckoutContent() {
         }
       });
 
-    } catch (e) {
+    } catch (e: any) {
       console.error('Express checkout failed', e);
-      alert('Express checkout failed. Please try again.');
+      alert(e.message || 'Express checkout failed. Please try again.');
       setLoadingMethod(null);
     }
   };
@@ -127,7 +123,6 @@ export default function CheckoutContent() {
     
     setLoadingMethod('card');
     try {
-      // Direct to Dodo: build checkout URL without creating a pending purchase
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,7 +134,10 @@ export default function CheckoutContent() {
         })
       });
 
-      if (!res.ok) throw new Error('Failed to create checkout session');
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody?.error || 'Failed to create checkout session');
+      }
 
       const body = await res.json();
       const checkoutUrl = body?.checkoutUrl;
@@ -147,7 +145,6 @@ export default function CheckoutContent() {
 
       if (!checkoutUrl) throw new Error('No checkout URL returned');
 
-      // Open overlay
       await openDodoOverlayByUrl(checkoutUrl, {
         sessionId,
         onSuccess: async () => {
@@ -171,9 +168,63 @@ export default function CheckoutContent() {
         }
       });
 
-    } catch (e) {
+    } catch (e: any) {
       console.error('Card checkout failed', e);
-      alert('Failed to open payment form. Please try again.');
+      alert(e.message || 'Failed to open payment form. Please try again.');
+      setLoadingMethod(null);
+    }
+  };
+
+  const handleDirectCheckout = async () => {
+    setLoadingMethod('dodo');
+    try {
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          songId,
+          guestEmail: email || null,
+          amount: SINGLE_AMOUNT,
+        })
+      });
+
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody?.error || 'Failed to create checkout session');
+      }
+
+      const body = await res.json();
+      const checkoutUrl = body?.checkoutUrl;
+      const sessionId = body?.sessionId;
+
+      if (!checkoutUrl) throw new Error('No checkout URL returned');
+
+      await openDodoOverlayByUrl(checkoutUrl, {
+        sessionId,
+        onSuccess: async () => {
+          console.log('[Direct] Payment successful, polling verification...');
+          const verified = await pollVerify();
+          setLoadingMethod(null);
+          if (verified) {
+            router.push(`/checkout/success?songId=${encodeURIComponent(songId || '')}&sessionId=${sessionId}`);
+          } else {
+            router.push(`/checkout/success?songId=${encodeURIComponent(songId || '')}&sessionId=${sessionId}&pending=true`);
+          }
+        },
+        onCancel: () => {
+          console.log('[Direct] Payment cancelled by user');
+          setLoadingMethod(null);
+        },
+        onError: (error: any) => {
+          console.error('[Direct] Payment error:', error);
+          alert('Payment failed. Please try again.');
+          setLoadingMethod(null);
+        }
+      });
+
+    } catch (e: any) {
+      console.error('Direct checkout failed', e);
+      alert(e.message || 'Direct checkout failed. Please try again.');
       setLoadingMethod(null);
     }
   };
@@ -217,56 +268,13 @@ export default function CheckoutContent() {
           <>
             <div className="space-y-3 mb-6">
               <button
-                onClick={() => handleExpressCheckout('apple_pay')}
-                disabled={loadingMethod === 'apple_pay'}
-                className="w-full bg-black text-white rounded-lg py-4 px-6 font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                onClick={() => handleDirectCheckout()}
+                disabled={loadingMethod !== null}
+                className="w-full bg-black text-white rounded-lg py-4 px-6 font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                </svg>
-                {loadingMethod === 'apple_pay' ? 'Processing...' : 'Pay with Apple Pay'}
-              </button>
-
-              <button
-                onClick={() => handleExpressCheckout('google_pay')}
-                disabled={loadingMethod === 'google_pay'}
-                className="w-full bg-white border-2 border-gray-300 text-gray-900 rounded-lg py-4 px-6 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
-                </svg>
-                {loadingMethod === 'google_pay' ? 'Processing...' : 'Pay with Google Pay'}
-              </button>
-
-              <button
-                onClick={() => handleExpressCheckout('paypal')}
-                disabled={loadingMethod === 'paypal'}
-                className="w-full bg-[#0070BA] text-white rounded-lg py-4 px-6 font-medium hover:bg-[#005A94] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8.32 21.97a.546.546 0 01-.26-.32c-.03-.15-.01-.3.06-.44l2.68-9.38a.81.81 0 01.77-.56h4.93c2.45 0 4.55-1.64 4.96-3.87.04-.2.06-.4.06-.61 0-2.6-2.11-4.71-4.71-4.71h-7.5c-.5 0-.92.36-1 .85L5.79 16.39c-.09.5.24.98.75 1.07l8.14 1.16a.999.999 0 01-.14 1.99l-6.07-.87a.36.36 0 01-.15.23z"/>
-                </svg>
-                {loadingMethod === 'paypal' ? 'Processing...' : 'Pay with PayPal'}
+                {loadingMethod === 'dodo' ? 'Opening checkout...' : `Buy ${SINGLE_LABEL}`}
               </button>
             </div>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">or pay with card</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowCardForm(true)}
-              disabled={loadingMethod === 'card'}
-              className="w-full bg-white border-2 border-purple-600 text-purple-600 rounded-lg py-4 px-6 font-medium hover:bg-purple-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <FaCreditCard className="w-5 h-5" />
-              Continue with Card
-            </button>
 
             <div className="mt-8 space-y-4">
               <div className="flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
@@ -283,14 +291,14 @@ export default function CheckoutContent() {
                 <p className="text-xs font-semibold text-gray-500 text-center mb-4 tracking-wide">WE ACCEPT</p>
                 <div className="flex items-center justify-center gap-3 flex-wrap">
                   {/* Visa */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg border-2 border-blue-200 shadow-sm">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg border-2 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
                     <svg className="w-12 h-8" viewBox="0 0 48 32" fill="none">
                       <path d="M18.5 11l-3.2 10h2.2l3.2-10h-2.2zm8.9 6.5l1.2-3.3.7 3.3h-1.9zm2.5 3.5h2l-1.7-10h-1.9c-.4 0-.8.3-.9.6l-3.3 9.4h2.3l.5-1.3h2.8l.2 1.3zm-6.3-3.3c0-2.6-3.6-2.8-3.6-4 0-.4.4-.8 1.2-.9.4 0 1.5-.1 2.7.5l.5-2.2c-.7-.2-1.5-.4-2.6-.4-2.4 0-4.1 1.3-4.1 3.1 0 1.3 1.2 2.1 2.1 2.5.9.4 1.2.7 1.2 1.1 0 .6-.7.9-1.4.9-1.2 0-1.8-.2-2.8-.6l-.5 2.3c.6.3 1.8.5 3 .5 2.6.1 4.3-1.2 4.3-3.1v.3zm-9.5-6.7l-3.8 10h-2.4l-1.9-7.2c-.1-.4-.2-.5-.6-.7-.6-.3-1.6-.6-2.5-.8l.1-.3h4.2c.5 0 1 .4 1.1.9l1 5.4 2.5-6.3h2.3z" fill="#1434CB"/>
                     </svg>
                   </div>
                   
                   {/* Mastercard */}
-                  <div className="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg border-2 border-orange-200 shadow-sm">
+                  <div className="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg border-2 border-orange-200 shadow-sm hover:shadow-md transition-shadow">
                     <svg className="w-12 h-8" viewBox="0 0 48 32" fill="none">
                       <circle cx="18" cy="16" r="7" fill="#EB001B"/>
                       <circle cx="30" cy="16" r="7" fill="#F79E1B"/>
@@ -299,7 +307,7 @@ export default function CheckoutContent() {
                   </div>
                   
                   {/* American Express */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border-2 border-blue-300 shadow-sm">
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border-2 border-blue-300 shadow-sm hover:shadow-md transition-shadow">
                     <svg className="w-12 h-8" viewBox="0 0 48 32" fill="none">
                       <rect x="8" y="8" width="32" height="16" rx="2" fill="#006FCF"/>
                       <path d="M12 13.5h2.5l-.6-1.5h-1.3l-.6 1.5zm4.8 2.5l-1-2.5h-1.3l-1 2.5H12l2-5h1.8l2 5h-1.5z" fill="white"/>
@@ -309,7 +317,7 @@ export default function CheckoutContent() {
                   </div>
                   
                   {/* PayPal */}
-                  <div className="bg-gradient-to-br from-blue-50 to-sky-50 p-3 rounded-lg border-2 border-blue-200 shadow-sm">
+                  <div className="bg-gradient-to-br from-blue-50 to-sky-50 p-3 rounded-lg border-2 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
                     <svg className="w-12 h-8" viewBox="0 0 48 32" fill="none">
                       <path d="M19.5 9h5.8c2.4 0 4 1.4 4 3.5 0 2.4-1.8 4.5-4.5 4.5h-2.5l-.8 3h-2l2-11zm3.3 6h1.5c1.3 0 2.3-.9 2.3-2.2 0-1-.6-1.8-1.8-1.8h-1.5l-.5 4z" fill="#003087"/>
                       <path d="M27 9h5.8c2.4 0 4 1.4 4 3.5 0 2.4-1.8 4.5-4.5 4.5H30l-.8 3h-2l2-11zm3.3 6h1.5c1.3 0 2.3-.9 2.3-2.2 0-1-.6-1.8-1.8-1.8h-1.5l-.5 4z" fill="#0070E0"/>
@@ -340,25 +348,17 @@ export default function CheckoutContent() {
                   onChange={(e) => setEmail(e.target.value)} 
                   placeholder="you@example.com" 
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  disabled={isLoading || loadingMethod === 'card'}
+                  disabled={loadingMethod !== null}
                 />
                 <p className="text-xs text-gray-500 mt-2">We'll email your receipt and license key</p>
               </div>
 
               <button 
                 onClick={handleCardCheckout} 
-                  disabled={(loadingMethod === 'card') || !email || isLoading} 
+                disabled={loadingMethod !== null || !email} 
                 className="w-full bg-purple-600 text-white rounded-lg py-4 px-6 font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                  {loadingMethod === 'card' ? 'Processing...' : 'Continue to Payment'}
-              </button>
-
-              <button 
-                onClick={() => setShowCardForm(false)} 
-                  disabled={loadingMethod === 'card' || isLoading}
-                className="w-full text-gray-600 text-sm hover:text-gray-900 transition-colors disabled:opacity-50"
-              >
-                ← Back to express checkout
+                {loadingMethod === 'card' ? 'Processing...' : 'Continue to Payment'}
               </button>
             </div>
           </>
@@ -367,4 +367,3 @@ export default function CheckoutContent() {
     </div>
   );
 }
-
