@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
-import { transactions, songs, purchases } from '@/src/db/schema';
+import { transactions, songs } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { transactionId, songId, purchaseId } = body || {};
+    const { transactionId, songId } = body || {};
 
-    if (!transactionId && !songId && !purchaseId) {
-      return NextResponse.json({ verified: false, error: 'transactionId, songId or purchaseId required' }, { status: 400 });
+    if (!transactionId && !songId) {
+      return NextResponse.json({ verified: false, error: 'transactionId or songId required' }, { status: 400 });
     }
 
     if (transactionId) {
@@ -18,14 +18,6 @@ export async function POST(request: Request) {
       const tx = res[0];
       const ok = tx.status === 'paid' || tx.status === 'completed' || tx.status === 'succeeded' || tx.status === 'success';
       return NextResponse.json({ verified: ok, transaction: tx });
-    }
-
-    if (purchaseId) {
-      const res = await db.select().from(purchases).where(eq(purchases.id, String(purchaseId))).limit(1);
-      if (res.length === 0) return NextResponse.json({ verified: false });
-      const purchase = res[0];
-      const ok = purchase.status === 'paid' || !!purchase.assignedSongId;
-      return NextResponse.json({ verified: ok, purchase });
     }
 
     if (songId) {

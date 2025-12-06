@@ -2,7 +2,7 @@ import { Webhook } from "standardwebhooks";
 import { headers } from "next/headers";
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
-import { transactions, songs, subscriptions, purchases } from '@/src/db/schema';
+import { transactions, songs, subscriptions } from '@/src/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { refillCredits } from '@/lib/db-service';
 import { readFile } from 'fs/promises';
@@ -130,14 +130,7 @@ async function handleTransactionCompleted(transaction: any) {
         console.log(`[DodoWebhook] Unlocked song ${songId} for transaction ${transaction.id}`);
       }
 
-      // If the transaction is associated with a pending `purchaseId`, fulfill it
-      if (custom.purchaseId) {
-        try {
-          await fulfillPurchase(tx, transaction, String(custom.purchaseId));
-        } catch (e) {
-          console.error('[DodoWebhook] Failed to fulfill purchase', e);
-        }
-      }
+      // No pending purchase flow: we rely on `custom_data.songId` or transaction metadata to unlock items.
     });
   } catch (error) {
     console.error('[DodoWebhook] Error handling transaction completion:', error);
@@ -167,61 +160,7 @@ function scoreAndRank(items: any[], story?: string) {
   return results;
 }
 
-async function fulfillPurchase(tx: any, transaction: any, purchaseId: string) {
-  // Load purchase row
-  const rows = await tx.select().from(purchases).where(eq(purchases.id, purchaseId)).limit(1);
-  if (!rows || rows.length === 0) {
-    console.warn('[fulfillPurchase] purchase not found', purchaseId);
-    return;
-  }
-  const purchase = rows[0];
-
-  // Read manifest and pick best-matching song using available metadata
-  const items = await readManifest();
-  let results = items;
-
-  // If purchase stores modes/musicStyles, parse and filter
-  try {
-    if (purchase.modes) {
-      const modes = JSON.parse(purchase.modes);
-      if (Array.isArray(modes) && modes.length > 0) results = results.filter((r: any) => modes.includes(r.mode));
-    }
-    if (purchase.musicStyles) {
-      const styles = JSON.parse(purchase.musicStyles);
-      if (Array.isArray(styles) && styles.length > 0) results = results.filter((r: any) => styles.includes(r.musicStyle));
-    }
-  } catch (e) {
-    console.debug('[fulfillPurchase] failed parsing purchase filters', e);
-  }
-
-  // Use transaction.custom_data.story or purchase.story to score
-  const storyText = transaction?.custom_data?.story || purchase.story || '';
-  const scored = scoreAndRank(results, storyText);
-  const pick = (scored && scored.length > 0) ? scored[0] : (results[0] || null);
-  if (!pick) {
-    console.warn('[fulfillPurchase] no pick available for purchase', purchaseId);
-    // still mark purchase as paid so client knows to claim manually
-    await tx.update(purchases).set({ status: 'paid', purchaseTransactionId: String(transaction.id), updatedAt: new Date() }).where(eq(purchases.id, purchaseId));
-    return;
-  }
-
-  // Assign pick to purchase and update transaction
-  const assignedSongId = pick.filename || pick.storageUrl || null;
-  try {
-    await tx.update(purchases).set({ status: 'paid', assignedSongId: assignedSongId, purchaseTransactionId: String(transaction.id), updatedAt: new Date() }).where(eq(purchases.id, purchaseId));
-    // Update transactions row to attach song info if the transaction record exists
-    try {
-      await tx.update(transactions).set({ songId: assignedSongId }).where(eq(transactions.id, String(transaction.id)));
-    } catch (e) {
-      console.debug('[fulfillPurchase] failed to attach songId to transaction', e);
-    }
-
-    console.log(`[fulfillPurchase] Assigned song ${assignedSongId} to purchase ${purchaseId} (tx ${transaction.id})`);
-  } catch (err) {
-    console.error('[fulfillPurchase] Error assigning song to purchase', err);
-    throw err;
-  }
-}
+// `fulfillPurchase` removed — pending purchase flow is no longer used. Webhook relies on `custom_data.songId` or manifest matching.
 
 async function handleSubscriptionCreated(subscription: any) {
   const userId = subscription.custom_data?.userId;

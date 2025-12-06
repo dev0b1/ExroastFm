@@ -36,9 +36,10 @@ export default function CheckoutContent() {
     init();
   }, [supabase]);
 
-  async function pollVerify(opts: { purchaseId?: string }, retries = 12, interval = 1000) {
+  async function pollVerify(retries = 12, interval = 1000) {
     const payload: any = {};
-    if (opts.purchaseId) payload.purchaseId = opts.purchaseId;
+    // prefer checking by songId which we include in Dodo `custom_data`
+    if (songId) payload.songId = songId;
     for (let i = 0; i < retries; i++) {
       try {
         const res = await fetch('/api/transactions/verify', { 
@@ -60,26 +61,7 @@ export default function CheckoutContent() {
     return false;
   }
 
-  const createPendingPurchase = async (guestEmail?: string | null) => {
-    try {
-      console.debug('[createPendingPurchase] creating pending purchase', { guestEmail, songId });
-      const res = await fetch('/api/purchases/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guestEmail: guestEmail || null, songId })
-      });
-      let body: any = null;
-      try { body = await res.json(); } catch (err) { body = null; }
-      if (!res.ok) {
-        console.error('[createPendingPurchase] server error', res.status, body);
-        return null;
-      }
-      return body?.purchaseId || null;
-    } catch (e) {
-      console.error('createPendingPurchase error', e);
-      return null;
-    }
-  };
+  // pending-purchase flow removed: we rely on Dodo webhooks with `custom_data.songId`
 
   const handleExpressCheckout = async (method: 'apple_pay' | 'google_pay' | 'paypal') => {
     setLoadingMethod(method);
@@ -110,9 +92,8 @@ export default function CheckoutContent() {
         sessionId,
         onSuccess: async () => {
           console.log('[Express] Payment successful, polling verification...');
-          // if webhook uses purchaseId, it won't be present for this direct flow
-          // pollVerify will rely on other server-side signals (songId/sessionId)
-          const verified = await pollVerify({});
+          // poll by songId (included in Dodo custom_data)
+          const verified = await pollVerify();
           setLoadingMethod(null);
           if (verified) {
             router.push(`/checkout/success?sessionId=${sessionId}`);
@@ -171,7 +152,7 @@ export default function CheckoutContent() {
         sessionId,
         onSuccess: async () => {
           console.log('[Card] Payment successful, polling verification...');
-          const verified = await pollVerify({});
+          const verified = await pollVerify();
           setLoadingMethod(null);
           if (verified) {
             router.push(`/checkout/success?sessionId=${sessionId}`);
@@ -359,22 +340,22 @@ export default function CheckoutContent() {
                   onChange={(e) => setEmail(e.target.value)} 
                   placeholder="you@example.com" 
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  disabled={loading}
+                  disabled={isLoading || loadingMethod === 'card'}
                 />
                 <p className="text-xs text-gray-500 mt-2">We'll email your receipt and license key</p>
               </div>
 
               <button 
                 onClick={handleCardCheckout} 
-                disabled={loading || !email} 
+                  disabled={(loadingMethod === 'card') || !email || isLoading} 
                 className="w-full bg-purple-600 text-white rounded-lg py-4 px-6 font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : 'Continue to Payment'}
+                  {loadingMethod === 'card' ? 'Processing...' : 'Continue to Payment'}
               </button>
 
               <button 
                 onClick={() => setShowCardForm(false)} 
-                disabled={loading}
+                  disabled={loadingMethod === 'card' || isLoading}
                 className="w-full text-gray-600 text-sm hover:text-gray-900 transition-colors disabled:opacity-50"
               >
                 ← Back to express checkout
