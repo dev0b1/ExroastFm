@@ -65,63 +65,51 @@ function processNext() {
     .setStartTime(0)
     .setDuration(60)
     .complexFilter([
-      // Dark blue/purple background (matching image 2)
+      // Dark background with subtle stars
       'color=c=#0a0a1e:s=1080x1920:d=60[bg];' +
       
-      // Add subtle noise/stars effect
-      'geq=random(1)*255:128:128[noise];' +
-      '[noise]scale=1080:1920,fade=in:0:30:alpha=1[stars];' +
-      '[bg][stars]overlay=format=auto:alpha=0.15[bg_stars];' +
+      // Create radial audio visualizer (showfreqs in circular mode)
+      '[0:a]showfreqs=s=1080x1080:mode=bar:ascale=log:fscale=log:' +
+      'colors=#FF00FF|#00D9FF:win_size=2048:cmode=combined[freq];' +
       
-      // Create main circular visualizer (centered, audio-reactive)
-      '[0:a]showfreqs=s=500x500:mode=bar:ascale=sqrt:fscale=log:' +
-      'win_func=hann:overlap=0.75:' +
-      'colors=#00D9FF|#B24BF3|#FF00FF:cmode=separate[freq_circle];' +
+      // Add glow effect
+      '[freq]split[freq1][freq2];' +
+      '[freq2]boxblur=20:5[freq_glow];' +
       
-      // Create outer blue glow ring
-      '[0:a]showfreqs=s=700x700:mode=bar:ascale=sqrt:fscale=log:' +
-      'colors=#0066FF@0.4:cmode=combined[glow_blue];' +
+      // Overlay glowing visualizer on background
+      '[bg][freq_glow]overlay=(W-w)/2:(H-h)/2-100[tmp1];' +
+      '[tmp1][freq1]overlay=(W-w)/2:(H-h)/2-100[tmp2];' +
       
-      // Create outer purple/pink glow ring
-      '[0:a]showfreqs=s=900x900:mode=bar:ascale=sqrt:fscale=log:' +
-      'colors=#FF00FF@0.2:cmode=combined[glow_pink];' +
+      // Draw dark blue circle in center (solid fill)
+      '[tmp2]drawbox=x=390:y=760:w=300:h=300:color=#1a1a3e:t=fill[tmp3];' +
       
-      // Apply heavy blur to glows
-      '[glow_pink]boxblur=50:5[glow_pink_blur];' +
-      '[glow_blue]boxblur=30:3[glow_blue_blur];' +
+      // Draw white circle border using multiple thin boxes
+      '[tmp3]drawbox=x=390:y=760:w=300:h=4:color=white:t=fill[tmp4a];' +
+      '[tmp4a]drawbox=x=390:y=1056:w=300:h=4:color=white:t=fill[tmp4b];' +
+      '[tmp4b]drawbox=x=390:y=760:w=4:h=300:color=white:t=fill[tmp4c];' +
+      '[tmp4c]drawbox=x=686:y=760:w=4:h=300:color=white:t=fill[tmp4];' +
       
-      // Layer everything: bg + glows + main circle
-      '[bg_stars][glow_pink_blur]overlay=(W-w)/2:(H-h)/2-50[tmp1];' +
-      '[tmp1][glow_blue_blur]overlay=(W-w)/2:(H-h)/2-50[tmp2];' +
-      '[tmp2][freq_circle]overlay=(W-w)/2:(H-h)/2-50[tmp3];' +
-      
-      // Dark circle in center for logo
-      '[tmp3]drawbox=x=440:y=860:w=200:h=200:color=#0a0a1e@0.9:t=fill[tmp4];' +
-      
-      // "EX" text in center (like "Ae" logo style) - large bold
+      // "EX" logo in center (light purple)
       '[tmp4]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:' +
-      'text=\'EX\':fontsize=90:fontcolor=#FFFFFF:' +
-      'x=(w-text_w)/2:y=910:' +
-      'shadowcolor=#000000:shadowx=0:shadowy=0[tmp5];' +
+      'text=\'EX\':fontsize=120:fontcolor=#B8B8FF:' +
+      'x=(w-text_w)/2:y=850[tmp5];' +
       
-      // BRIGHT YELLOW/GOLD text below (like "REACT TO AUDIO")
+      // BRIGHT YELLOW text below
       '[tmp5]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:' +
       'text=\'ROAST YOUR EX\':fontsize=65:fontcolor=#FFD700:' +
-      'x=(w-text_w)/2:y=1150:' +
-      'shadowcolor=#000000:shadowx=3:shadowy=3:' +
-      'box=1:boxcolor=#000000@0.6:boxborderw=15[tmp6];' +
+      'x=(w-text_w)/2:y=1200:' +
+      'shadowcolor=#000000:shadowx=3:shadowy=3[tmp6];' +
       
-      // Small watermark at bottom
+      // Watermark
       '[tmp6]drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:' +
-      'text=\'exroast.buzz\':fontsize=32:fontcolor=#00D9FF:' +
-      'x=(w-text_w)/2:y=h-80:' +
-      'shadowcolor=#000000:shadowx=2:shadowy=2[v]'
+      'text=\'exroast.buzz\':fontsize=30:fontcolor=#00D9FF:' +
+      'x=(w-text_w)/2:y=h-70[v]'
     ])
     .outputOptions([
       '-map', '[v]',
       '-map', '0:a',
       '-c:v', 'libx264',
-      '-preset', 'fast',
+      '-preset', 'ultrafast',
       '-crf', '23',
       '-c:a', 'aac',
       '-b:a', '128k',
