@@ -505,15 +505,13 @@ export default function PreviewContent() {
           // from the user's click. This keeps the flow explicit and avoids
           // any accidental auto-open behavior.
           if (tier === 'one-time') {
-            // Always show the in-app checkout UI first so guest users see the
-            // `CheckoutContent` UI you provided before any Dodo overlay/redirect
-            // is attempted. The checkout page will create the pending purchase
-            // and open the overlay from there.
+            // Open the primary checkout overlay directly (Dodo) with songId metadata.
             try {
-              router.push(`/checkout${song?.id ? `?songId=${song.id}` : ''}`);
+              setShowUpsellModal(false);
+              await openPrimaryCheckout({ songId: song?.id });
             } catch (e) {
-              console.error('Failed to route to in-app checkout from upsell, falling back to primary checkout', e);
-              try { await openPrimaryCheckout({ songId: song?.id }); } catch (err) { console.error('Fallback openPrimaryCheckout also failed', err); }
+              console.error('Failed to open primary checkout overlay from upsell, falling back to checkout page', e);
+              try { router.push(`/checkout${song?.id ? `?songId=${song.id}` : ''}`); } catch (err) { console.error('Fallback route also failed', err); }
             }
             return;
           } else {

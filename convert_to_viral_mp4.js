@@ -26,6 +26,9 @@ let mp3Files = fs.readdirSync(folderPath)
   .filter(file => file.toLowerCase().endsWith('.mp3'))
   .sort();
 
+// TEST WITH FIRST 5
+mp3Files = mp3Files.slice(0, 5);
+
 if (mp3Files.length === 0) {
   console.log('No .mp3 files found in the folder.');
   process.exit(0);
@@ -52,7 +55,7 @@ function processNext() {
   completed++;
   
   const elapsedMinutes = (Date.now() - startTime) / 1000 / 60;
-  const avgTimePerVideo = completed > 1 ? elapsedMinutes / (completed - 1) : 5;
+  const avgTimePerVideo = completed > 1 ? elapsedMinutes / (completed - 1) : 3;
   const estimatedRemaining = Math.round(avgTimePerVideo * (totalFiles - completed));
 
   console.log(`\n[${completed}/${totalFiles}] Converting: ${file}`);
@@ -62,46 +65,64 @@ function processNext() {
     .setStartTime(0)
     .setDuration(60)
     .complexFilter([
-      // Background
-      'color=c=#000000:s=1080x1920:d=60[bg];' +
+      // Dark blue/purple background (matching image 2)
+      'color=c=#0a0a1e:s=1080x1920:d=60[bg];' +
       
-      // Central pulsing waveform
-      '[0:a]showwaves=s=800x800:mode=p2p:colors=#FF006E|#8338EC:scale=sqrt:rate=30[wave];' +
+      // Add subtle noise/stars effect
+      'geq=random(1)*255:128:128[noise];' +
+      '[noise]scale=1080:1920,fade=in:0:30:alpha=1[stars];' +
+      '[bg][stars]overlay=format=auto:alpha=0.15[bg_stars];' +
       
-      // Frequency bars
-      '[0:a]showfreqs=s=1080x600:mode=bar:ascale=log:fscale=log:colors=#FF006E|#8338EC|#3A86FF|#06FFA5:cmode=combined[freq];' +
-      '[freq]split[freq1][freq2];[freq2]vflip[freq_flip];' +
+      // Create main circular visualizer (centered, audio-reactive)
+      '[0:a]showfreqs=s=500x500:mode=bar:ascale=sqrt:fscale=log:' +
+      'win_func=hann:overlap=0.75:' +
+      'colors=#00D9FF|#B24BF3|#FF00FF:cmode=separate[freq_circle];' +
       
-      // Layer bars
-      '[bg][freq1]overlay=(W-w)/2:50[tmp1];' +
-      '[tmp1][freq_flip]overlay=(W-w)/2:H-650[tmp2];' +
+      // Create outer blue glow ring
+      '[0:a]showfreqs=s=700x700:mode=bar:ascale=sqrt:fscale=log:' +
+      'colors=#0066FF@0.4:cmode=combined[glow_blue];' +
       
-      // Glow effect
-      '[tmp2]boxblur=6:1[blurred];' +
-      '[blurred][wave]overlay=(W-w)/2:(H-h)/2,eq=saturation=1.8:contrast=1.2[tmp3];' +
+      // Create outer purple/pink glow ring
+      '[0:a]showfreqs=s=900x900:mode=bar:ascale=sqrt:fscale=log:' +
+      'colors=#FF00FF@0.2:cmode=combined[glow_pink];' +
       
-      // SEMI-TRANSPARENT BLACK BOX behind text for contrast
-      '[tmp3]drawbox=x=0:y=80:w=1080:h=180:color=black@0.6:t=fill[tmp_box];' +
+      // Apply heavy blur to glows
+      '[glow_pink]boxblur=50:5[glow_pink_blur];' +
+      '[glow_blue]boxblur=30:3[glow_blue_blur];' +
       
-      // LOGO - Yellow/gold for maximum pop (like verified badges)
-      '[tmp_box]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:' +
-      'text=\'exroast.buzz\':fontsize=72:fontcolor=#FFD700:' +  // Gold color
-      'x=(w-text_w)/2:y=100:' +
-      'shadowcolor=black:shadowx=3:shadowy=3:' +
-      'borderw=3:bordercolor=#000000[tmp4];' +
+      // Layer everything: bg + glows + main circle
+      '[bg_stars][glow_pink_blur]overlay=(W-w)/2:(H-h)/2-50[tmp1];' +
+      '[tmp1][glow_blue_blur]overlay=(W-w)/2:(H-h)/2-50[tmp2];' +
+      '[tmp2][freq_circle]overlay=(W-w)/2:(H-h)/2-50[tmp3];' +
       
-      // Tagline - Bright white, NO transparency, black shadow
-      '[tmp4]drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:' +
-      'text=\'AI Roasted Your Ex 🔥\':fontsize=38:fontcolor=#FFFFFF:' +  // Full white, no transparency
-      'x=(w-text_w)/2:y=190:' +
-      'shadowcolor=black:shadowx=2:shadowy=2[v]'
+      // Dark circle in center for logo
+      '[tmp3]drawbox=x=440:y=860:w=200:h=200:color=#0a0a1e@0.9:t=fill[tmp4];' +
+      
+      // "EX" text in center (like "Ae" logo style) - large bold
+      '[tmp4]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:' +
+      'text=\'EX\':fontsize=90:fontcolor=#FFFFFF:' +
+      'x=(w-text_w)/2:y=910:' +
+      'shadowcolor=#000000:shadowx=0:shadowy=0[tmp5];' +
+      
+      // BRIGHT YELLOW/GOLD text below (like "REACT TO AUDIO")
+      '[tmp5]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:' +
+      'text=\'ROAST YOUR EX\':fontsize=65:fontcolor=#FFD700:' +
+      'x=(w-text_w)/2:y=1150:' +
+      'shadowcolor=#000000:shadowx=3:shadowy=3:' +
+      'box=1:boxcolor=#000000@0.6:boxborderw=15[tmp6];' +
+      
+      // Small watermark at bottom
+      '[tmp6]drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:' +
+      'text=\'exroast.buzz\':fontsize=32:fontcolor=#00D9FF:' +
+      'x=(w-text_w)/2:y=h-80:' +
+      'shadowcolor=#000000:shadowx=2:shadowy=2[v]'
     ])
     .outputOptions([
       '-map', '[v]',
       '-map', '0:a',
       '-c:v', 'libx264',
-      '-preset', 'ultrafast',
-      '-crf', '25',
+      '-preset', 'fast',
+      '-crf', '23',
       '-c:a', 'aac',
       '-b:a', '128k',
       '-pix_fmt', 'yuv420p',
