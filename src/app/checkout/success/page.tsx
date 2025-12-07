@@ -11,6 +11,7 @@ function SuccessContent() {
 
   const [verified, setVerified] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(false);
+  const [bestMatch, setBestMatch] = useState<string | null>(null);
 
   useEffect(() => {
     if (!songId) return;
@@ -47,6 +48,24 @@ function SuccessContent() {
     return () => { cancelled = true; };
   }, [songId]);
 
+  // If song is not yet available, request a best-match template name from the server
+  useEffect(() => {
+    if (!songId) return;
+    let cancelled = false;
+    const doMatch = async () => {
+      try {
+        const res = await fetch(`/api/song/match?songId=${encodeURIComponent(songId)}`);
+        if (!res.ok) return;
+        const body = await res.json();
+        if (!cancelled && body?.bestMatch) setBestMatch(body.bestMatch);
+      } catch (e) {
+        console.debug('best-match request failed', e);
+      }
+    };
+    doMatch();
+    return () => { cancelled = true; };
+  }, [songId]);
+
   return (
     <div className="max-w-2xl mx-auto p-8 text-center">
       <h1 className="text-3xl font-bold text-green-600 mb-4">Payment Successful! 🎉</h1>
@@ -73,6 +92,9 @@ function SuccessContent() {
           {verified === false && (
             <>
               <p className="text-yellow-700 font-semibold mb-4">Your purchase is pending. If the song doesn't appear, check back in a moment or contact support.</p>
+              {bestMatch && (
+                <p className="text-sm text-gray-400">Best match template: <span className="font-mono text-white">{bestMatch}</span></p>
+              )}
               <a href="/" className="inline-block mt-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Return Home</a>
             </>
           )}

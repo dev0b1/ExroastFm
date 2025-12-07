@@ -287,6 +287,77 @@ export async function openDodoOverlayByUrl(
 
   // Popup fallback (centered)
   try {
+    // Attempt to render an in-app iframe modal overlay before opening a popup.
+    // This gives the appearance of an embedded checkout inside the app.
+    try {
+      if (typeof document !== 'undefined') {
+        // Avoid creating duplicate overlays
+        if (!document.getElementById('dodo-iframe-modal')) {
+          const modal = document.createElement('div');
+          modal.id = 'dodo-iframe-modal';
+          modal.style.position = 'fixed';
+          modal.style.left = '0';
+          modal.style.top = '0';
+          modal.style.right = '0';
+          modal.style.bottom = '0';
+          modal.style.background = 'rgba(0,0,0,0.6)';
+          modal.style.zIndex = '999999';
+          modal.style.display = 'flex';
+          modal.style.alignItems = 'center';
+          modal.style.justifyContent = 'center';
+
+          const container = document.createElement('div');
+          container.style.width = '900px';
+          container.style.maxWidth = '95%';
+          container.style.height = '700px';
+          container.style.maxHeight = '95%';
+          container.style.background = '#000';
+          container.style.borderRadius = '8px';
+          container.style.overflow = 'hidden';
+          container.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6)';
+
+          const iframe = document.createElement('iframe');
+          iframe.src = checkoutUrl;
+          iframe.style.border = 'none';
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.allow = 'payment *; fullscreen *;';
+
+          const closeBtn = document.createElement('button');
+          closeBtn.innerText = '×';
+          closeBtn.style.position = 'absolute';
+          closeBtn.style.right = '18px';
+          closeBtn.style.top = '18px';
+          closeBtn.style.zIndex = '1000000';
+          closeBtn.style.background = 'rgba(0,0,0,0.6)';
+          closeBtn.style.color = '#fff';
+          closeBtn.style.border = 'none';
+          closeBtn.style.fontSize = '28px';
+          closeBtn.style.width = '44px';
+          closeBtn.style.height = '44px';
+          closeBtn.style.borderRadius = '22px';
+          closeBtn.style.cursor = 'pointer';
+
+          closeBtn.onclick = () => {
+            try { document.body.removeChild(modal); } catch (e) { /* noop */ }
+          };
+
+          // Wrap container to position close button
+          const wrapper = document.createElement('div');
+          wrapper.style.position = 'relative';
+          wrapper.appendChild(container);
+          wrapper.appendChild(closeBtn);
+
+          container.appendChild(iframe);
+          modal.appendChild(wrapper);
+          document.body.appendChild(modal);
+          return { opened: 'iframe' };
+        }
+      }
+    } catch (e) {
+      console.debug('[openDodoOverlayByUrl] iframe overlay attempt failed', e);
+      // continue to popup fallback
+    }
     const w = 520;
     const h = 720;
     const left = Math.floor((window.screen.width / 2) - (w / 2));
