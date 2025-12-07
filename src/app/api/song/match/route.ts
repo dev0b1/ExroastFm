@@ -24,6 +24,18 @@ async function loadTemplates() {
   }
 }
 
+async function loadPremiumManifest() {
+  try {
+    const file = path.join(process.cwd(), 'public', 'premium-songs', 'manifest.json');
+    const raw = await fs.readFile(file, 'utf8');
+    const parsed = JSON.parse(raw);
+    return parsed || [];
+  } catch (e) {
+    console.debug('[matcher] no premium manifest found', e);
+    return [];
+  }
+}
+
 function hashIndex(id: string | null | undefined, len: number) {
   if (!id || len <= 0) return 0;
   let h = 0;
@@ -39,8 +51,8 @@ function normalizeText(s: string | undefined | null) {
 }
 
 function scoreTemplate(template: any, song: any) {
-  const hay = `${normalizeText(template.title)} ${normalizeText(template.description)} ${normalizeText(template.keywords)} ${((template.tags||[]) as string[]).join(' ').toLowerCase()}`;
-  const needle = `${normalizeText(song.style)} ${normalizeText(song.genre)} ${normalizeText(song.story)} ${normalizeText(song.mood)}`;
+  const hay = `${normalizeText(template.title)} ${normalizeText(template.description)} ${normalizeText(template.keywords)} ${((template.tags||[]) as string[]).join(' ').toLowerCase()} ${normalizeText(template.musicStyle)}`;
+  const needle = `${normalizeText(song.style)} ${normalizeText(song.genre)} ${normalizeText(song.story)} ${normalizeText(song.mood)} ${normalizeText(song.musicStyle)}`;
   let score = 0;
   try {
     const hayWords = new Set(hay.split(/\W+/).filter(Boolean));
@@ -60,12 +72,29 @@ export async function GET(request: Request) {
     const songId = url.searchParams.get('songId');
 
     const templates = await loadTemplates();
+    const premium = await loadPremiumManifest();
+
+    // Normalize premium manifest entries into matcher-shaped objects
+    const premiumMapped = (premium || []).map((p: any) => ({
+      id: p.filename ? p.filename.replace(/\.[^.]+$/, '') : p.title,
+      title: p.title || '',
+      description: p.description || '',
+      keywords: p.keywords || '',
+      tags: p.tags || [],
+      mode: p.mode || p.mode,
+      musicStyle: p.musicStyle || p.music_style || p.style || '',
+      storageUrl: p.storageUrl || p.storage_url || null,
+      isPremium: true,
+    }));
+
+    // Combined pool: premium entries first (so we can prefer them when they score highest)
+    const combinedPool = [...premiumMapped, ...(templates || [])];
 
     // If no songId provided, fallback to deterministic pick
     if (!songId) {
-      const idx = hashIndex(null, templates.length || 1);
-      const t = templates[idx] || null;
-      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl: t?.storageUrl || null });
+      const idx = hashIndex(null, combinedPool.length || 1);
+      const t = combinedPool[idx] || null;
+      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl: t?.storageUrl || t?.storageUrl || null, isPremium: !!t?.isPremium });
     }
 
     // Fetch song from DB to observe chosen style/mode
@@ -74,29 +103,36 @@ export async function GET(request: Request) {
 
     // If no song found, fallback to a stable deterministic pick
     if (!song) {
-      const idx = hashIndex(songId, templates.length || 1);
-      const t = templates[idx] || null;
-      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl: t?.storageUrl || null, note: 'song_not_found' });
+      const idx = hashIndex(songId, combinedPool.length || 1);
+      const t = combinedPool[idx] || null;
+      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl: t?.storageUrl || null, isPremium: !!t?.isPremium, note: 'song_not_found' });
     }
 
     // Prefer templates with exact mode match
     const songMode = (song.style || song.mode || '').toLowerCase();
-    let candidates = templates.filter((t: any) => (t.mode || '').toLowerCase() === songMode);
+    const songMusicStyle = (song.musicStyle || song.music_style || song.genre || '').toLowerCase();
 
-    // If no exact mode match, try matching by tags/keywords
-    if (candidates.length === 0) {
-      const needle = `${normalizeText(song.style)} ${normalizeText(song.genre)} ${normalizeText(song.mood)} ${normalizeText(song.story)}`;
-      candidates = templates.filter((t: any) => {
-        const aggregate = `${normalizeText(t.keywords)} ${(t.tags||[]).join(' ').toLowerCase()} ${normalizeText(t.title)} ${normalizeText(t.description)}`;
-        // simple substring match
-        return needle.split(/\W+/).some(w => w && aggregate.includes(w));
-      });
+    // First, try to find premium candidates with exact mode/style match
+    let premiumCandidates = premiumMapped.filter((p: any) => ((p.mode || '').toLowerCase() === songMode) && ((p.musicStyle || '').toLowerCase() === songMusicStyle));
+
+    // If no exact premium mode/style matches, relax to mode-only premium matches
+    if (premiumCandidates.length === 0) {
+      premiumCandidates = premiumMapped.filter((p: any) => (p.mode || '').toLowerCase() === songMode);
+    }
+
+    // If we found premium candidates, prefer scoring them first
+    let candidates: any[] = [];
+    if (premiumCandidates.length > 0) {
+      candidates = premiumCandidates;
+    } else {
+      // Fallback: use template pool (including premium mapped items) filtered by mode
+      candidates = combinedPool.filter((t: any) => (t.mode || '').toLowerCase() === songMode);
     }
 
     // Score candidates by keyword overlap and pick the highest
     let best: any = null;
     let bestScore = -1;
-    const pool = (candidates.length > 0 ? candidates : templates);
+    const pool = (candidates.length > 0 ? candidates : combinedPool);
     for (const t of pool) {
       const s = scoreTemplate(t, song);
       if (s > bestScore) { bestScore = s; best = t; }
@@ -104,11 +140,11 @@ export async function GET(request: Request) {
 
     // Final fallback: deterministic hash
     if (!best) {
-      const idx = hashIndex(songId, templates.length || 1);
-      best = templates[idx] || null;
+      const idx = hashIndex(songId, combinedPool.length || 1);
+      best = combinedPool[idx] || null;
     }
 
-    return NextResponse.json({ success: true, bestMatch: best?.id || null, sampleUrl: best?.storageUrl || null, matchedMode: songMode });
+    return NextResponse.json({ success: true, bestMatch: best?.id || null, sampleUrl: best?.storageUrl || null, isPremium: !!best?.isPremium, matchedMode: songMode, matchedStyle: songMusicStyle });
   } catch (e) {
     console.error('[matcher] error', e);
     return NextResponse.json({ success: false, error: 'matcher_failed' }, { status: 500 });
