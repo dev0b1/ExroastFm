@@ -79,42 +79,46 @@ function processNext() {
       // 1. Background auto color
       `color=c=${bgColor}:s=1080x1920:d=60[bg];` +
 
-      // 2. Circular spectrum
+      // 2. Circular spectrum (REMOVED geq and vignette)
       `[0:a]showspectrum=s=1000x1000:mode=combined:color=${spectrumColors}:scale=log:fscale=log:legend=0[spectrum];` +
-      '[spectrum]format=rgba,geq=r=min(255,255*1.3):g=0:b=min(255,255*2.0)[spec_glow];' +
-      '[spec_glow]vignette=0.5:0.7,boxblur=15[spec_blur];' +
+      
+      // 3. Enhanced glow with multiple blur layers
+      '[spectrum]split[spec1][spec2];' +
+      '[spec2]boxblur=25:5[spec_blur1];' +
+      '[spec_blur1]boxblur=15:3[spec_glow];' +
 
-      // 3. Circle mask
+      // 4. Circle mask
       'color=c=black@0:s=1000x1000[maskbase];' +
       '[maskbase]drawbox=x=0:y=0:w=1000:h=1000:color=white@1:t=fill,format=rgba[mask];' +
-      '[spec_blur][mask]alphamerge[circle];' +
+      '[spec_glow][mask]alphamerge[circle_blur];' +
+      '[spec1][mask]alphamerge[circle_sharp];' +
 
-      // 4. Outer glow
-      '[circle]boxblur=20,scale=1200:-1[glowring];' +
+      // 5. Outer glow ring
+      '[circle_blur]boxblur=20,scale=1200:-1[glowring];' +
 
-      // 5. Layer circle + glow
+      // 6. Layer everything: bg + glow + sharp circle
       '[bg][glowring]overlay=(W-w)/2:(H-h)/2[tmp1];' +
-      '[tmp1][circle]overlay=(W-w)/2:(H-h)/2[tmp2];' +
+      '[tmp1][circle_sharp]overlay=(W-w)/2:(H-h)/2[tmp2];' +
 
-      // 6. Inner circle for logo (darker for better contrast)
+      // 7. Inner dark circle for logo
       '[tmp2]drawbox=x=(W/2-260):y=(H/2-260):w=520:h=520:color=black@0.6:t=fill[tmp3];' +
 
-      // 7. PULSING LOGO - BIGGER & SLOWER PULSE
+      // 8. PULSING LOGO
       `[tmp3]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:text="exroast.buzz":fontsize=96:fontcolor=#FFD700:` +
       `x=(w-text_w)/2:y=(h-text_h)/2:` +
       `shadowcolor=black:shadowx=4:shadowy=4:borderw=3:bordercolor=black[logo_static];` +
 
-      // Enhanced pulse: 8% scale change, slower (0.5x speed)
+      // Pulse animation
       `[logo_static]scale='iw*(1+0.08*sin(PI*t))':'ih*(1+0.08*sin(PI*t))'[logo_pulse];` +
       `[tmp3][logo_pulse]overlay=(W-w)/2:(H-h)/2:format=auto[tmp4];` +
 
-      // 8. Top dynamic hook text - BIGGER (NO EMOJIS)
+      // 9. Top dynamic hook text
       `[tmp4]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf:text='${hookText}':` +
       `fontsize=85:fontcolor=#FFFFFF:` +
       `x=(w-text_w)/2:y=120:` +
       `shadowcolor=#FF2CA8:shadowx=4:shadowy=4[tmp5];` +
 
-      // 9. Bottom reaction text (NO EMOJIS)
+      // 10. Bottom reaction text
       `[tmp5]drawtext=fontfile=C\\\\:/Windows/Fonts/arial.ttf:text='This AI is too petty':` +
       `fontsize=48:fontcolor=#FFFFFF:` +
       `x=(w-text_w)/2:y=1680:` +

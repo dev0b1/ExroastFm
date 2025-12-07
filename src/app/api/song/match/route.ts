@@ -109,8 +109,8 @@ export async function GET(request: Request) {
     }
 
     // Prefer templates with exact mode match
-    const songMode = (song.style || song.mode || '').toLowerCase();
-    const songMusicStyle = (song.musicStyle || song.music_style || song.genre || '').toLowerCase();
+    const songMode = (song.style || '').toLowerCase();
+    const songMusicStyle = (((song as any).musicStyle) || ((song as any).music_style) || song.genre || '').toLowerCase();
 
     // First, try to find premium candidates with exact mode/style match
     let premiumCandidates = premiumMapped.filter((p: any) => ((p.mode || '').toLowerCase() === songMode) && ((p.musicStyle || '').toLowerCase() === songMusicStyle));
