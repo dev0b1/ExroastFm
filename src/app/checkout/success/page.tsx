@@ -1,6 +1,7 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from 'react';
+import { FaTwitter, FaFacebook, FaCopy, FaDownload } from 'react-icons/fa';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -12,6 +13,8 @@ function SuccessContent() {
   const [verified, setVerified] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(false);
   const [bestMatch, setBestMatch] = useState<string | null>(null);
+  const [songData, setSongData] = useState<any | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     if (!songId) return;
@@ -31,6 +34,16 @@ function SuccessContent() {
             if (body?.verified) {
               setVerified(true);
               setChecking(false);
+              // fetch song data once verified
+              try {
+                const sres = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+                if (sres.ok) {
+                  const sb = await sres.json();
+                  if (sb?.success) setSongData(sb.song);
+                }
+              } catch (e) {
+                console.debug('failed to fetch song after verify', e);
+              }
               return;
             }
           }
@@ -66,6 +79,33 @@ function SuccessContent() {
     return () => { cancelled = true; };
   }, [songId]);
 
+  // Poll song endpoint until fullUrl available (if purchase verified)
+  useEffect(() => {
+    if (!songId) return;
+    let cancelled = false;
+    let tries = 0;
+    const pollSong = async () => {
+      while (!cancelled && tries < 30) {
+        tries++;
+        try {
+          const res = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+          if (res.ok) {
+            const body = await res.json();
+            if (body?.success) {
+              setSongData(body.song);
+              if (body.song?.fullUrl) return;
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    };
+    pollSong();
+    return () => { cancelled = true; };
+  }, [songId]);
+
   return (
     <div className="max-w-2xl mx-auto p-8 text-center">
       <h1 className="text-3xl font-bold text-green-600 mb-4">Payment Successful! 🎉</h1>
@@ -80,12 +120,54 @@ function SuccessContent() {
         <>
           <p className="text-gray-600 mb-6">Thanks — we're finalizing your premium song. This page will update when the song is unlocked.</p>
 
-          {checking && <p className="text-sm text-gray-500 mb-4">Checking purchase status…</p>}
+          {checking && (
+            <div className="flex flex-col items-center mb-4">
+              <div className="loader mb-2" />
+              <p className="text-sm text-gray-500">Checking purchase status…</p>
+            </div>
+          )}
+
+          <style>{`\n            .loader{width:36px;height:36px;border-radius:9999px;border:4px solid rgba(255,255,255,0.08);border-top-color:#8b5cf6;animation:spin 1s linear infinite}\n            @keyframes spin{to{transform:rotate(360deg)}}\n          `}</style>
 
           {verified === true && (
             <>
               <p className="text-green-700 font-semibold mb-4">Your premium song is ready!</p>
-              <a href={`/song/${encodeURIComponent(songId!)}`} className="inline-block mt-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">Open Song</a>
+              {songData?.fullUrl ? (
+                <div className="space-y-4">
+                  <video className="w-full rounded-lg shadow-lg" controls src={songData.fullUrl} />
+
+                  <div className="flex items-center justify-center gap-3">
+                    <button onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(window.location.href);
+                        setCopySuccess(true);
+                        setTimeout(() => setCopySuccess(false), 2000);
+                      } catch {}
+                    }} className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-lg">
+                      <FaCopy /> {copySuccess ? 'Link Copied' : 'Copy Link'}
+                    </button>
+
+                    <a className="flex items-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-lg" href={songData.fullUrl} download>
+                      <FaDownload /> Download MP4
+                    </a>
+
+                    <a className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg" target="_blank" rel="noreferrer" href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent("Just got my ExRoast premium song 🎶")}`}>
+                      <FaTwitter /> Twitter
+                    </a>
+
+                    <a className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg" target="_blank" rel="noreferrer" href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}>
+                      <FaFacebook /> Facebook
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-gray-400 mb-3">We have unlocked your song, but it's still being prepared. This can take a moment.</p>
+                  <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
+                    <div className="h-3 bg-gradient-to-r from-purple-600 to-pink-500 animate-pulse" style={{ width: '60%' }} />
+                  </div>
+                </div>
+              )}
             </>
           )}
 

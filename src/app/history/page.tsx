@@ -13,6 +13,7 @@ interface Roast {
   title: string;
   mode: string;
   audioUrl: string;
+  fullUrl?: string | null;
   createdAt: string;
   isTemplate: boolean;
 }
@@ -181,8 +182,10 @@ export default function HistoryPage() {
                       </div>
                     </div>
                     
-                    <div className="flex-shrink-0">
-                      {roast.isTemplate ? (
+                    <div className="flex-shrink-0 w-28 h-16">
+                      {roast.fullUrl ? (
+                        <video src={roast.fullUrl} className="w-full h-full rounded-md object-cover" muted />
+                      ) : roast.isTemplate ? (
                         <div className="text-4xl">🎵</div>
                       ) : (
                         <div className="text-4xl">⭐</div>
