@@ -62,6 +62,17 @@ export default function PreviewContent() {
     }
   }, [songId]);
 
+  // Ensure the preview page always starts scrolled to top when opened or when the songId changes.
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [songId]);
+
   // If there is a locally stored full audio for this song, use it.
   useEffect(() => {
     let mounted = true;

@@ -165,14 +165,14 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
         </div>
 
         <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div>
+          <div className="min-w-0">
+            <div className="min-w-0">
               <StyleSelector selected={style} onChange={setStyle} />
             </div>
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-xl font-black text-exroast-gold">Choose Music Style</label>
-            <div className="mt-2">
+            <div className="mt-2 min-w-0">
               <CustomSelect
                 value={musicStyle}
                 onChange={(v) => setMusicStyle(v)}
