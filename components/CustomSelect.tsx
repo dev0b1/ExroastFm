@@ -31,7 +31,7 @@ export default function CustomSelect({ value, onChange, options, ariaLabel }: Cu
   const selected = options.find(o => o.value === value) || options[0];
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative min-w-0" ref={ref}>
       <button
         aria-label={ariaLabel || 'Select option'}
         onClick={() => setOpen(s => !s)}
@@ -43,12 +43,12 @@ export default function CustomSelect({ value, onChange, options, ariaLabel }: Cu
       </button>
 
       {open && (
-        <ul className="absolute z-40 mt-2 w-full bg-black border border-white/10 rounded-md shadow-lg max-h-56 overflow-auto">
+        <ul className="absolute z-40 mt-2 left-0 right-0 w-auto bg-black border border-white/10 rounded-md shadow-lg max-h-56 overflow-auto max-w-full" style={{minWidth: '100%'}}>
           {options.map((opt) => (
             <li
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`px-3 py-2 cursor-pointer text-white hover:bg-blue-600 ${opt.value === value ? 'bg-white/5' : ''}`}
+              className={`px-3 py-2 cursor-pointer text-white hover:bg-blue-600 ${opt.value === value ? 'bg-white/5' : ''} truncate`}
             >
               {opt.label}
             </li>

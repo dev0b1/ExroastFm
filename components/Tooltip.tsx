@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TooltipProps {
@@ -11,6 +11,15 @@ interface TooltipProps {
 
 export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    try {
+      setIsTouchDevice(typeof window !== 'undefined' && 'ontouchstart' in window);
+    } catch (e) {
+      setIsTouchDevice(false);
+    }
+  }, []);
 
   const positionClasses = {
     top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
@@ -24,8 +33,11 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
       className="relative inline-block"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
-      onTouchStart={() => setIsVisible(true)}
-      onTouchEnd={() => setTimeout(() => setIsVisible(false), 2000)}
+      // Avoid showing tooltips on touch devices (they block UI on mobile)
+      {...(!isTouchDevice ? {
+        onTouchStart: () => setIsVisible(true),
+        onTouchEnd: () => setTimeout(() => setIsVisible(false), 2000)
+      } : {})}
     >
       {children}
       <AnimatePresence>
