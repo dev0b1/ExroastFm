@@ -236,40 +236,42 @@ export default function AppPage() {
         </div>
       </header>
 
-      {/* Fixed Streak Bar - 60-70px */}
-      <div className="fixed top-14 md:top-16 left-0 right-0 z-40 bg-gradient-to-r from-purple-900/80 via-purple-700/70 to-amber-500/60 backdrop-blur-md border-b-2 border-amber-500/30 h-16 md:h-[70px] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 h-full flex flex-col justify-center">
-          <div className="flex items-center justify-between md:justify-start gap-4">
-            {/* Left: Streak Text */}
-            <div className="flex-1 md:flex-initial">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight drop-shadow-lg">
-                {getStreakMessage()}
-              </h2>
-              {!hasCheckedInToday && streak > 0 && (
-                <button 
-                  onClick={() => setCurrentTab("daily")}
-                  className="text-xs md:text-sm text-amber-300 hover:text-amber-100 transition-colors mt-0.5 font-bold"
-                >
-                  Check in to make it {streak + 1} →
-                </button>
-              )}
-              {!hasCheckedInToday && streak === 0 && (
-                <button 
-                  onClick={() => setCurrentTab("daily")}
-                  className="text-xs md:text-sm text-amber-300 hover:text-amber-100 transition-colors mt-0.5 font-bold"
-                >
-                  Check in today →
-                </button>
-              )}
-            </div>
-            
-            {/* Right: Fire Emojis */}
-            <div className="text-xl sm:text-2xl md:text-3xl drop-shadow-lg">
-              {getFireEmojis()}
+      {/* Fixed Streak Bar - only show on Daily tab */}
+      {currentTab === 'daily' && (
+        <div className="fixed top-14 md:top-16 left-0 right-0 z-40 bg-gradient-to-r from-purple-900/80 via-purple-700/70 to-amber-500/60 backdrop-blur-md border-b-2 border-amber-500/30 h-16 md:h-[70px] shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 h-full flex flex-col justify-center">
+            <div className="flex items-center justify-between md:justify-start gap-4">
+              {/* Left: Streak Text */}
+              <div className="flex-1 md:flex-initial">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight drop-shadow-lg">
+                  {getStreakMessage()}
+                </h2>
+                {!hasCheckedInToday && streak > 0 && (
+                  <button 
+                    onClick={() => setCurrentTab("daily")}
+                    className="text-xs md:text-sm text-amber-300 hover:text-amber-100 transition-colors mt-0.5 font-bold"
+                  >
+                    Check in to make it {streak + 1} →
+                  </button>
+                )}
+                {!hasCheckedInToday && streak === 0 && (
+                  <button 
+                    onClick={() => setCurrentTab("daily")}
+                    className="text-xs md:text-sm text-amber-300 hover:text-amber-100 transition-colors mt-0.5 font-bold"
+                  >
+                    Check in today →
+                  </button>
+                )}
+              </div>
+              
+              {/* Right: Fire Emojis */}
+              <div className="text-xl sm:text-2xl md:text-3xl drop-shadow-lg">
+                {getFireEmojis()}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Desktop Tab Navigation */}
       <div className="hidden md:block fixed top-[106px] lg:top-[118px] left-0 right-0 z-40 bg-black/95 border-b-2 border-white/10 shadow-xl">
