@@ -28,16 +28,20 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
     right: 'left-full top-1/2 -translate-y-1/2 ml-2'
   };
 
+  // On touch devices, render children only (tooltips block inputs). No touch-triggered tooltip.
+  if (isTouchDevice) {
+    return (
+      <div className="relative inline-block">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       className="relative inline-block"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
-      // Avoid showing tooltips on touch devices (they block UI on mobile)
-      {...(!isTouchDevice ? {
-        onTouchStart: () => setIsVisible(true),
-        onTouchEnd: () => setTimeout(() => setIsVisible(false), 2000)
-      } : {})}
     >
       {children}
       <AnimatePresence>
