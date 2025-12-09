@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { openPrimaryCheckout } from "@/lib/checkout";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
-import { Tooltip } from "@/components/Tooltip";
 import clsx from 'clsx';
 import CustomSelect from '@/components/CustomSelect';
 
@@ -167,11 +166,9 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
 
         <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Tooltip content="Petty = Brutal diss; Glow-Up = Victory banger">
-              <div>
-                <StyleSelector selected={style} onChange={setStyle} />
-              </div>
-            </Tooltip>
+            <div>
+              <StyleSelector selected={style} onChange={setStyle} />
+            </div>
           </div>
           <div>
             <label className="block text-xl font-black text-exroast-gold">Choose Music Style</label>

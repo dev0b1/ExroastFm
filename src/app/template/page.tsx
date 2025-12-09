@@ -13,7 +13,6 @@ import { FaSpinner, FaFire, FaDumbbell, FaArrowRight } from "react-icons/fa";
 import { StyleSelector, SongStyle } from "@/components/StyleSelector";
 import LoadingProgress, { LoadingStep } from "@/components/LoadingProgress";
 import { SparkStorm } from "@/components/SparkStorm";
-import { Tooltip } from "@/components/Tooltip";
 
 type Tab = "daily" | "roast";
 
