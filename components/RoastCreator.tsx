@@ -151,7 +151,6 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
   <div className="card space-y-6 px-4 md:px-6 md:max-w-4xl mx-auto">
         <div className="space-y-2">
           <label className="block text-xl font-black text-white">Spill the tea — what did they do? 🔥</label>
-          <Tooltip content="Be specific for savage lyrics (e.g., 'Ghosted after tacos')">
             <div className="relative">
               <textarea
                 value={story}
@@ -163,7 +162,6 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
               />
               <div className="absolute bottom-4 right-4 text-sm text-white/70 font-medium">{story.length}/500</div>
             </div>
-          </Tooltip>
           <p className="text-sm text-white italic">💡 The more specific, the more savage the roast</p>
         </div>
 
