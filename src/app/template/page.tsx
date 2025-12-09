@@ -287,7 +287,7 @@ export default function TemplatePage() {
           <div className="flex items-center justify-between md:justify-start gap-4">
             <div className="flex-1 md:flex-initial">
               <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight drop-shadow-lg truncate">
-                {getStreakMessage()}
+                {streak > 0 ? getStreakMessage() : ''}
               </h2>
               {!hasCheckedInToday && streak > 0 && (
                 <button 
