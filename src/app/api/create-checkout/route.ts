@@ -122,6 +122,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       checkoutUrl, 
       sessionId, 
+      redirectSongId: redirectSongId || null,
       amount: amount || null 
     });
 

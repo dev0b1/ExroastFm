@@ -84,19 +84,21 @@ export default function CheckoutContent() {
       const body = await res.json();
       const checkoutUrl = body?.checkoutUrl;
       const sessionId = body?.sessionId;
+      const redirectSongId = body?.redirectSongId || null;
 
       if (!checkoutUrl) throw new Error('No checkout URL returned');
 
       await openDodoOverlayByUrl(checkoutUrl, {
         sessionId,
-        onSuccess: async () => {
+          onSuccess: async () => {
           console.log('[Direct] Payment successful, polling verification...');
           const verified = await pollVerify();
           setLoadingMethod(null);
+          const finalSongId = redirectSongId || songId || '';
           if (verified) {
-            router.push(`/checkout/success?songId=${encodeURIComponent(songId || '')}&sessionId=${sessionId}`);
+            router.push(`/checkout/success?songId=${encodeURIComponent(finalSongId)}&sessionId=${sessionId}`);
           } else {
-            router.push(`/checkout/success?songId=${encodeURIComponent(songId || '')}&sessionId=${sessionId}&pending=true`);
+            router.push(`/checkout/success?songId=${encodeURIComponent(finalSongId)}&sessionId=${sessionId}&pending=true`);
           }
         },
         onCancel: () => {
