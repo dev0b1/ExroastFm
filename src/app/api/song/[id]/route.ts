@@ -15,6 +15,41 @@ export async function GET(
     const songResult = await db.select().from(songs).where(eq(songs.id, id)).limit(1);
     const song = songResult[0];
 
+    // If we have a DB row but it's a template (preview MP3), prefer returning
+    // a premade manifest entry (MP4) when we can map the previewUrl back to
+    // a manifest item. This prevents the success page from showing the MP3
+    // demo when a premium MP4 exists for the purchased song.
+    if (song) {
+      try {
+        if (song.isTemplate && song.previewUrl) {
+          const prem = getById(String(song.previewUrl)) || getById(String(song.previewUrl).split('/').pop() || '');
+          if (prem) {
+            const p: any = prem;
+            const storage = p.storageUrl || null;
+            const fullUrl = p.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || p.mp3 || storage || null;
+            const previewUrl = p.mp3 || fullUrl || '/audio/placeholder-preview.mp3';
+            return NextResponse.json({
+              success: true,
+              song: {
+                id: p.id || song.id,
+                title: p.title || song.title || 'Premium Song',
+                story: null,
+                style: p.mode || p.musicStyle || song.style || null,
+                lyrics: '',
+                previewUrl,
+                fullUrl,
+                isPurchased: true,
+                isTemplate: true,
+                createdAt: null,
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('[api/song] template->manifest mapping failed', e);
+      }
+    }
+
     if (!song) {
         console.info('[api/song] song not found in DB, trying premium manifest', { id });
 

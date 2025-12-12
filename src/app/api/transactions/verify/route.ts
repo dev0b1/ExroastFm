@@ -26,6 +26,22 @@ export async function POST(request: Request) {
       const res = await db.select().from(songs).where(eq(songs.id, String(songId))).limit(1);
       if (res.length > 0) {
         const song = res[0];
+        // If this is a template-generated DB row (preview MP3), attempt to
+        // map it back to a premade manifest entry so we can immediately
+        // return the premade MP4 instead of the template MP3.
+        try {
+          if (song.isTemplate && song.previewUrl) {
+            const prem = getById(String(song.previewUrl)) || getById(String(song.previewUrl).split('/').pop() || '');
+            if (prem) {
+              const storage = prem.storageUrl || null;
+              const fullUrl = prem.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || prem.mp3 || storage || null;
+              return NextResponse.json({ verified: true, premade: { id: prem.id || String(songId), fullUrl } });
+            }
+          }
+        } catch (e) {
+          console.warn('[verify transaction] failed to map template song to premade manifest', e);
+        }
+
         return NextResponse.json({ verified: !!song.isPurchased, song });
       }
 
