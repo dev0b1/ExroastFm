@@ -43,15 +43,16 @@ export async function GET(
           }
 
           if (prem) {
-            const fullUrl = prem.mp4 || prem.mp3 || prem.storageUrl || null;
-            const previewUrl = prem.mp3 || fullUrl || '/audio/placeholder-preview.mp3';
+            const p: any = prem;
+            const fullUrl = p.mp4 || p.mp3 || p.storageUrl || null;
+            const previewUrl = p.mp3 || fullUrl || '/audio/placeholder-preview.mp3';
             return NextResponse.json({
               success: true,
               song: {
-                id: prem.id || id,
-                title: prem.title || 'Premium Song',
+                id: p.id || id,
+                title: p.title || 'Premium Song',
                 story: null,
-                style: prem.mode || prem.musicStyle || null,
+                style: p.mode || p.musicStyle || null,
                 lyrics: '',
                 previewUrl,
                 fullUrl,
