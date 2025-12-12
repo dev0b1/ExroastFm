@@ -3,20 +3,79 @@ import path from 'path';
 
 export type PremiumSong = {
   id: string;
-  title: string;
-  description?: string;
-  tags: string[];
-  mp3: string;
-  mp4?: string;
-  duration?: number;
+  title?: string;
+  description?: string | null;
+  tags?: string[];
+  mp3?: string | null;
+  mp4?: string | null;
+  storageUrl?: string | null;
+  filename?: string | null;
+  mode?: string | null;
+  musicStyle?: string | null;
+  duration?: number | null;
 };
 
 const MANIFEST_PATH = path.join(process.cwd(), 'public', 'premium-songs', 'manifest.json');
 
+/**
+ * Load the manifest and normalize legacy/varied entry shapes into a stable
+ * `PremiumSong` shape so callers can always prefer `mp4` when available.
+ */
 export function loadManifest(): PremiumSong[] {
   try {
     const raw = fs.readFileSync(MANIFEST_PATH, 'utf8');
-    return JSON.parse(raw) as PremiumSong[];
+    const parsed = JSON.parse(raw) as any[];
+    if (!Array.isArray(parsed)) return [];
+
+    const normalizeName = (s?: string | null) => {
+      if (!s) return null;
+      try {
+        const parts = String(s).split('/');
+        const last = parts[parts.length - 1] || parts[0];
+        return last.replace(/\.[^.]+$/, '');
+      } catch (e) {
+        return String(s).replace(/\.[^.]+$/, '');
+      }
+    };
+
+    return parsed.map((rawItem: any) => {
+      const item = rawItem || {};
+      const filename = item.filename || null;
+      const storageUrl = item.storageUrl || null;
+
+      // attempt to populate mp4/mp3 fields from common keys
+      const explicitMp4 = item.mp4 || null;
+      const explicitMp3 = item.mp3 || null;
+
+      // If storageUrl looks like an mp4, treat it as mp4
+      const storageIsMp4 = storageUrl && String(storageUrl).toLowerCase().endsWith('.mp4');
+      const storageIsMp3 = storageUrl && String(storageUrl).toLowerCase().endsWith('.mp3');
+
+      const mp4 = explicitMp4 || (storageIsMp4 ? storageUrl : null) || null;
+      const mp3 = explicitMp3 || (storageIsMp3 ? storageUrl : null) || null;
+
+      // Derive an id: prefer `id`, then filename base-name, then storage basename
+      const derivedId = (item.id && String(item.id)) || normalizeName(filename) || normalizeName(storageUrl) || null;
+
+      // Keywords -> tags
+      let tags: string[] = [];
+      if (Array.isArray(item.tags)) tags = item.tags.map(String);
+      else if (typeof item.keywords === 'string') tags = item.keywords.split(',').map((s: string) => s.trim()).filter(Boolean);
+
+      return {
+        id: derivedId || String(Math.random()).slice(2),
+        title: item.title || item.name || null,
+        description: item.description || null,
+        tags,
+        mp3,
+        mp4,
+        storageUrl,
+        filename,
+        mode: item.mode || null,
+        musicStyle: item.musicStyle || null,
+        duration: item.duration || null,
+      } as PremiumSong;
+    }).filter(Boolean);
   } catch (err) {
     console.error('[premium-songs] failed to load manifest', err);
     return [];
