@@ -44,7 +44,8 @@ export async function GET(
 
           if (prem) {
             const p: any = prem;
-            const fullUrl = p.mp4 || p.mp3 || p.storageUrl || null;
+            const storage = p.storageUrl || null;
+            const fullUrl = p.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || p.mp3 || storage || null;
             const previewUrl = p.mp3 || fullUrl || '/audio/placeholder-preview.mp3';
             return NextResponse.json({
               success: true,

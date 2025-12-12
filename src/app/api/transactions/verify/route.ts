@@ -44,8 +44,12 @@ export async function POST(request: Request) {
       try {
         const prem = getById(String(songId));
         if (prem) {
-          const fullUrl = (prem as any).mp4 || (prem as any).mp3 || (prem as any).storageUrl || null;
-          return NextResponse.json({ verified: true, premade: { id: prem.id || songId, fullUrl } });
+          const p: any = prem;
+          // Prefer explicit mp4, then storageUrl if it points to an mp4 file,
+          // then mp3, then any storageUrl.
+          const storage = p.storageUrl || null;
+          const fullUrl = p.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || p.mp3 || storage || null;
+          return NextResponse.json({ verified: true, premade: { id: p.id || songId, fullUrl } });
         }
         // Also support matching by filename/mp4/mp3 in manifest entries
         const manifest = loadManifest();
@@ -55,8 +59,10 @@ export async function POST(request: Request) {
           return candidates.includes(String(songId)) || candidates.some((c) => c.endsWith(`/${songId}`) || c.includes(`/${songId}/`));
         });
         if (match) {
-          const fullUrl = (match as any).mp4 || (match as any).mp3 || (match as any).storageUrl || null;
-          return NextResponse.json({ verified: true, premade: { id: match.id || songId, fullUrl } });
+          const m: any = match;
+          const storage = m.storageUrl || null;
+          const fullUrl = m.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || m.mp3 || storage || null;
+          return NextResponse.json({ verified: true, premade: { id: m.id || songId, fullUrl } });
         }
       } catch (e) {
         // ignore lookup errors and fall through to not-verified
