@@ -20,21 +20,56 @@ function SuccessContent() {
     if (!songId) return;
     let cancelled = false;
 
-    // Immediately fetch song data for premade items and show video without
-    // waiting for webhook verification. This trusts the checkout redirect's
-    // `songId` and serves premade mp4 directly as requested for MVP.
-    const fetchSongDirect = async () => {
+    // First, ask the verify endpoint which, for premade songs, will immediately
+    // return premade info (we've opted to trust checkout by manifest). This avoids
+    // waiting for a webhook and prevents falling back to demo templates.
+    const tryVerifyThenFetch = async () => {
       try {
         setChecking(true);
-        const res = await fetch(`/api/song/${encodeURIComponent(songId)}`);
-        if (!res.ok) return;
-        const body = await res.json();
-        if (body?.success && body.song) {
-          setSongData(body.song);
-          if (body.song?.fullUrl) {
+        const vres = await fetch('/api/transactions/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ songId })
+        });
+        if (vres.ok) {
+          const vb = await vres.json();
+          // If verify returned premade info, use it
+          if (vb?.premade && vb.premade.fullUrl) {
+            setSongData({ id: vb.premade.id || songId, fullUrl: vb.premade.fullUrl, previewUrl: vb.premade.fullUrl });
             setVerified(true);
             setChecking(false);
             return;
+          }
+          // If verify returned a DB transaction or verified flag, try fetching the song row
+          if (vb?.verified) {
+            try {
+              const sres = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+              if (sres.ok) {
+                const sb = await sres.json();
+                if (sb?.success) {
+                  setSongData(sb.song);
+                  if (sb.song?.fullUrl) setVerified(true);
+                }
+              }
+            } catch (e) {
+              console.debug('[checkout success] fetch after verify failed', e);
+            }
+            setChecking(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.debug('[checkout success] verify call failed', e);
+      }
+
+      // Fallback: direct fetch the song endpoint (may return premade manifest entry)
+      try {
+        const res = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+        if (res.ok) {
+          const body = await res.json();
+          if (body?.success && body.song) {
+            setSongData(body.song);
+            if (body.song?.fullUrl) setVerified(true);
           }
         }
       } catch (e) {
@@ -44,7 +79,7 @@ function SuccessContent() {
       }
     };
 
-    fetchSongDirect();
+    tryVerifyThenFetch();
     return () => { cancelled = true; };
   }, [songId]);
 
