@@ -26,8 +26,21 @@ export async function POST(request: Request) {
     }
 
     // Success redirect URL (default to the app domain `exroast.buzz` if no env override)
-    const successRedirect = process.env.NEXT_PUBLIC_DODO_PAYMENTS_RETURN_URL ||
+    let successRedirect = process.env.NEXT_PUBLIC_DODO_PAYMENTS_RETURN_URL ||
       (process.env.NEXT_PUBLIC_URL ? `${process.env.NEXT_PUBLIC_URL}/checkout/success` : 'https://exroast.buzz/checkout/success');
+
+    // If a songId was provided, attach it to the redirect URL so the success
+    // page can poll/verify by songId and then fetch the premade mp4 from manifest.
+    if (songId) {
+      try {
+        const url = new URL(successRedirect);
+        url.searchParams.set('songId', String(songId));
+        successRedirect = url.toString();
+      } catch (e) {
+        // If parsing fails, fall back to original redirect without query param
+        console.warn('[create-checkout] failed to append songId to redirect URL', e);
+      }
+    }
 
     // ✅ FIX: Correct URL construction syntax
     const params = new URL(`${baseUrl}/buy/${productId}`);
