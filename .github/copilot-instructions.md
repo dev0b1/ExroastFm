@@ -1,55 +1,61 @@
+```instructions
 <!-- Copilot / AI agent quick-start for Breakup-music -->
 
 # Quick orientation for code-writing agents
 
-This is a Next.js 16 (App Router) TypeScript app that converts short user stories into "breakup songs" using external AI/music providers and persists metadata in Postgres via Drizzle. The goal below is to point AI contributors to the exact places, conventions, and workflows you must follow to be productive and avoid regressions.
+This is a Next.js 16 (App Router) TypeScript app that converts short user stories into "breakup songs" using external AI/music providers and persists metadata in Postgres via Drizzle. The short guidance below focuses on concrete, discoverable patterns and files to get you productive quickly.
 
 Core architecture (big picture)
-- Frontend: `src/app` — App Router pages and client components (React + Tailwind + Framer Motion). Key pages: `src/app/story/page.tsx`, `src/app/checkout/page.tsx`.
-- Server/API: `src/app/api/*` — Next server route handlers (exported functions like `export async function POST(request)`) that orchestrate prompts, generator clients, and DB writes. Important routes: `generate-song`, `generate-preview`, `webhook`.
-- Database: Drizzle ORM. Canonical schema lives in `src/db/schema.ts`. Use those generated types in all queries.
-- Integrations: `lib/` contains thin provider clients (e.g. `lib/suno.ts`, `lib/openrouter.ts`, `lib/lyrics.ts`, `lib/file-storage.ts`). Clients export factories and small `generateX` methods used by API handlers.
+- Frontend: [src/app](src/app) — App Router pages and client components (React + Tailwind + Framer Motion). Key entry points: [src/app/story/page.tsx](src/app/story/page.tsx) and [src/app/checkout/page.tsx](src/app/checkout/page.tsx).
+- Server/API: [src/app/api](src/app/api) — server route handlers that orchestrate prompt construction, provider clients, uploads, and DB writes. Key routes: [generate-song](src/app/api/generate-song/route.ts), [generate-preview](src/app/api/generate-preview/route.ts), and payment webhook handlers under [src/app/api/webhooks](src/app/api/webhooks).
+- Database: Drizzle ORM. Canonical schema: [src/db/schema.ts](src/db/schema.ts). Import the generated table/types from this file and use `lib/db-service.ts` helpers for common patterns.
+- Integrations: `lib/` contains provider clients (`lib/suno.ts`, `lib/openrouter.ts`, `lib/lyrics.ts`, `lib/file-storage.ts`). Pattern: small factory + a few focused methods (e.g., `generateAudio`, `generateLyrics`, `uploadFile`).
 
 Key files to inspect before editing
-- `src/app/api/generate-song/route.ts` — full generation flow: prompt -> OpenRouter -> Suno -> DB insert (`songs`).
-- `src/app/api/generate-preview/route.ts` — preview-only generation path.
-- `src/app/api/webhook/route.ts` — Paddle webhook verification + transaction persistence. Do not change signature/verification logic lightly.
-- `src/db/schema.ts` — source of truth for table/column names (`songs.isPurchased`, `purchaseTransactionId`, etc.).
-- `lib/db-service.ts` — common Drizzle query helpers and examples (`onConflict`, `returning`, `eq`, `desc`).
-- Example clients: `lib/suno.ts`, `lib/openrouter.ts`, `lib/lyrics.ts`, `lib/file-storage.ts` — follow their patterns when adding providers.
+- [src/app/api/generate-song/route.ts](src/app/api/generate-song/route.ts) — full generation path: prompt -> provider(s) -> upload -> DB insert (creates a `songs` row with `isPurchased=false`).
+- [src/app/api/generate-preview/route.ts](src/app/api/generate-preview/route.ts) — cheaper preview generation.
+- [src/app/api/webhooks/payments/route.ts](src/app/api/webhooks/payments/route.ts) — payment webhook verification and transaction persistence (high-risk area; do not change verification logic lightly).
+- [src/db/schema.ts](src/db/schema.ts) — authoritative table and column names used across the repo.
+- [lib/db-service.ts](lib/db-service.ts) — shared Drizzle helpers and example usages (`onConflict`, `returning`, `eq`, `desc`).
+- Provider examples: [lib/suno.ts](lib/suno.ts), [lib/openrouter.ts](lib/openrouter.ts), [lib/lyrics.ts](lib/lyrics.ts), [lib/file-storage.ts](lib/file-storage.ts).
 
 Developer workflows & exact commands
 - Install: `npm install`
-- Dev server (local): `npm run dev`  (Next runs on port 5000: `next dev -p 5000 -H 0.0.0.0`).
-- Build & start: `npm run build` && `npm run start` (production server binds to port 5000).
+- Dev server: `npm run dev` (dev server is configured to run on port 5000: `next dev -p 5000 -H 0.0.0.0`).
+- Build & start: `npm run build` && `npm run start`.
 - Lint: `npm run lint`.
-- DB schema push: `npm run db:push` (uses `drizzle-kit`).
+- Drizzle schema push: `npm run db:push` (uses `drizzle-kit`).
 - Seed templates: `npm run db:seed` (runs `tsx scripts/seed-templates.ts`).
+- Webhook testing: expose local server with `ngrok`/localtunnel to test `api/webhooks/payments` endpoints.
 
 Environment & secrets (where to look)
--- Payments: Dodo is the primary checkout provider. Dodo envs include `DODO_PAYMENTS_API_KEY`, `DODO_PAYMENTS_ENVIRONMENT`, `DODO_PAYMENTS_RETURN_URL`, and `NEXT_PUBLIC_DODO_PRODUCT_ID` used by server and client flows.
-- Provider keys: check `lib/*` for exact env var names for OpenRouter, Suno, OpenAI, ElevenLabs, etc.
+- Payments: Dodo is the primary checkout provider. Key env vars include `DODO_PAYMENTS_API_KEY`, `DODO_PAYMENTS_ENVIRONMENT`, `DODO_PAYMENTS_RETURN_URL`, and `NEXT_PUBLIC_DODO_PRODUCT_ID`.
+- Provider keys: check each `lib/*.ts` for the exact env var names used for OpenRouter, Suno, OpenAI, ElevenLabs, etc.
+- Local dev: ensure `DATABASE_URL` and provider API keys are set. Webhook verification depends on provider secrets — do not expose these in PRs.
 
-Data & control flows (concrete examples)
-- Generation flow: POST body { story, style } → `generate-song/route.ts` constructs prompt (via `lib/openrouter`), calls `lib/suno` to create audio, then inserts into `songs` with `isPurchased=false` and preview/full URLs.
--- Purchase flow: frontend initiates checkout via our server `/api/checkout`; Dodo sends webhooks → `src/app/api/webhooks/payments/route.ts` verifies signature and writes `transactions` (stored in `provider_data`), then marks `songs.isPurchased = true` and sets `purchaseTransactionId`.
+Concrete data & control flows
+- Generation: client POST `{ story, style }` → [generate-song/route.ts](src/app/api/generate-song/route.ts) builds prompt (helpers in `lib/openrouter.ts`), calls provider clients (e.g., `lib/suno.ts`), uploads via `lib/file-storage.ts`, then inserts into `songs` with preview+full URLs.
+- Preview: similar but uses the preview path [generate-preview/route.ts](src/app/api/generate-preview/route.ts) to reduce cost and latency.
+- Purchase fulfillment: frontend initiates checkout → payments provider (Dodo) calls webhook → webhook writes `transactions` and marks `songs.isPurchased = true` and sets `purchaseTransactionId`.
 
 Conventions & repository patterns
-- API routes: use App Router handlers and return `NextResponse` objects.
-- DB: always import tables/types from `src/db/schema.ts` and use `lib/db-service.ts` helpers where available.
-- Provider clients: keep them thin. Export a factory (if necessary) and a small set of methods like `generateAudio`, `generateLyrics`.
-- Error handling: APIs include fallbacks and safe defaults (see `generate-song/route.ts` fallback prompts/audio placeholders). Preserve defensive patterns.
+- API handlers: use App Router server functions that return `NextResponse` and perform input validation early.
+- DB access: always import table definitions from [src/db/schema.ts](src/db/schema.ts) and reuse helpers from [lib/db-service.ts](lib/db-service.ts).
+- Provider clients: keep them thin; mirror existing clients' error handling and retry/fallback semantics.
+- Error handling: preserve defensive fallbacks present in `generate-song/route.ts` (fallback prompts, placeholder audio URLs).
 
-Safety notes — do not change without review
-- Webhook verification & transaction persistence: changing signature logic or transaction fulfillment can break payments.
-- Drizzle schema shapes and column names: many queries depend on exact names; migrating schema requires `npm run db:push` and seed updates.
+Safety & high-risk areas
+- Payment webhooks and transaction persistence: avoid changing verification/fulfillment logic without tests and coordination with payments owners.
+- Schema changes: migrating column names or types requires running `npm run db:push` and updating seeds (`npm run db:seed`).
 
-How to add an integration (example)
-1. Add `lib/<provider>.ts` mirroring `lib/suno.ts` style (factory + methods).
-2. Update the API route to call new client methods; keep fallbacks in place.
-3. Add required env vars to README/SETUP and update any server route that needs them.
+How to add an integration (practical steps)
+1. Add `lib/<provider>.ts` following `lib/suno.ts` style: export factory + focused methods.
+2. Add usage in an API handler under `src/app/api/*` and follow prompt -> provider -> upload -> DB insert sequence.
+3. Add env var names to README/SETUP, update `env.example` if present, and include fallback behavior for failures.
 
-If something is unclear
-- Open a focused PR and add comments linking the file you relied on (e.g., `generate-song/route.ts`, `webhook/route.ts`, `src/db/schema.ts`). Keep changes small and test locally using `npm run dev` and `npm run db:seed`.
+If unsure
+- Open a focused PR, reference the exact files you modified, and include instructions for how to test locally (e.g., ngrok for webhooks, which seed/data to insert).
 
 — End of Copilot instructions
+
+```

@@ -1,6 +1,7 @@
 import { createSunoNudgeClient } from '../lib/suno-nudge';
 import { claimPendingJob, markJobSucceeded, markJobFailed, saveAudioNudge, refundCredit } from '../lib/db-service';
 import { createSunoClient } from '../lib/suno';
+import { PREMADE_ONLY } from '../src/lib/config';
 import { eq } from 'drizzle-orm';
 
 async function sleep(ms: number) { return new Promise(res => setTimeout(res, ms)); }
@@ -20,7 +21,7 @@ async function processJob(job: any) {
   // If the app is running in PREMADE_ONLY mode, skip heavy generation jobs.
   // This mode is used when the app serves pre-made premium songs instead of
   // generating audio/video via providers and ffmpeg.
-  if (process.env.PREMADE_ONLY === '1' && (job.type === 'song' || job.type === 'eleven')) {
+  if (PREMADE_ONLY && (job.type === 'song' || job.type === 'eleven')) {
     console.info('[worker] PREMADE_ONLY mode active — skipping heavy job', { jobId, type: job.type });
     await markJobFailed(jobId, 'deprecated_in_premade_mode');
     return;

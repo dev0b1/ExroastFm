@@ -2,6 +2,7 @@ import { db } from '@/server/db';
 import { templates, subscriptions, roasts, users, userPreferences, dailyQuotes, audioNudges, dailyCheckIns, audioGenerationJobs, premiumSongs } from '@/src/db/schema';
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { Template } from './template-matcher';
+import { PREMADE_ONLY } from '@/src/lib/config';
 
 export async function getAllTemplates(): Promise<Template[]> {
   try {
@@ -505,7 +506,7 @@ export async function saveAudioNudge(
 // Job queue helpers
 export async function enqueueAudioJob(job: { userId: string; type: string; payload: any; providerTaskId?: string }): Promise<string | null> {
   // If running in PREMADE_ONLY mode, do not enqueue generation jobs.
-  if (process.env.PREMADE_ONLY === '1') {
+  if (PREMADE_ONLY) {
     console.info('[db-service] PREMADE_ONLY active — skipping enqueueAudioJob', { userId: job.userId, type: job.type });
     return null;
   }

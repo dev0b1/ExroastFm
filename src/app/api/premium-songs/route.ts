@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import path from 'path';
+import { loadManifest } from '@/lib/premium-songs';
 import { getUserSubscriptionStatus } from '@/lib/db-service';
 
 type ManifestItem = {
@@ -13,11 +12,6 @@ type ManifestItem = {
   [k: string]: any;
 };
 
-async function readManifest(): Promise<ManifestItem[]> {
-  const manifestPath = path.join(process.cwd(), 'public', 'premium-songs', 'manifest.json');
-  const raw = await readFile(manifestPath, 'utf8');
-  return JSON.parse(raw) as ManifestItem[];
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +26,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, useDb: true, message: 'User not subscribed' }, { status: 200 });
     }
 
-    const items = await readManifest();
+    const rawItems = loadManifest();
+    // Normalize manifests: support both legacy `public/premium-songs/manifest.json` entries
+    // (filename/mode/musicStyle/storageUrl) and `src/lib/premium-songs` seed format (id, mp3, mp4, tags).
+    const items: ManifestItem[] = (rawItems || []).map((r: any) => {
+      if (r && typeof r === 'object' && r.filename) return r as ManifestItem;
+      // map PremiumSong shape to ManifestItem
+      return {
+        filename: r.id || r.filename || (r.title || 'unknown').toLowerCase().replace(/\s+/g, '-'),
+        mode: (r.mode) || 'any',
+        musicStyle: (r.musicStyle) || '',
+        title: r.title || r.id || 'Premium Song',
+        keywords: Array.isArray(r.tags) ? r.tags.join(',') : (r.tags || ''),
+        storageUrl: r.mp4 || r.mp3 || r.storageUrl || '',
+      } as ManifestItem;
+    });
+
     let results: (ManifestItem & { score?: number })[] = items.map(i => ({ ...i, score: 0 }));
 
     // Filter by modes
@@ -77,7 +86,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, useDb: true, message: 'User not subscribed' }, { status: 200 });
     }
 
-    const items = await readManifest();
+    const items = loadManifest();
     return NextResponse.json({ success: true, songs: items }, { status: 200 });
   } catch (error: any) {
     console.error('[api/premium-songs GET] error', error);

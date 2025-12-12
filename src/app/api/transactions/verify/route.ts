@@ -21,10 +21,23 @@ export async function POST(request: Request) {
     }
 
     if (songId) {
+      // First, check the `songs` table for generated/personalized songs
       const res = await db.select().from(songs).where(eq(songs.id, String(songId))).limit(1);
-      if (res.length === 0) return NextResponse.json({ verified: false });
-      const song = res[0];
-      return NextResponse.json({ verified: !!song.isPurchased, song });
+      if (res.length > 0) {
+        const song = res[0];
+        return NextResponse.json({ verified: !!song.isPurchased, song });
+      }
+
+      // If no entry in `songs`, fall back to looking for a matching transaction
+      // (this supports premade purchases where `songId` refers to a premium manifest id or filename)
+      const txs = await db.select().from(transactions).where(eq(transactions.songId, String(songId))).limit(5);
+      if (txs && txs.length > 0) {
+        const tx = txs[0];
+        const ok = tx.status === 'paid' || tx.status === 'completed' || tx.status === 'succeeded' || tx.status === 'success';
+        return NextResponse.json({ verified: ok, transaction: tx });
+      }
+
+      return NextResponse.json({ verified: false });
     }
 
     return NextResponse.json({ verified: false });
