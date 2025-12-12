@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/server/db';
+import { songs } from '@/src/db/schema';
+import { eq } from 'drizzle-orm';
+import { getById } from '@/lib/premium-songs';
 
 // Server-side helper to construct a Dodo hosted checkout URL.
 // Builds the checkout URL with custom_data for webhook correlation.
@@ -29,12 +33,32 @@ export async function POST(request: Request) {
     let successRedirect = process.env.NEXT_PUBLIC_DODO_PAYMENTS_RETURN_URL ||
       (process.env.NEXT_PUBLIC_URL ? `${process.env.NEXT_PUBLIC_URL}/checkout/success` : 'https://exroast.buzz/checkout/success');
 
-    // If a songId was provided, attach it to the redirect URL so the success
-    // page can poll/verify by songId and then fetch the premade mp4 from manifest.
+    // If a songId was provided, try to translate template preview song ids
+    // to a premade manifest id so the Success page can immediately return
+    // the premade mp4 without waiting for webhooks. Fall back to the raw
+    // songId when translation isn't possible.
+    let redirectSongId: string | null = songId ? String(songId) : null;
     if (songId) {
       try {
+        // If songId points to a DB template row, attempt to map its previewUrl
+        // back to a manifest entry (matching by storageUrl/mp3/mp4/filename).
+        try {
+          const rows = await db.select().from(songs).where(eq(songs.id, String(songId))).limit(1);
+          if (rows && rows.length > 0) {
+            const s = rows[0];
+            if (s.isTemplate && s.previewUrl) {
+              const match = getById(String(s.previewUrl)) || getById(String(s.previewUrl).split('/').pop() || '');
+              if (match) {
+                redirectSongId = match.filename || match.id || match.storageUrl || redirectSongId;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[create-checkout] preview->manifest translation failed', e);
+        }
+
         const url = new URL(successRedirect);
-        url.searchParams.set('songId', String(songId));
+        if (redirectSongId) url.searchParams.set('songId', redirectSongId);
         successRedirect = url.toString();
       } catch (e) {
         // If parsing fails, fall back to original redirect without query param
@@ -71,7 +95,7 @@ export async function POST(request: Request) {
     try {
       const customData: any = {};
       
-      if (songId) customData.songId = songId;
+      if (songId) customData.songId = redirectSongId || songId;
       if (guestEmail) customData.guestEmail = guestEmail;
       
       if (Object.keys(customData).length > 0) {
