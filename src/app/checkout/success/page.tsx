@@ -19,45 +19,32 @@ function SuccessContent() {
   useEffect(() => {
     if (!songId) return;
     let cancelled = false;
-    const doPoll = async () => {
-      setChecking(true);
-      for (let i = 0; i < 12; i++) {
-        if (cancelled) return;
-        try {
-          const res = await fetch('/api/transactions/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ songId })
-          });
-          if (res.ok) {
-            const body = await res.json();
-            if (body?.verified) {
-              setVerified(true);
-              setChecking(false);
-              // fetch song data once verified
-              try {
-                const sres = await fetch(`/api/song/${encodeURIComponent(songId)}`);
-                if (sres.ok) {
-                  const sb = await sres.json();
-                  if (sb?.success) setSongData(sb.song);
-                }
-              } catch (e) {
-                console.debug('failed to fetch song after verify', e);
-              }
-              return;
-            }
+
+    // Immediately fetch song data for premade items and show video without
+    // waiting for webhook verification. This trusts the checkout redirect's
+    // `songId` and serves premade mp4 directly as requested for MVP.
+    const fetchSongDirect = async () => {
+      try {
+        setChecking(true);
+        const res = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+        if (!res.ok) return;
+        const body = await res.json();
+        if (body?.success && body.song) {
+          setSongData(body.song);
+          if (body.song?.fullUrl) {
+            setVerified(true);
+            setChecking(false);
+            return;
           }
-        } catch (e) {
-          console.debug('verify poll failed', e);
         }
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      if (!cancelled) {
-        setVerified(false);
-        setChecking(false);
+      } catch (e) {
+        console.debug('[checkout success] direct song fetch failed', e);
+      } finally {
+        if (!cancelled) setChecking(false);
       }
     };
-    doPoll();
+
+    fetchSongDirect();
     return () => { cancelled = true; };
   }, [songId]);
 
