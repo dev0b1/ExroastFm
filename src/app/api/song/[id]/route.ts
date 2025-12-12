@@ -44,9 +44,16 @@ export async function GET(
               }
             });
           }
+
+          // Do not return the template MP3 if we couldn't map to a premade.
+          // This prevents any MP3 fallbacks — the client should only receive
+          // a premade MP4. Return not-found so the success page won't play
+          // a demo MP3 as a fallback.
+          return NextResponse.json({ success: false, error: 'Premade not found' }, { status: 404 });
         }
       } catch (e) {
         console.warn('[api/song] template->manifest mapping failed', e);
+        return NextResponse.json({ success: false, error: 'Premade lookup failed' }, { status: 500 });
       }
     }
 

@@ -31,13 +31,19 @@ export async function POST(request: Request) {
         // return the premade MP4 instead of the template MP3.
         try {
           if (song.isTemplate && song.previewUrl) {
-            const prem = getById(String(song.previewUrl)) || getById(String(song.previewUrl).split('/').pop() || '');
-            if (prem) {
-              const storage = prem.storageUrl || null;
-              const fullUrl = prem.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || prem.mp3 || storage || null;
-              return NextResponse.json({ verified: true, premade: { id: prem.id || String(songId), fullUrl } });
+              const prem = getById(String(song.previewUrl)) || getById(String(song.previewUrl).split('/').pop() || '');
+              if (prem) {
+                const storage = prem.storageUrl || null;
+                const fullUrl = prem.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || prem.mp3 || storage || null;
+                return NextResponse.json({ verified: true, premade: { id: prem.id || String(songId), fullUrl } });
+              }
+
+              // IMPORTANT: do not fall back to returning the template MP3. If we
+              // couldn't map the template row back to a premium premade, treat
+              // the purchase as not-verified so the client does not receive an
+              // MP3 demo as a fallback. This enforces premade-only behavior.
+              return NextResponse.json({ verified: false });
             }
-          }
         } catch (e) {
           console.warn('[verify transaction] failed to map template song to premade manifest', e);
         }
