@@ -95,7 +95,7 @@ export function findBestMatches(story: string | undefined, limit = 5): PremiumSo
   // simple scoring: count tag/title matches
   const scored = manifest.map((s) => {
     let score = 0;
-    const hay = (s.tags || []).map((t) => t.toLowerCase()).concat([s.title.toLowerCase()]);
+    const hay = (s.tags || []).map((t) => String(t).toLowerCase()).concat([(s.title || '').toLowerCase()]);
     for (const w of words) {
       for (const h of hay) {
         if (h.includes(w)) score += 1;
