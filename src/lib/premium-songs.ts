@@ -51,5 +51,30 @@ export function findBestMatches(story: string | undefined, limit = 5): PremiumSo
 
 export function getById(id: string): PremiumSong | undefined {
   const manifest = loadManifest();
-  return manifest.find((m) => m.id === id);
+  if (!manifest || manifest.length === 0) return undefined;
+
+  const normalizeName = (s?: string | null) => {
+    if (!s) return null;
+    try {
+      const parts = String(s).split('/');
+      const last = parts[parts.length - 1];
+      return last.replace(/\.[^.]+$/, '');
+    } catch (e) {
+      return String(s).replace(/\.[^.]+$/, '');
+    }
+  };
+
+  return manifest.find((m: any) => {
+    if (!m) return false;
+    // Prefer explicit `id` field
+    if (m.id && String(m.id) === String(id)) return true;
+    // Match filename (with or without extension)
+    if (m.filename && (String(m.filename) === String(id) || normalizeName(m.filename) === String(id))) return true;
+    // Match storageUrl basename
+    if (m.storageUrl && (String(m.storageUrl) === String(id) || normalizeName(m.storageUrl) === String(id))) return true;
+    // Match mp4/mp3 fields if present
+    if (m.mp4 && (String(m.mp4) === String(id) || normalizeName(m.mp4) === String(id))) return true;
+    if (m.mp3 && (String(m.mp3) === String(id) || normalizeName(m.mp3) === String(id))) return true;
+    return false;
+  }) as PremiumSong | undefined;
 }
