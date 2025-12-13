@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { songs } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
+import { loadManifest } from '@/lib/premium-songs';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -72,18 +73,21 @@ export async function GET(request: Request) {
     const songId = url.searchParams.get('songId');
 
     const templates = await loadTemplates();
-    const premium = await loadPremiumManifest();
+    // Prefer using the normalized manifest loader so we retain `mp4`/`mp3` fields
+    const premium = loadManifest();
 
-    // Normalize premium manifest entries into matcher-shaped objects
+    // Normalize premium manifest entries into matcher-shaped objects (preserve mp4/mp3)
     const premiumMapped = (premium || []).map((p: any) => ({
-      id: p.filename ? p.filename.replace(/\.[^.]+$/, '') : p.title,
+      id: p.id || (p.filename ? String(p.filename).replace(/\.[^.]+$/, '') : p.title),
       title: p.title || '',
       description: p.description || '',
-      keywords: p.keywords || '',
+      keywords: (p.tags || []).join(',') || p.keywords || '',
       tags: p.tags || [],
       mode: p.mode || p.mode,
       musicStyle: p.musicStyle || p.music_style || p.style || '',
       storageUrl: p.storageUrl || p.storage_url || null,
+      mp4: p.mp4 || null,
+      mp3: p.mp3 || null,
       isPremium: true,
     }));
 
@@ -93,8 +97,10 @@ export async function GET(request: Request) {
     // If no songId provided, fallback to deterministic pick
     if (!songId) {
       const idx = hashIndex(null, combinedPool.length || 1);
-      const t = combinedPool[idx] || null;
-      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl: t?.storageUrl || t?.storageUrl || null, isPremium: !!t?.isPremium });
+      const t: any = combinedPool[idx] || null;
+      const mp4 = t?.mp4 || (t?.storageUrl && String(t.storageUrl).toLowerCase().endsWith('.mp4') ? t.storageUrl : null) || null;
+      const sampleUrl = mp4 || t?.mp3 || t?.storageUrl || null;
+      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl, mp4, isPremium: !!t?.isPremium });
     }
 
     // Fetch song from DB to observe chosen style/mode
@@ -104,8 +110,10 @@ export async function GET(request: Request) {
     // If no song found, fallback to a stable deterministic pick
     if (!song) {
       const idx = hashIndex(songId, combinedPool.length || 1);
-      const t = combinedPool[idx] || null;
-      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl: t?.storageUrl || null, isPremium: !!t?.isPremium, note: 'song_not_found' });
+      const t: any = combinedPool[idx] || null;
+      const mp4 = t?.mp4 || (t?.storageUrl && String(t.storageUrl).toLowerCase().endsWith('.mp4') ? t.storageUrl : null) || null;
+      const sampleUrl = mp4 || t?.mp3 || t?.storageUrl || null;
+      return NextResponse.json({ success: true, bestMatch: t?.id || null, sampleUrl, mp4, isPremium: !!t?.isPremium, note: 'song_not_found' });
     }
 
     // Prefer templates with exact mode match
@@ -144,7 +152,10 @@ export async function GET(request: Request) {
       best = combinedPool[idx] || null;
     }
 
-    return NextResponse.json({ success: true, bestMatch: best?.id || null, sampleUrl: best?.storageUrl || null, isPremium: !!best?.isPremium, matchedMode: songMode, matchedStyle: songMusicStyle });
+    const bestMp4 = best?.mp4 || (best?.storageUrl && String(best.storageUrl).toLowerCase().endsWith('.mp4') ? best.storageUrl : null) || null;
+    const bestSample = bestMp4 || best?.mp3 || best?.storageUrl || null;
+
+    return NextResponse.json({ success: true, bestMatch: best?.id || null, sampleUrl: bestSample, mp4: bestMp4, isPremium: !!best?.isPremium, matchedMode: songMode, matchedStyle: songMusicStyle });
   } catch (e) {
     console.error('[matcher] error', e);
     return NextResponse.json({ success: false, error: 'matcher_failed' }, { status: 500 });

@@ -164,53 +164,62 @@ export default function SuccessPage() {
 
       setIsGenerating(true);
       setIsSlow(false);
-      setGrantMessage('Generation started — you can safely leave this page.');
-      addDebug(`doGenerate: started generation for songId=${song.id}`);
+      setGrantMessage('Matching your premium song — this will only take a moment.');
+      addDebug(`doGenerate: started premium song assignment for songId=${song.id}`);
 
-      // start slow-request timer (40s) to show a UI-only indicator if desired
+      // start slow-request timer (10s) for premium matching (should be fast)
       slowTimer = setTimeout(() => {
         if (!mounted) return;
         setIsSlow(true);
-      }, 40000);
+      }, 10000);
 
       try {
-        const body: any = { story: song.story, style: song.style, songId: song.id, paidPurchase: true };
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) body.userId = user.id;
-        } catch (e) {}
+        // Extract musicStyle from song if available
+        const musicStyle = (song as any).musicStyle || (song as any).music_style || song.genre || '';
+        
+        const body: any = { 
+          songId: song.id, 
+          story: song.story, 
+          style: song.style,
+          musicStyle: musicStyle
+        };
 
-        const res = await fetch('/api/generate-eleven', {
+        // Call the premium song assignment endpoint
+        const res = await fetch('/api/song/assign-premium', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
         const data = await res.json();
-        console.debug('doGenerate: /api/generate-eleven response', data);
-        addDebug(`generate-eleven resp: ${JSON.stringify({ success: data.success, songId: data.songId, videoUrl: data.videoUrl }).slice(0,300)}`);
+        console.debug('doGenerate: /api/song/assign-premium response', data);
+        addDebug(`assign-premium resp: ${JSON.stringify({ success: data.success, songId: data.songId, fullUrl: data.fullUrl }).slice(0,300)}`);
+        
         if (!data.success) {
-          setGrantMessage(data.error || 'Failed to queue generation — it will be retried.');
+          setGrantMessage(data.error || 'Failed to assign premium song — please contact support.');
           setIsGenerating(false);
+          if (slowTimer) clearTimeout(slowTimer);
+          setIsSlow(false);
           return;
         }
 
         // Persist pending song id so app can find it later
         try { localStorage.setItem('pendingSingleSongId', data.songId); } catch (e) {}
 
-        // If server returned a final video URL, redirect to the unlocked page immediately
-        if (data.videoUrl) {
-          if (slowTimer) clearTimeout(slowTimer);
-          setIsSlow(false);
-          window.location.href = `/song-unlocked?songId=${encodeURIComponent(data.songId)}`;
-          return;
-        }
-
-        // Otherwise, inform the user generation started and will be available later
+        // Premium song assigned successfully - redirect to unlocked page immediately
+        if (slowTimer) clearTimeout(slowTimer);
+        setIsSlow(false);
         setIsGenerating(false);
-        setGrantMessage('Generation started — we will update your account when it finishes. You can return to the app and use the "Check generated song" button.');
+        setGrantMessage('Premium song assigned! Redirecting...');
+        
+        // Small delay to show success message, then redirect
+        setTimeout(() => {
+          if (mounted) {
+            window.location.href = `/song-unlocked?songId=${encodeURIComponent(data.songId)}`;
+          }
+        }, 500);
       } catch (e) {
-        console.error('Auto-generate error:', e);
-        setGrantMessage('Network error. Generation failed — please retry from the app.');
+        console.error('Auto-assign premium error:', e);
+        setGrantMessage('Network error. Failed to assign premium song — please contact support.');
         setIsGenerating(false);
         if (slowTimer) clearTimeout(slowTimer);
         setIsSlow(false);
