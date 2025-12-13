@@ -5,6 +5,10 @@ import { db } from '@/server/db';
 import { premiumSongs } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * Proxy route to serve premium video files with correct content-type headers.
  * This ensures videos are served with proper MIME types and CORS headers.
@@ -19,8 +23,11 @@ export async function GET(
     // Decode filename in case it's URL encoded
     const decodedFilename = decodeURIComponent(filename);
     
+    console.log('[video proxy] request received', { filename, decodedFilename });
+    
     // Security: Only allow mp4 files
     if (!decodedFilename.endsWith('.mp4')) {
+      console.warn('[video proxy] invalid file type', { decodedFilename });
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
     }
 
@@ -81,8 +88,35 @@ export async function GET(
     // Try local file in public/premium-songs
     const localPath = path.join(process.cwd(), 'public', 'premium-songs', decodedFilename);
     
+    console.log('[video proxy] attempting to read local file', { localPath, decodedFilename, cwd: process.cwd() });
+    
     try {
+      // Check if file exists first
+      const { access } = await import('fs/promises');
+      try {
+        await access(localPath);
+      } catch (accessError) {
+        console.error('[video proxy] file access check failed', { 
+          localPath, 
+          decodedFilename,
+          error: accessError 
+        });
+        return new NextResponse(
+          JSON.stringify({ error: 'Video file not found', filename: decodedFilename, path: localPath }),
+          { 
+            status: 404,
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          }
+        );
+      }
+      
       const videoBuffer = await readFile(localPath);
+      console.log('[video proxy] file read successfully', { 
+        filename: decodedFilename, 
+        size: videoBuffer.length 
+      });
       
       return new NextResponse(videoBuffer, {
         status: 200,
@@ -95,9 +129,23 @@ export async function GET(
           'Cache-Control': 'public, max-age=31536000, immutable',
         },
       });
-    } catch (error) {
-      console.error('[video proxy] file not found locally', { localPath, error });
-      return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+    } catch (error: any) {
+      console.error('[video proxy] file read error', { 
+        localPath, 
+        decodedFilename,
+        error: error?.message,
+        code: error?.code,
+        stack: error?.stack
+      });
+      return new NextResponse(
+        JSON.stringify({ error: 'Failed to read video file', filename: decodedFilename, message: error?.message }),
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
     }
   } catch (error) {
     console.error('[video proxy] error', error);

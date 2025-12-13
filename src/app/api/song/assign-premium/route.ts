@@ -248,13 +248,13 @@ export async function POST(req: NextRequest) {
     // FIRST PRIORITY: Use DB mp4 if it's an external URL (these work reliably)
     // But verify it exists - if it returns 404, fall back to local file
     if (bestMatch.mp4 && bestMatch.mp4.startsWith('http')) {
-      // Quick check: if URL contains exroast.buzz/songs/ and manifest has filename, prefer local via proxy
+      // Quick check: if URL contains exroast.buzz/songs/ and manifest has filename, prefer local file
       // This handles cases where external URLs are incorrect
       if (bestMatch.mp4.includes('exroast.buzz/songs/') && manifestEntry?.filename) {
         const filename = manifestEntry.filename;
-        finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
+        finalFullUrl = `/premium-songs/${filename}`;
         finalPreviewUrl = finalFullUrl;
-        console.info('[assign-premium] using local file via proxy (external URL may be incorrect)', { 
+        console.info('[assign-premium] using local file (external URL may be incorrect)', { 
           externalUrl: bestMatch.mp4,
           localFile: filename,
           fullUrl: finalFullUrl 
@@ -301,22 +301,21 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-    // THIRD PRIORITY: Use manifest filename via proxy API (if no external URLs available)
-    // The proxy ensures correct content-type headers and CORS
+    // THIRD PRIORITY: Use manifest filename directly from public folder (if no external URLs available)
+    // Direct static file serving is more reliable than proxy API
     else if (manifestEntry?.filename) {
       const filename = manifestEntry.filename;
-      finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
+      finalFullUrl = `/premium-songs/${filename}`;
       finalPreviewUrl = finalFullUrl;
-      console.info('[assign-premium] using manifest filename via proxy API', { filename, fullUrl: finalFullUrl });
+      console.info('[assign-premium] using manifest filename from public folder', { filename, fullUrl: finalFullUrl });
     }
-    // FOURTH PRIORITY: Use DB mp4 if it's a local path (via proxy API)
+    // FOURTH PRIORITY: Use DB mp4 if it's a local path (direct static file)
     else if (bestMatch.mp4 && bestMatch.mp4.startsWith('/premium-songs/') && bestMatch.mp4.endsWith('.mp4')) {
-      const filename = bestMatch.mp4.split('/').pop() || '';
-      finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
-      finalPreviewUrl = finalFullUrl;
-      console.info('[assign-premium] using DB local mp4 path via proxy API', { filename, fullUrl: finalFullUrl });
+      finalFullUrl = bestMatch.mp4;
+      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
+      console.info('[assign-premium] using DB local mp4 path', { fullUrl: finalFullUrl });
     }
-    // FALLBACK: Construct from id (last resort, via proxy API)
+    // FALLBACK: Construct from id (last resort, direct static file)
     else {
       let filename = premiumSongId;
       if (!filename.includes('.')) {
@@ -324,9 +323,9 @@ export async function POST(req: NextRequest) {
       } else if (!filename.endsWith('.mp4')) {
         filename = filename.replace(/\.[^.]+$/, '.mp4');
       }
-      finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
+      finalFullUrl = `/premium-songs/${filename}`;
       finalPreviewUrl = finalFullUrl;
-      console.warn('[assign-premium] fallback to constructed filename via proxy API', { premiumSongId, filename, fullUrl: finalFullUrl });
+      console.warn('[assign-premium] fallback to constructed filename', { premiumSongId, filename, fullUrl: finalFullUrl });
     }
     
     console.info('[assign-premium] constructed path', { 
