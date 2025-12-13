@@ -4,7 +4,6 @@ import { eq } from 'drizzle-orm';
 import { songs } from '@/src/db/schema';
 // OpenRouter removed: use user story + style + musicStyle directly as prompt
 import { enqueueAudioJob, reserveCredit, refundCredit } from '@/lib/db-service';
-import { createSunoClient } from '@/lib/suno';
 import { PREMADE_ONLY } from '@/src/lib/config';
 
 interface GenerateSongRequest {
@@ -142,59 +141,20 @@ export async function POST(request: NextRequest) {
       reservedCredit
     };
 
-    // Prefer callback-first Suno flow: request Suno to generate and callback to our webhook.
-    // For MVP we often run in premade-only mode; skip provider calls when PREMADE_ONLY is active.
+    // Personalized provider generation has been removed.
+    // Skip any external provider calls — we rely on template previews for free users
+    // and premade/premium songs for paid users.
     let providerTaskId: string | undefined | null = null;
-    if (!PREMADE_ONLY) {
-      const suno = createSunoClient();
-      const callbackUrl = process.env.SUNO_CALLBACK_URL || (process.env.SITE_DOMAIN ? `https://${process.env.SITE_DOMAIN}/api/suno/callback` : '');
+    console.info('[api/generate-song] provider integration disabled — skipping external generation');
 
-      try {
-        // call Suno generate (callback-first)
-        const sunoResp: any = await suno.generateSong({ prompt: promptResult.prompt, title: promptResult.title, tags: promptResult.tags, make_instrumental: false, callBackUrl: callbackUrl });
-        // suno.generateSong now returns an array or an object; normalize to first item
-        const first = Array.isArray(sunoResp) ? sunoResp[0] : sunoResp;
-        console.info('[api/generate-song] suno response preview', { songId: song.id, preview: JSON.stringify(first).slice(0,400) });
-
-        // Extract provider task id / id fields
-        providerTaskId = first?.id || first?.taskId || first?.task_id || first?.data?.id || null;
-
-        // If Suno returned immediate audio/video URLs (unlikely in callback-first), update song now
-        const audioUrl = first?.audio_url || first?.audioUrl || first?.audio || first?.data?.audio_url || null;
-        const videoUrl = first?.video_url || first?.videoUrl || first?.video || first?.data?.video_url || null;
-        if ((audioUrl || videoUrl) && song && song.id) {
-          try {
-            await db.update(songs).set({
-              previewUrl: audioUrl || undefined,
-              fullUrl: videoUrl || audioUrl || undefined,
-              updatedAt: new Date(),
-            }).where(eq(songs.id, song.id));
-            console.info('[api/generate-song] updated song row with immediate provider URLs', { songId: song.id, hasAudio: !!audioUrl, hasVideo: !!videoUrl });
-          } catch (e) {
-            console.warn('[api/generate-song] failed to update song with immediate urls', e);
-          }
-        }
-
-        if (providerTaskId) console.info('[api/generate-song] providerTaskId', { songId: song.id, providerTaskId });
-      } catch (e) {
-        console.warn('[api/generate-song] suno generate failed (callback-first)', e);
-      }
-    } else {
-      console.info('[api/generate-song] PREMADE_ONLY active — skipping provider generate call');
-    }
-
-    console.info('[api/generate-song] enqueueing job payload', { songId: song.id, userId: userId || song.id, reservedCredit, providerTaskId });
-    const jobId = await enqueueAudioJob({ userId: userId || song.id, type: 'song', payload: jobPayload, providerTaskId: providerTaskId || undefined });
-    if (!jobId) {
-      // enqueue failed: refund reserved credit if any
-      if (reservedCredit && userId) {
-        try { await refundCredit(userId); } catch (e) { console.warn('Failed to refund credit after enqueue failure', e); }
-      }
-      return NextResponse.json({ success: false, error: 'failed_to_enqueue' }, { status: 500 });
-    }
-
-    console.info('[api/generate-song] queued', { songId: song.id, jobId, providerTaskId });
-    return NextResponse.json({ success: true, songId: song.id, jobId, taskId: providerTaskId, title: promptResult.title, lyrics });
+    // Do not enqueue jobs — provider generation is disabled. Inform caller.
+    // The system currently supports template previews for free users; premium
+    // purchases will map to premade `premium_songs` entries (mp4/mp3 files).
+    return NextResponse.json({
+      success: false,
+      error: 'personalized_generation_disabled',
+      message: 'Personalized generation is disabled. Use template previews or purchase premium premade songs.'
+    }, { status: 503 });
   } catch (error) {
     console.error('Error generating song:', error);
     return NextResponse.json(

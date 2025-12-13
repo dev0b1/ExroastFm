@@ -9,7 +9,7 @@ import { getById } from '@/lib/premium-songs';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { songId, guestEmail, amount, method } = body || {};
+    const { songId, premadeId, guestEmail, amount, method } = body || {};
 
     // Environment setup
     const environment = (
@@ -37,31 +37,33 @@ export async function POST(request: Request) {
     // to a premade manifest id so the Success page can immediately return
     // the premade mp4 without waiting for webhooks. Fall back to the raw
     // songId when translation isn't possible.
-    let redirectSongId: string | null = songId ? String(songId) : null;
-    if (songId) {
+    // prefer explicit premadeId if provided (frontend should send premadeId for premade purchases)
+    let redirectSongId: string | null = premadeId ? String(premadeId) : (songId ? String(songId) : null);
+    if (premadeId || songId) {
       try {
-        // If songId points to a DB template row, attempt to map its previewUrl
-        // back to a manifest entry (matching by storageUrl/mp3/mp4/filename).
-        try {
-          const rows = await db.select().from(songs).where(eq(songs.id, String(songId))).limit(1);
-          if (rows && rows.length > 0) {
-            const s = rows[0];
-            if (s.isTemplate && s.previewUrl) {
-              const match = getById(String(s.previewUrl)) || getById(String(s.previewUrl).split('/').pop() || '');
-              if (match) {
-                redirectSongId = match.filename || match.id || match.storageUrl || redirectSongId;
+        // If premadeId is explicitly provided, use as-is. Otherwise attempt to
+        // translate a DB template preview songId into a premade manifest id.
+        if (!premadeId && songId) {
+          try {
+            const rows = await db.select().from(songs).where(eq(songs.id, String(songId))).limit(1);
+            if (rows && rows.length > 0) {
+              const s = rows[0];
+              if (s.isTemplate && s.previewUrl) {
+                const match = getById(String(s.previewUrl)) || getById(String(s.previewUrl).split('/').pop() || '');
+                if (match) {
+                  redirectSongId = match.filename || match.id || match.storageUrl || redirectSongId;
+                }
               }
             }
+          } catch (e) {
+            console.warn('[create-checkout] preview->manifest translation failed', e);
           }
-        } catch (e) {
-          console.warn('[create-checkout] preview->manifest translation failed', e);
         }
 
         const url = new URL(successRedirect);
         if (redirectSongId) url.searchParams.set('songId', redirectSongId);
         successRedirect = url.toString();
       } catch (e) {
-        // If parsing fails, fall back to original redirect without query param
         console.warn('[create-checkout] failed to append songId to redirect URL', e);
       }
     }
@@ -95,7 +97,9 @@ export async function POST(request: Request) {
     try {
       const customData: any = {};
       
-      if (songId) customData.songId = redirectSongId || songId;
+      // Persist premadeId explicitly if provided, otherwise include resolved songId
+      if (premadeId) customData.premadeId = String(premadeId);
+      else if (songId) customData.songId = redirectSongId || songId;
       if (guestEmail) customData.guestEmail = guestEmail;
       
       if (Object.keys(customData).length > 0) {
