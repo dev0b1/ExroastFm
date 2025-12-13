@@ -208,7 +208,7 @@ function SuccessContent() {
                     controls 
                     preload="metadata"
                     playsInline
-                    src={songData.fullUrl}
+                    style={{ width: "100%" }}
                   >
                     <source src={songData.fullUrl} type="video/mp4" />
                     Your browser does not support the video tag.

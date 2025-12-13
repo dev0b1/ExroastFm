@@ -228,16 +228,41 @@ export async function POST(req: NextRequest) {
       finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
       console.info('[assign-premium] using DB external mp4 URL', { fullUrl: finalFullUrl });
     }
-    // SECOND PRIORITY: Use manifest entry's storageUrl if it's external (prefer external over local)
+    // SECOND PRIORITY: Use manifest entry's mp4 or storageUrl if it's external (prefer external over local)
     // This handles cases where DB has local path but manifest has external URL
-    else if (manifestEntry?.storageUrl && manifestEntry.storageUrl.startsWith('http')) {
-      finalFullUrl = manifestEntry.storageUrl;
-      finalPreviewUrl = finalFullUrl;
-      console.info('[assign-premium] using manifest external storageUrl (preferred over local)', { 
-        fullUrl: finalFullUrl,
-        dbMp4: bestMatch.mp4,
-        manifestFilename: manifestEntry.filename
+    // Check both mp4 and storageUrl from manifest (loadManifest sets mp4=storageUrl when storageUrl ends with .mp4)
+    else if (manifestEntry) {
+      const manifestMp4 = manifestEntry.mp4 || null;
+      const manifestStorageUrl = manifestEntry.storageUrl || null;
+      
+      console.info('[assign-premium] checking manifest entry for external URL', {
+        manifestId: manifestEntry.id,
+        manifestMp4,
+        manifestStorageUrl,
+        manifestFilename: manifestEntry.filename,
+        dbMp4: bestMatch.mp4
       });
+      
+      const externalUrl = (manifestMp4 && manifestMp4.startsWith('http')) ? manifestMp4 :
+                         (manifestStorageUrl && manifestStorageUrl.startsWith('http')) ? manifestStorageUrl : null;
+      
+      if (externalUrl) {
+        finalFullUrl = externalUrl;
+        finalPreviewUrl = finalFullUrl;
+        console.info('[assign-premium] using manifest external URL (preferred over local)', { 
+          fullUrl: finalFullUrl,
+          source: manifestMp4?.startsWith('http') ? 'manifest.mp4' : 'manifest.storageUrl',
+          dbMp4: bestMatch.mp4,
+          manifestFilename: manifestEntry.filename
+        });
+      } else {
+        console.warn('[assign-premium] manifest entry found but no external URL', {
+          manifestId: manifestEntry.id,
+          manifestMp4,
+          manifestStorageUrl,
+          manifestFilename: manifestEntry.filename
+        });
+      }
     }
     // THIRD PRIORITY: Use manifest filename for local file (if no external URLs available)
     else if (manifestEntry?.filename) {
