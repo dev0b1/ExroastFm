@@ -11,6 +11,7 @@ interface GenerateSongRequest {
   overrideLyrics?: string;
   songId?: string;
   paidPurchase?: boolean;
+  userId?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -108,38 +109,7 @@ export async function POST(request: NextRequest) {
       console.info('[api/generate-song] inserted song row', { songId: song.id, previewUrl, fullUrl });
     }
 
-    // If the request provided a userId (or via header), attempt to reserve a credit
-    // for pro users before enqueueing the job. The client may pass userId in body.
-    const bodyJson = await request.json().catch(() => ({}));
-    const userId = (bodyJson && bodyJson.userId) || (request.headers.get('x-user-id') || null);
-    let reservedCredit = false;
-    // Do not reserve credits when this generation is being kicked off as part of
-    // a paid single-song checkout (paidPurchase === true). In that case the
-    // purchase webhook is authoritative and we should not deduct subscription credits.
-    if (userId && !paidPurchase) {
-      try {
-        reservedCredit = await reserveCredit(userId);
-        if (!reservedCredit) {
-          // return an error indicating no credits
-          return NextResponse.json({ success: false, error: 'no_credits' }, { status: 402 });
-        }
-      } catch (e) {
-        console.warn('Failed to reserve credit for user:', e);
-      }
-    }
-
-    const jobPayload = {
-      songId: song.id,
-      userId: userId,
-      prompt: promptResult.prompt,
-      title: promptResult.title,
-      tags: promptResult.tags,
-      style,
-      musicStyle: musicStyle || null,
-      reservedCredit
-    };
-
-    // Suno audio generation has been disabled
+    // Audio generation has been disabled
     // Premium songs are now assigned from the database instead of generating new audio
     console.info('[api/generate-song] audio generation disabled - returning song record only', { songId: song.id });
     

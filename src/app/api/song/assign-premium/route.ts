@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
     // Update the song record with the premium song URL
     await db.update(songs).set({
       fullUrl: finalFullUrl,
-      previewUrl: finalPreviewUrl,
+      previewUrl: finalPreviewUrl || finalFullUrl,
       isPurchased: true,
       updatedAt: new Date(),
     }).where(eq(songs.id, songId));

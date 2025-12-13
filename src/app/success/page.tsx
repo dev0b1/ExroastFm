@@ -15,6 +15,7 @@ interface SongPayload {
   story: string;
   lyrics: string;
   style: string;
+  genre?: string;
   isPurchased?: boolean;
   fullUrl?: string | null;
 }
@@ -175,7 +176,7 @@ export default function SuccessPage() {
 
       try {
         // Extract musicStyle from song if available
-        const musicStyle = (song as any).musicStyle || (song as any).music_style || song.genre || '';
+        const musicStyle = (song as any).musicStyle || (song as any).music_style || (song as any).genre || '';
         
         const body: any = { 
           songId: song.id, 
