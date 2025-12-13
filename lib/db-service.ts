@@ -11,7 +11,7 @@ export async function getAllTemplates(): Promise<Template[]> {
       .from(templates)
       .orderBy(desc(templates.createdAt));
 
-    return data.map(row => ({
+    return data.map((row: any) => ({
       id: row.id,
       filename: row.filename,
       keywords: row.keywords,
