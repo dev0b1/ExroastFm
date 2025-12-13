@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { transactions, songs } from '@/src/db/schema';
-import { loadManifest, getById, findBestMatches } from '@/lib/premium-songs';
+import { loadManifest, getById } from '@/lib/premium-songs';
 import { eq } from 'drizzle-orm';
 import fs from 'fs';
 import path from 'path';
@@ -27,41 +27,9 @@ export async function POST(request: Request) {
       // First, check the `songs` table for generated/personalized songs
       const res = await db.select().from(songs).where(eq(songs.id, String(songId))).limit(1);
       if (res.length > 0) {
-          const song = res[0];
-
-          // If this is a template/preview row, prefer returning a matched premade MP4
-          // so users receive a premium MP4 after checkout instead of the same preview MP3.
-          if (song.isTemplate) {
-            try {
-              const matches = findBestMatches(song.story || song.prompt || song.lyrics || '', 3) || [];
-              for (const m of matches) {
-                if (!m) continue;
-                const storage = m.storageUrl || null;
-                const publicMp4 = path.join(process.cwd(), 'public', 'premium-songs', `${String(m.id)}.mp4`);
-                const publicFilenameMp4 = m.filename ? path.join(process.cwd(), 'public', 'premium-songs', m.filename) : null;
-                const fullUrlCandidate = m.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || null;
-                if (fullUrlCandidate) {
-                  return NextResponse.json({ verified: true, premade: { id: m.id || String(m.filename || m.storageUrl || ''), fullUrl: fullUrlCandidate } });
-                }
-                try {
-                  if (fs.existsSync(publicMp4)) {
-                    return NextResponse.json({ verified: true, premade: { id: m.id || String(m.filename || ''), fullUrl: `/premium-songs/${String(m.id)}.mp4` } });
-                  }
-                  if (publicFilenameMp4 && fs.existsSync(publicFilenameMp4)) {
-                    const fname = m.filename ? m.filename : `${String(m.id)}.mp4`;
-                    return NextResponse.json({ verified: true, premade: { id: m.id || fname.replace(/\.[^.]+$/, ''), fullUrl: `/premium-songs/${fname}` } });
-                  }
-                } catch (e) {
-                  // continue to next candidate
-                }
-              }
-            } catch (e) {
-              console.warn('[verify transaction] premade matching failed', e);
-            }
-          }
-
-          return NextResponse.json({ verified: !!song.isPurchased, song });
-        }
+        const song = res[0];
+        return NextResponse.json({ verified: !!song.isPurchased, song });
+      }
 
       // If no entry in `songs`, fall back to looking for a matching transaction
       // (this supports premade purchases where `songId` refers to a premium manifest id or filename)
