@@ -33,8 +33,7 @@ export async function POST(request: Request) {
           // so users receive a premium MP4 after checkout instead of the same preview MP3.
           if (song.isTemplate) {
             try {
-              const storyText = (song as any).story || (song as any).prompt || (song as any).lyrics || '';
-              const matches = findBestMatches(song.style || undefined, (song as any).mode || undefined, storyText, 3) || [];
+              const matches = findBestMatches(song.style || undefined, (song as any).mode || undefined, song.story || song.prompt || song.lyrics || '', 3) || [];
               for (const m of matches) {
                 if (!m) continue;
                 const storage = m.storageUrl || null;
