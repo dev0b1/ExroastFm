@@ -180,8 +180,8 @@ export async function POST(req: NextRequest) {
     let finalPreviewUrl: string | null = null;
     
     // Extract filename from id (e.g., "petty_rap_01.mp4" -> "petty_rap_01.mp4")
-    const songId = bestMatch.id;
-    const filename = songId.includes('.') ? songId : `${songId}.mp4`;
+    const premiumSongId = bestMatch.id;
+    const filename = premiumSongId.includes('.') ? premiumSongId : `${premiumSongId}.mp4`;
     
     // Prefer local file path from /public/premium-songs/ folder
     const localPath = `/premium-songs/${filename}`;
