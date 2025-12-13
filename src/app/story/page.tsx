@@ -9,6 +9,8 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { SparkStorm } from "@/components/SparkStorm";
 import RoastCreator from "@/components/RoastCreator";
 
+export const dynamic = 'force-dynamic';
+
 export default function StoryPage() {
   const supabase = createClientComponentClient();
   const [currentUser, setCurrentUser] = useState<any | null>(null);

@@ -6,6 +6,8 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { motion } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
 
+export const dynamic = 'force-dynamic';
+
 function CheckoutLoading() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
