@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: String(err?.message || err) }, { status: 500 });
   }
 }
-
+import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { songs } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
