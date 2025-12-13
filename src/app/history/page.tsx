@@ -6,7 +6,6 @@ import Link from 'next/link';
 // Header/Footer provided by NavWrapper in root layout
 import AuthAwareCTA from '@/components/AuthAwareCTA';
 import { AnimatedBackground } from '@/components/AnimatedBackground';
-export const dynamic = 'force-dynamic';
 import { FaPlay, FaShare, FaLock, FaCrown } from 'react-icons/fa';
 
 interface Roast {

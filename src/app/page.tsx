@@ -6,8 +6,6 @@ import { FaFire, FaDumbbell } from "react-icons/fa";
 // Header/Footer provided by NavWrapper in root layout
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 
-export const dynamic = 'force-dynamic';
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-black relative">

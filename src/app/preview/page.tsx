@@ -6,8 +6,6 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 // Header provided by NavWrapper in root layout
 import { LoadingAnimation } from "@/components/LoadingAnimation";
 
-export const dynamic = 'force-dynamic';
-
 function PreviewLoading() {
   return (
     <div className="min-h-screen bg-black">

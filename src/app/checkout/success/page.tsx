@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = 'force-dynamic';
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from 'react';
 import { FaTwitter, FaFacebook, FaCopy, FaDownload } from 'react-icons/fa';

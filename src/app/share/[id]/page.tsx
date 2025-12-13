@@ -10,8 +10,6 @@ import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LyricsOverlay } from "@/components/LyricsOverlay";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
-
-export const dynamic = 'force-dynamic';
 import { FaPlay, FaPause, FaDownload, FaLock } from "react-icons/fa";
 
 interface Song {

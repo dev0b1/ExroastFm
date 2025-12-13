@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { FaSpinner } from "react-icons/fa";
 
-export const dynamic = 'force-dynamic';
-
 const MOOD_OPTIONS = [
   { id: "hurting", label: "Still hurting", emoji: "💔", color: "from-red-500 to-pink-500" },
   { id: "confidence", label: "Need confidence", emoji: "✨", color: "from-purple-500 to-pink-500" },
