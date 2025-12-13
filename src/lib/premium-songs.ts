@@ -82,30 +82,51 @@ export function loadManifest(): PremiumSong[] {
   }
 }
 
-export function findBestMatches(story: string | undefined, limit = 5): PremiumSong[] {
+export function findBestMatches(style?: string | null, mode?: string | null, story?: string | undefined, limit = 5): PremiumSong[] {
   const manifest = loadManifest();
-  if (!story || story.trim().length === 0) return manifest.slice(0, limit);
+  if (!manifest || manifest.length === 0) return [];
 
-  const words = story
+  const norm = (s?: string | null) => (s || '').toLowerCase().trim();
+  const desiredStyle = norm(style);
+  const desiredMode = norm(mode);
+
+  // If no inputs provided, return first N manifest entries
+  if (!desiredStyle && !desiredMode && (!story || story.trim().length === 0)) return manifest.slice(0, limit);
+
+  // Prepare story words if present
+  const words = (story || '')
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .filter(Boolean);
 
-  // simple scoring: count tag/title matches
+  // Scoring: prioritize exact mode/style matches with large weight,
+  // then add story/tag/title overlap as a secondary score.
   const scored = manifest.map((s) => {
     let score = 0;
-    const hay = (s.tags || []).map((t) => String(t).toLowerCase()).concat([(s.title || '').toLowerCase()]);
-    for (const w of words) {
-      for (const h of hay) {
-        if (h.includes(w)) score += 1;
+    try {
+      const sMode = norm(s.mode);
+      const sStyle = norm(s.musicStyle || s.musicStyle || s.mode);
+
+      if (desiredMode && sMode && desiredMode === sMode) score += 100;
+      if (desiredStyle && sStyle && desiredStyle === sStyle) score += 50;
+
+      // story/title/tags matching (secondary)
+      const hay = (s.tags || []).map((t) => String(t).toLowerCase()).concat([(s.title || '').toLowerCase(), (s.description || '').toLowerCase()]);
+      for (const w of words) {
+        for (const h of hay) {
+          if (h && h.includes(w)) score += 1;
+        }
       }
+    } catch (e) {
+      // ignore scoring errors
     }
     return { song: s, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
-  return scored.filter((s) => s.score > 0).map((s) => s.song).slice(0, limit);
+  // return top matches (including zero-scored if nothing else)
+  return scored.map((s) => s.song).slice(0, Math.max(0, limit));
 }
 
 export function getById(id: string): PremiumSong | undefined {
