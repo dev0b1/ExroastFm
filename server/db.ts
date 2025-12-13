@@ -5,19 +5,20 @@ import * as schema from "@/src/db/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Exported bindings (will be set below depending on env)
-// eslint-disable-next-line import/no-mutable-exports
-export let pool: any = null;
-// eslint-disable-next-line import/no-mutable-exports
-export let db: any = null;
-
 if (!process.env.DATABASE_URL) {
   console.warn('[server/db] DATABASE_URL not set — exporting a safe noop db for build/prerender');
 
+  // Minimal noop Drizzle-like stub to avoid runtime errors during static build/prerender.
+  // It returns empty arrays/nulls for common chain endings like `.limit()`, `.all()`, `.get()`.
   const noopQuery = () => ({
     from: () => ({ where: () => ({ limit: () => [], all: () => [], get: () => null }) }),
   });
 
+  // A proxy that returns a function for any property access so calls like db.select()
+  // won't throw during build. Consumers should not rely on real DB results in this mode.
+  // This keeps module imports safe during Next.js prerender.
+  // Note: In production you MUST set `DATABASE_URL` to a real database.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dbStub: any = new Proxy({}, {
     get() {
       return noopQuery;
@@ -27,9 +28,9 @@ if (!process.env.DATABASE_URL) {
     },
   });
 
-  pool = null;
-  db = dbStub;
+  export const pool = null as any;
+  export const db = dbStub as any;
 } else {
-  pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  db = drizzle({ client: pool, schema });
+  export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  export const db = drizzle({ client: pool, schema });
 }
