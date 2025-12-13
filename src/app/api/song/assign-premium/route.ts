@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { songs, premiumSongs } from '@/src/db/schema';
 import { eq } from 'drizzle-orm';
+import { loadManifest } from '@/lib/premium-songs';
 
 /**
  * Assigns a premium song to a purchased song record.
@@ -33,13 +34,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'no_premium_songs_available' }, { status: 500 });
     }
 
+    // Also load manifest for better keyword matching
+    const manifest = loadManifest();
+    const manifestMap = new Map();
+    manifest.forEach((m: any) => {
+      const key = m.id || m.filename || '';
+      if (key) manifestMap.set(key, m);
+    });
+
     // Parse tags and extract mode/musicStyle from title or tags
     const premiumMapped = dbPremiumSongs.map((p: any) => {
+      // Get manifest entry for better metadata
+      const manifestEntry = manifestMap.get(p.id) || null;
       // Parse tags (stored as JSON string or comma-separated)
+      // Prefer keywords from manifest if available
       let tagsArray: string[] = [];
       let keywords = '';
-      try {
-        if (p.tags) {
+      
+      // First try manifest keywords
+      if (manifestEntry?.keywords) {
+        keywords = manifestEntry.keywords;
+        tagsArray = keywords.split(',').map((k: string) => k.trim()).filter(Boolean);
+      } else if (p.tags) {
+        try {
           // Try parsing as JSON first
           if (p.tags.startsWith('{') || p.tags.startsWith('[')) {
             const parsed = JSON.parse(p.tags);
@@ -49,55 +66,42 @@ export async function POST(req: NextRequest) {
             tagsArray = p.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
           }
           keywords = tagsArray.join(',');
+        } catch (e) {
+          // If parsing fails, treat as comma-separated
+          tagsArray = String(p.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean);
+          keywords = tagsArray.join(',');
         }
-      } catch (e) {
-        // If parsing fails, treat as comma-separated
-        tagsArray = String(p.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean);
-        keywords = tagsArray.join(',');
       }
 
-      // Extract mode and musicStyle from title or tags
-      // Common modes: petty, glowup, healing, savage
-      // Common styles: rap, pop, rnb, edm, rock
-      const titleLower = (p.title || '').toLowerCase();
-      const allText = `${titleLower} ${keywords}`.toLowerCase();
+      // Extract mode and musicStyle - prefer manifest, then title/tags, then filename
+      let mode: string | null = manifestEntry?.mode || null;
+      let musicStyle: string | null = manifestEntry?.musicStyle || manifestEntry?.music_style || null;
       
-      let mode: string | null = null;
-      let musicStyle: string | null = null;
-      
-      // Detect mode from title/tags
-      const modes = ['petty', 'glowup', 'healing', 'savage', 'vibe', 'meme'];
-      for (const m of modes) {
-        if (allText.includes(m)) {
-          mode = m;
-          break;
-        }
-      }
-      
-      // Detect music style from title/tags
-      const styles = ['rap', 'pop', 'rnb', 'edm', 'rock'];
-      for (const s of styles) {
-        if (allText.includes(s)) {
-          musicStyle = s;
-          break;
-        }
-      }
-      
-      // Also check filename for mode/style (e.g., "petty_rap_01.mp4")
-      const idLower = (p.id || '').toLowerCase();
-      if (!mode) {
-        for (const m of modes) {
-          if (idLower.includes(m)) {
-            mode = m;
-            break;
+      // If not in manifest, extract from title/tags/filename
+      if (!mode || !musicStyle) {
+        const titleLower = (p.title || '').toLowerCase();
+        const allText = `${titleLower} ${keywords}`.toLowerCase();
+        const idLower = (p.id || '').toLowerCase();
+        const combinedText = `${allText} ${idLower}`.toLowerCase();
+        
+        const modes = ['petty', 'glowup', 'healing', 'savage', 'vibe', 'meme'];
+        const styles = ['rap', 'pop', 'rnb', 'edm', 'rock'];
+        
+        if (!mode) {
+          for (const m of modes) {
+            if (combinedText.includes(m)) {
+              mode = m;
+              break;
+            }
           }
         }
-      }
-      if (!musicStyle) {
-        for (const s of styles) {
-          if (idLower.includes(s)) {
-            musicStyle = s;
-            break;
+        
+        if (!musicStyle) {
+          for (const s of styles) {
+            if (combinedText.includes(s)) {
+              musicStyle = s;
+              break;
+            }
           }
         }
       }
@@ -170,9 +174,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Get the premium song URL from database
-    // Priority: mp4 (preferred), then mp3
-    let finalFullUrl: string | null = bestMatch.mp4 || null;
-    let finalPreviewUrl: string | null = bestMatch.mp3 || bestMatch.mp4 || null;
+    // Priority: Use local file path from /public/premium-songs/ folder
+    // If DB has external URL, convert to local path based on filename/id
+    let finalFullUrl: string | null = null;
+    let finalPreviewUrl: string | null = null;
+    
+    // Extract filename from id (e.g., "petty_rap_01.mp4" -> "petty_rap_01.mp4")
+    const songId = bestMatch.id;
+    const filename = songId.includes('.') ? songId : `${songId}.mp4`;
+    
+    // Prefer local file path from /public/premium-songs/ folder
+    const localPath = `/premium-songs/${filename}`;
+    finalFullUrl = localPath;
+    finalPreviewUrl = localPath;
+    
+    // If local path doesn't work, fallback to DB mp4/mp3
+    if (!finalFullUrl) {
+      finalFullUrl = bestMatch.mp4 || null;
+      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4 || null;
+    }
 
     if (!finalFullUrl) {
       return NextResponse.json({ success: false, error: 'premium_song_no_url' }, { status: 500 });

@@ -20,12 +20,67 @@ function SuccessContent() {
     if (!songId) return;
     let cancelled = false;
 
-    // First, ask the verify endpoint which, for premade songs, will immediately
-    // return premade info (we've opted to trust checkout by manifest). This avoids
-    // waiting for a webhook and prevents falling back to demo templates.
-    const tryVerifyThenFetch = async () => {
+    // First, assign a premium song from the database based on the user's story/style
+    const assignPremiumSong = async () => {
       try {
         setChecking(true);
+        
+        // Fetch the song to get story and style for matching
+        const songRes = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+        if (!songRes.ok) {
+          setChecking(false);
+          return;
+        }
+        
+        const songData = await songRes.json();
+        if (!songData?.success || !songData.song) {
+          setChecking(false);
+          return;
+        }
+        
+        const song = songData.song;
+        
+        // If song already has a premium mp4, use it
+        if (song.isPurchased && song.fullUrl && song.fullUrl.endsWith('.mp4')) {
+          setSongData(song);
+          setVerified(true);
+          setChecking(false);
+          return;
+        }
+        
+        // Extract musicStyle from song if available
+        const musicStyle = (song as any).musicStyle || (song as any).music_style || song.genre || '';
+        
+        // Call assign-premium to match and assign a premium song from DB
+        const assignRes = await fetch('/api/song/assign-premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            songId: song.id,
+            story: song.story,
+            style: song.style,
+            musicStyle: musicStyle
+          })
+        });
+        
+        if (assignRes.ok) {
+          const assignData = await assignRes.json();
+          if (assignData?.success && assignData.fullUrl) {
+            // Fetch updated song with premium URL
+            const updatedRes = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+            if (updatedRes.ok) {
+              const updatedData = await updatedRes.json();
+              if (updatedData?.success && updatedData.song) {
+                setSongData(updatedData.song);
+                setVerified(true);
+                setChecking(false);
+                return;
+              }
+            }
+          }
+        }
+        
+        // Fallback: if assign-premium failed, try verify endpoint
         const vres = await fetch('/api/transactions/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -33,53 +88,31 @@ function SuccessContent() {
         });
         if (vres.ok) {
           const vb = await vres.json();
-          // If verify returned premade info, use it
           if (vb?.premade && vb.premade.fullUrl) {
             setSongData({ id: vb.premade.id || songId, fullUrl: vb.premade.fullUrl, previewUrl: vb.premade.fullUrl });
             setVerified(true);
             setChecking(false);
             return;
           }
-          // If verify returned a DB transaction or verified flag, try fetching the song row
           if (vb?.verified) {
-            try {
-              const sres = await fetch(`/api/song/${encodeURIComponent(songId)}`);
-              if (sres.ok) {
-                const sb = await sres.json();
-                if (sb?.success) {
-                  setSongData(sb.song);
-                  if (sb.song?.fullUrl) setVerified(true);
-                }
+            const sres = await fetch(`/api/song/${encodeURIComponent(songId)}`);
+            if (sres.ok) {
+              const sb = await sres.json();
+              if (sb?.success) {
+                setSongData(sb.song);
+                if (sb.song?.fullUrl) setVerified(true);
               }
-            } catch (e) {
-              console.debug('[checkout success] fetch after verify failed', e);
             }
-            setChecking(false);
-            return;
           }
         }
       } catch (e) {
-        console.debug('[checkout success] verify call failed', e);
-      }
-
-      // Fallback: direct fetch the song endpoint (may return premade manifest entry)
-      try {
-        const res = await fetch(`/api/song/${encodeURIComponent(songId)}`);
-        if (res.ok) {
-          const body = await res.json();
-          if (body?.success && body.song) {
-            setSongData(body.song);
-            if (body.song?.fullUrl) setVerified(true);
-          }
-        }
-      } catch (e) {
-        console.debug('[checkout success] direct song fetch failed', e);
+        console.debug('[checkout success] assign premium failed', e);
       } finally {
         if (!cancelled) setChecking(false);
       }
     };
 
-    tryVerifyThenFetch();
+    assignPremiumSong();
     return () => { cancelled = true; };
   }, [songId]);
 
