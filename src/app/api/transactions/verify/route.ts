@@ -3,8 +3,6 @@ import { db } from '@/server/db';
 import { transactions, songs } from '@/src/db/schema';
 import { loadManifest, getById } from '@/lib/premium-songs';
 import { eq } from 'drizzle-orm';
-import fs from 'fs';
-import path from 'path';
 
 export async function POST(request: Request) {
   try {
@@ -47,11 +45,12 @@ export async function POST(request: Request) {
         const prem = getById(String(songId));
         if (prem) {
           const p: any = prem;
+          // Prefer explicit mp4, then storageUrl if it points to an mp4 file,
+          // then mp3, then any storageUrl.
           const storage = p.storageUrl || null;
           const fullUrl = p.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || p.mp3 || storage || null;
           return NextResponse.json({ verified: true, premade: { id: p.id || songId, fullUrl } });
         }
-
         // Also support matching by filename/mp4/mp3 in manifest entries
         const manifest = loadManifest();
         const match = (manifest || []).find((m: any) => {
@@ -64,21 +63,6 @@ export async function POST(request: Request) {
           const storage = m.storageUrl || null;
           const fullUrl = m.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || m.mp3 || storage || null;
           return NextResponse.json({ verified: true, premade: { id: m.id || songId, fullUrl } });
-        }
-
-        // Fallback: if a matching file exists under public/premium-songs/<songId>.mp4 or .mp3,
-        // return that URL so the Success page can immediately show the premade asset.
-        try {
-          const publicMp4 = path.join(process.cwd(), 'public', 'premium-songs', `${String(songId)}.mp4`);
-          const publicMp3 = path.join(process.cwd(), 'public', 'premium-songs', `${String(songId)}.mp3`);
-          if (fs.existsSync(publicMp4)) {
-            return NextResponse.json({ verified: true, premade: { id: String(songId), fullUrl: `/premium-songs/${String(songId)}.mp4` } });
-          }
-          if (fs.existsSync(publicMp3)) {
-            return NextResponse.json({ verified: true, premade: { id: String(songId), fullUrl: `/premium-songs/${String(songId)}.mp3` } });
-          }
-        } catch (fsErr) {
-          console.warn('[verify transaction] public file lookup failed', fsErr);
         }
       } catch (e) {
         // ignore lookup errors and fall through to not-verified

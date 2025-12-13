@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrUpdateUserPreferences } from '@/lib/db-service';
-
-function getDailySavageQuote(dayNumber: number = 1): string {
-  const fallbacks = [
-    "You're the plot twist they didn't see coming.",
-    "Their loss, your glow-up.",
-    "Keep shining — drama is for extras.",
-  ];
-  return fallbacks[(Math.max(0, dayNumber - 1)) % fallbacks.length];
-}
+import { getDailySavageQuote } from '@/lib/suno-nudge';
 
 export async function POST(request: NextRequest) {
   try {
