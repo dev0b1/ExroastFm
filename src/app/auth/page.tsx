@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+
+export const dynamic = 'force-dynamic';
 import AuthContent from "./auth-content";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 // Header/Footer provided by NavWrapper in root layout
