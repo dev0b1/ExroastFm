@@ -38,8 +38,21 @@ export async function POST(req: NextRequest) {
     const manifest = loadManifest();
     const manifestMap = new Map();
     manifest.forEach((m: any) => {
-      const key = m.id || m.filename || '';
-      if (key) manifestMap.set(key, m);
+      // Map by id (for DB lookup), filename (for file lookup), and normalized id
+      const id = m.id || m.filename || '';
+      const filename = m.filename || '';
+      if (id) {
+        manifestMap.set(id, m);
+        // Also map by filename if different from id
+        if (filename && filename !== id) {
+          manifestMap.set(filename, m);
+        }
+        // Map by normalized id (without extension) for cases like "p1" -> "petty-pop.mp4"
+        const idWithoutExt = id.replace(/\.[^.]+$/, '');
+        if (idWithoutExt && idWithoutExt !== id) {
+          manifestMap.set(idWithoutExt, m);
+        }
+      }
     });
 
     // Parse tags and extract mode/musicStyle from title or tags
@@ -174,39 +187,86 @@ export async function POST(req: NextRequest) {
     }
 
     // Get the premium song URL from database
-    // Priority: Use local file path from /public/premium-songs/ folder
-    // If DB has external URL, convert to local path based on filename/id
+    // Priority: Use manifest filename (most accurate), then find matching manifest entry, then DB mp4
     let finalFullUrl: string | null = null;
     let finalPreviewUrl: string | null = null;
     
-    // Extract filename from id (e.g., "petty_rap_01.mp4" -> "petty_rap_01.mp4")
     const premiumSongId = bestMatch.id;
-    // Ensure filename has .mp4 extension
-    let filename = premiumSongId;
-    if (!filename.includes('.')) {
-      filename = `${filename}.mp4`;
-    } else if (!filename.endsWith('.mp4')) {
-      // If it has an extension but not .mp4, replace it
-      filename = filename.replace(/\.[^.]+$/, '.mp4');
+    let manifestEntry = manifestMap.get(premiumSongId);
+    
+    // If no direct manifest match, try to find a manifest entry with matching mode/style
+    // This handles cases where DB has entries like "p1" that don't match manifest filenames
+    if (!manifestEntry && bestMatch.mode && bestMatch.musicStyle) {
+      const matchingManifest = manifest.find((m: any) => {
+        const mMode = (m.mode || '').toLowerCase();
+        const mStyle = (m.musicStyle || m.music_style || '').toLowerCase();
+        return mMode === bestMatch.mode.toLowerCase() && 
+               mStyle === bestMatch.musicStyle.toLowerCase();
+      });
+      if (matchingManifest) {
+        manifestEntry = matchingManifest;
+        console.info('[assign-premium] found matching manifest entry by mode/style', {
+          dbId: premiumSongId,
+          dbMode: bestMatch.mode,
+          dbStyle: bestMatch.musicStyle,
+          manifestFilename: manifestEntry.filename,
+          manifestId: manifestEntry.id
+        });
+      }
     }
     
-    // Prefer local file path from /public/premium-songs/ folder
-    const localPath = `/premium-songs/${filename}`;
-    finalFullUrl = localPath;
-    finalPreviewUrl = localPath;
+    // Also check if DB mp4 path exists - if it doesn't, prefer manifest
+    const dbMp4Path = bestMatch.mp4;
+    const dbMp4IsLocal = dbMp4Path && dbMp4Path.startsWith('/premium-songs/');
+    const dbMp4Filename = dbMp4IsLocal ? dbMp4Path.split('/').pop() : null;
+    const dbMp4ExistsInManifest = dbMp4Filename ? manifest.some((m: any) => m.filename === dbMp4Filename) : false;
+    
+    // If DB path doesn't exist in manifest, prefer manifest entry
+    if (dbMp4IsLocal && !dbMp4ExistsInManifest && manifestEntry) {
+      console.info('[assign-premium] DB mp4 path not found in manifest, using manifest entry', {
+        dbMp4: dbMp4Path,
+        manifestFilename: manifestEntry.filename
+      });
+    }
+    
+    // First priority: Use manifest filename (it has the correct filename that exists in the folder)
+    if (manifestEntry?.filename) {
+      const filename = manifestEntry.filename;
+      finalFullUrl = `/premium-songs/${filename}`;
+      finalPreviewUrl = finalFullUrl;
+      console.info('[assign-premium] using manifest filename', { filename, fullUrl: finalFullUrl });
+    } 
+    // Second priority: Use DB mp4 if it's a local path that looks correct
+    else if (bestMatch.mp4 && bestMatch.mp4.startsWith('/premium-songs/') && bestMatch.mp4.endsWith('.mp4')) {
+      finalFullUrl = bestMatch.mp4;
+      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
+      console.info('[assign-premium] using DB local mp4 path', { fullUrl: finalFullUrl });
+    }
+    // Third priority: Use DB mp4 if it's an external URL
+    else if (bestMatch.mp4 && bestMatch.mp4.startsWith('http')) {
+      finalFullUrl = bestMatch.mp4;
+      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
+      console.info('[assign-premium] using DB external mp4 URL', { fullUrl: finalFullUrl });
+    }
+    // Fallback: Construct from id (last resort - this shouldn't happen often)
+    else {
+      let filename = premiumSongId;
+      if (!filename.includes('.')) {
+        filename = `${filename}.mp4`;
+      } else if (!filename.endsWith('.mp4')) {
+        filename = filename.replace(/\.[^.]+$/, '.mp4');
+      }
+      finalFullUrl = `/premium-songs/${filename}`;
+      finalPreviewUrl = finalFullUrl;
+      console.warn('[assign-premium] fallback to constructed filename', { premiumSongId, filename, fullUrl: finalFullUrl });
+    }
     
     console.info('[assign-premium] constructed path', { 
-      premiumSongId, 
-      filename, 
-      localPath,
-      bestMatchMp4: bestMatch.mp4 
+      premiumSongId: bestMatch.id, 
+      dbMp4: bestMatch.mp4,
+      finalFullUrl,
+      isMp4: finalFullUrl?.endsWith('.mp4')
     });
-    
-    // If local path doesn't work, fallback to DB mp4/mp3
-    if (!finalFullUrl) {
-      finalFullUrl = bestMatch.mp4 || null;
-      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4 || null;
-    }
 
     if (!finalFullUrl) {
       return NextResponse.json({ success: false, error: 'premium_song_no_url' }, { status: 500 });
