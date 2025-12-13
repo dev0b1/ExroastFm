@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
 
     const max = Number(limit) || 3;
 
-    // Primary: prefer style/mode if present, then story
-    let matches = findBestMatches(undefined, undefined, story, Math.max(3, max * 2));
+    // Primary: use story-based scoring
+    let matches = findBestMatches(story, Math.max(3, max * 2));
 
     // If manifest is empty or no matches, fallback to manifest sampling
     if (!matches || matches.length === 0) {
