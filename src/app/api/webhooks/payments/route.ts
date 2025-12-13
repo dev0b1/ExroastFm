@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
 async function handleTransactionCompleted(transaction: any) {
   try {
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       const custom = transaction?.custom_data || {};
       const userId = custom.userId || null;
 
