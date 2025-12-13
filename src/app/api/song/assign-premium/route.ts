@@ -181,12 +181,26 @@ export async function POST(req: NextRequest) {
     
     // Extract filename from id (e.g., "petty_rap_01.mp4" -> "petty_rap_01.mp4")
     const premiumSongId = bestMatch.id;
-    const filename = premiumSongId.includes('.') ? premiumSongId : `${premiumSongId}.mp4`;
+    // Ensure filename has .mp4 extension
+    let filename = premiumSongId;
+    if (!filename.includes('.')) {
+      filename = `${filename}.mp4`;
+    } else if (!filename.endsWith('.mp4')) {
+      // If it has an extension but not .mp4, replace it
+      filename = filename.replace(/\.[^.]+$/, '.mp4');
+    }
     
     // Prefer local file path from /public/premium-songs/ folder
     const localPath = `/premium-songs/${filename}`;
     finalFullUrl = localPath;
     finalPreviewUrl = localPath;
+    
+    console.info('[assign-premium] constructed path', { 
+      premiumSongId, 
+      filename, 
+      localPath,
+      bestMatchMp4: bestMatch.mp4 
+    });
     
     // If local path doesn't work, fallback to DB mp4/mp3
     if (!finalFullUrl) {
@@ -208,6 +222,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Ensure the URL is an mp4 file
+    if (!finalFullUrl.endsWith('.mp4') && !finalFullUrl.startsWith('http')) {
+      // If it's a local path but not mp4, try to fix it
+      if (finalFullUrl.includes('premium-songs')) {
+        const baseName = finalFullUrl.split('/').pop() || '';
+        if (!baseName.endsWith('.mp4')) {
+          finalFullUrl = `/premium-songs/${baseName.replace(/\.[^.]+$/, '')}.mp4`;
+          finalPreviewUrl = finalFullUrl;
+        }
+      }
+    }
+
     // Update the song record with the premium song URL
     await db.update(songs).set({
       fullUrl: finalFullUrl,
@@ -220,6 +246,7 @@ export async function POST(req: NextRequest) {
       songId, 
       premiumSongId: bestMatch.id, 
       fullUrl: finalFullUrl,
+      isMp4: finalFullUrl.endsWith('.mp4'),
       matchedMode: songMode,
       matchedStyle: songMusicStyleLower
     });

@@ -65,19 +65,33 @@ function SuccessContent() {
         
         if (assignRes.ok) {
           const assignData = await assignRes.json();
+          console.log('[checkout success] assign-premium response', assignData);
           if (assignData?.success && assignData.fullUrl) {
+            // Verify it's an mp4 file
+            if (!assignData.fullUrl.endsWith('.mp4')) {
+              console.warn('[checkout success] assigned URL is not mp4:', assignData.fullUrl);
+            }
             // Fetch updated song with premium URL
             const updatedRes = await fetch(`/api/song/${encodeURIComponent(songId)}`);
             if (updatedRes.ok) {
               const updatedData = await updatedRes.json();
               if (updatedData?.success && updatedData.song) {
+                console.log('[checkout success] updated song data', { 
+                  fullUrl: updatedData.song.fullUrl, 
+                  isMp4: updatedData.song.fullUrl?.endsWith('.mp4') 
+                });
                 setSongData(updatedData.song);
                 setVerified(true);
                 setChecking(false);
                 return;
               }
             }
+          } else {
+            console.error('[checkout success] assign-premium failed', assignData);
           }
+        } else {
+          const errorData = await assignRes.json().catch(() => ({}));
+          console.error('[checkout success] assign-premium request failed', { status: assignRes.status, error: errorData });
         }
         
         // Fallback: if assign-premium failed, try verify endpoint
@@ -189,7 +203,16 @@ function SuccessContent() {
               <p className="text-green-700 font-semibold mb-4">Your premium song is ready!</p>
               {songData?.fullUrl ? (
                 <div className="space-y-4">
-                  <video className="w-full rounded-lg shadow-lg" controls src={songData.fullUrl} />
+                  <video 
+                    className="w-full rounded-lg shadow-lg" 
+                    controls 
+                    preload="metadata"
+                    playsInline
+                    src={songData.fullUrl}
+                  >
+                    <source src={songData.fullUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
 
                   <div className="flex items-center justify-center gap-3">
                     <button onClick={async () => {
