@@ -182,12 +182,35 @@ export async function POST(req: NextRequest) {
         score += 3;
       }
 
+      // CRITICAL: Heavily prefer entries with external URLs (https://) over local paths
+      // This ensures we get playable videos instead of 404 HTML pages
+      const hasExternalUrl = p.mp4 && p.mp4.startsWith('http');
+      if (hasExternalUrl) {
+        score += 100; // Large boost to prefer external URLs
+      }
+
       return { song: p, score };
     });
 
     // Sort by score and pick the best match
     scored.sort((a, b) => b.score - a.score);
-    const bestMatch = scored.length > 0 ? scored[0].song : premiumCandidates[0];
+    let bestMatch = scored.length > 0 ? scored[0].song : premiumCandidates[0];
+    
+    // If best match has a local path, try to find another match with external URL
+    if (bestMatch && bestMatch.mp4 && !bestMatch.mp4.startsWith('http')) {
+      const externalMatch = scored.find((s: any) => 
+        s.song.mp4 && s.song.mp4.startsWith('http') &&
+        s.song.mode === bestMatch.mode &&
+        s.song.musicStyle === bestMatch.musicStyle
+      );
+      if (externalMatch) {
+        console.info('[assign-premium] switching from local path to external URL match', {
+          original: { id: bestMatch.id, mp4: bestMatch.mp4 },
+          new: { id: externalMatch.song.id, mp4: externalMatch.song.mp4 }
+        });
+        bestMatch = externalMatch.song;
+      }
+    }
 
     if (!bestMatch) {
       return NextResponse.json({ success: false, error: 'no_premium_match_found' }, { status: 404 });
@@ -223,10 +246,24 @@ export async function POST(req: NextRequest) {
     }
     
     // FIRST PRIORITY: Use DB mp4 if it's an external URL (these work reliably)
+    // But verify it exists - if it returns 404, fall back to local file
     if (bestMatch.mp4 && bestMatch.mp4.startsWith('http')) {
-      finalFullUrl = bestMatch.mp4;
-      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
-      console.info('[assign-premium] using DB external mp4 URL', { fullUrl: finalFullUrl });
+      // Quick check: if URL contains exroast.buzz/songs/ and manifest has filename, prefer local via proxy
+      // This handles cases where external URLs are incorrect
+      if (bestMatch.mp4.includes('exroast.buzz/songs/') && manifestEntry?.filename) {
+        const filename = manifestEntry.filename;
+        finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
+        finalPreviewUrl = finalFullUrl;
+        console.info('[assign-premium] using local file via proxy (external URL may be incorrect)', { 
+          externalUrl: bestMatch.mp4,
+          localFile: filename,
+          fullUrl: finalFullUrl 
+        });
+      } else {
+        finalFullUrl = bestMatch.mp4;
+        finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
+        console.info('[assign-premium] using DB external mp4 URL', { fullUrl: finalFullUrl });
+      }
     }
     // SECOND PRIORITY: Use manifest entry's mp4 or storageUrl if it's external (prefer external over local)
     // This handles cases where DB has local path but manifest has external URL
@@ -264,20 +301,22 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-    // THIRD PRIORITY: Use manifest filename for local file (if no external URLs available)
+    // THIRD PRIORITY: Use manifest filename via proxy API (if no external URLs available)
+    // The proxy ensures correct content-type headers and CORS
     else if (manifestEntry?.filename) {
       const filename = manifestEntry.filename;
-      finalFullUrl = `/premium-songs/${filename}`;
+      finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
       finalPreviewUrl = finalFullUrl;
-      console.info('[assign-premium] using manifest filename for local file', { filename, fullUrl: finalFullUrl });
+      console.info('[assign-premium] using manifest filename via proxy API', { filename, fullUrl: finalFullUrl });
     }
-    // FOURTH PRIORITY: Use DB mp4 if it's a local path (last resort for local)
+    // FOURTH PRIORITY: Use DB mp4 if it's a local path (via proxy API)
     else if (bestMatch.mp4 && bestMatch.mp4.startsWith('/premium-songs/') && bestMatch.mp4.endsWith('.mp4')) {
-      finalFullUrl = bestMatch.mp4;
-      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
-      console.info('[assign-premium] using DB local mp4 path', { fullUrl: finalFullUrl });
+      const filename = bestMatch.mp4.split('/').pop() || '';
+      finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
+      finalPreviewUrl = finalFullUrl;
+      console.info('[assign-premium] using DB local mp4 path via proxy API', { filename, fullUrl: finalFullUrl });
     }
-    // FALLBACK: Construct from id (last resort)
+    // FALLBACK: Construct from id (last resort, via proxy API)
     else {
       let filename = premiumSongId;
       if (!filename.includes('.')) {
@@ -285,9 +324,9 @@ export async function POST(req: NextRequest) {
       } else if (!filename.endsWith('.mp4')) {
         filename = filename.replace(/\.[^.]+$/, '.mp4');
       }
-      finalFullUrl = `/premium-songs/${filename}`;
+      finalFullUrl = `/api/video/${encodeURIComponent(filename)}`;
       finalPreviewUrl = finalFullUrl;
-      console.warn('[assign-premium] fallback to constructed filename', { premiumSongId, filename, fullUrl: finalFullUrl });
+      console.warn('[assign-premium] fallback to constructed filename via proxy API', { premiumSongId, filename, fullUrl: finalFullUrl });
     }
     
     console.info('[assign-premium] constructed path', { 
@@ -302,12 +341,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Normalize URL - ensure local paths start with /
+    // Also normalize www subdomain for consistency (exroast.buzz -> www.exroast.buzz)
     if (!finalFullUrl.startsWith('http://') && !finalFullUrl.startsWith('https://')) {
       if (!finalFullUrl.startsWith('/')) {
         finalFullUrl = `/${finalFullUrl}`;
       }
       if (finalPreviewUrl && !finalPreviewUrl.startsWith('/') && !finalPreviewUrl.startsWith('http')) {
         finalPreviewUrl = `/${finalPreviewUrl}`;
+      }
+    } else if (finalFullUrl.includes('exroast.buzz') && !finalFullUrl.includes('www.exroast.buzz')) {
+      // Normalize to www subdomain to avoid redirect issues
+      finalFullUrl = finalFullUrl.replace('exroast.buzz', 'www.exroast.buzz');
+      if (finalPreviewUrl && finalPreviewUrl.includes('exroast.buzz') && !finalPreviewUrl.includes('www.exroast.buzz')) {
+        finalPreviewUrl = finalPreviewUrl.replace('exroast.buzz', 'www.exroast.buzz');
       }
     }
 

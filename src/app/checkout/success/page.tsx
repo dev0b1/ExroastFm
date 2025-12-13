@@ -208,6 +208,7 @@ function SuccessContent() {
                     controls 
                     preload="metadata"
                     playsInline
+                    crossOrigin="anonymous"
                     style={{ width: "100%" }}
                   >
                     <source src={songData.fullUrl} type="video/mp4" />
