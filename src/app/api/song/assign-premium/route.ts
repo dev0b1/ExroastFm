@@ -5,6 +5,27 @@ import { eq } from 'drizzle-orm';
 import { loadManifest } from '@/lib/premium-songs';
 
 /**
+ * Constructs a Supabase Storage URL from a filename.
+ * Handles both local paths (/premium-songs/file.mp4) and plain filenames (file.mp4).
+ */
+function getSupabaseStorageUrl(filename: string): string {
+  // Extract just the filename from a path if needed
+  let cleanFilename = filename;
+  if (filename.includes('/')) {
+    cleanFilename = filename.split('/').pop() || filename;
+  }
+  
+  // URL encode the filename (handles spaces, special chars)
+  const encodedFilename = encodeURIComponent(cleanFilename);
+  
+  // Supabase project ref from the working URL
+  const supabaseProjectRef = 'sfrolivcboneeqmurpze';
+  const bucketName = 'premium-songs';
+  
+  return `https://${supabaseProjectRef}.supabase.co/storage/v1/object/public/${bucketName}/${encodedFilename}`;
+}
+
+/**
  * Assigns a premium song to a purchased song record.
  * Fetches premium songs from database and matches based on story, style, and mode.
  */
@@ -245,24 +266,32 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // FIRST PRIORITY: Use DB mp4 if it's an external URL (these work reliably)
-    // But verify it exists - if it returns 404, fall back to local file
+    // FIRST PRIORITY: Use DB mp4 if it's a valid external URL (Supabase Storage URLs work reliably)
     if (bestMatch.mp4 && bestMatch.mp4.startsWith('http')) {
-      // Quick check: if URL contains exroast.buzz/songs/ and manifest has filename, prefer local file
-      // This handles cases where external URLs are incorrect
-      if (bestMatch.mp4.includes('exroast.buzz/songs/') && manifestEntry?.filename) {
-        const filename = manifestEntry.filename;
-        finalFullUrl = `/premium-songs/${filename}`;
-        finalPreviewUrl = finalFullUrl;
-        console.info('[assign-premium] using local file (external URL may be incorrect)', { 
-          externalUrl: bestMatch.mp4,
-          localFile: filename,
-          fullUrl: finalFullUrl 
-        });
-      } else {
+      // If URL is a Supabase Storage URL, use it directly
+      if (bestMatch.mp4.includes('supabase.co/storage/v1/object/public/premium-songs')) {
         finalFullUrl = bestMatch.mp4;
         finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
-        console.info('[assign-premium] using DB external mp4 URL', { fullUrl: finalFullUrl });
+        console.info('[assign-premium] using DB Supabase Storage URL', { fullUrl: finalFullUrl });
+      }
+      // If URL is incorrect (exroast.buzz/songs/), convert to Supabase Storage URL
+      else if (bestMatch.mp4.includes('exroast.buzz/songs/') || bestMatch.mp4.includes('exroast.buzz/premium-songs/')) {
+        // Extract filename from the incorrect URL
+        const urlParts = bestMatch.mp4.split('/');
+        const filename = urlParts[urlParts.length - 1] || manifestEntry?.filename || premiumSongId + '.mp4';
+        finalFullUrl = getSupabaseStorageUrl(filename);
+        finalPreviewUrl = finalFullUrl;
+        console.info('[assign-premium] converting incorrect external URL to Supabase Storage URL', { 
+          incorrectUrl: bestMatch.mp4,
+          extractedFilename: filename,
+          fullUrl: finalFullUrl 
+        });
+      }
+      // Other external URLs (trust them, but log)
+      else {
+        finalFullUrl = bestMatch.mp4;
+        finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
+        console.info('[assign-premium] using DB external mp4 URL (non-Supabase)', { fullUrl: finalFullUrl });
       }
     }
     // SECOND PRIORITY: Use manifest entry's mp4 or storageUrl if it's external (prefer external over local)
@@ -301,21 +330,29 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-    // THIRD PRIORITY: Use manifest filename directly from public folder (if no external URLs available)
-    // Direct static file serving is more reliable than proxy API
+    // THIRD PRIORITY: Convert local paths to Supabase Storage URLs
+    // If we have a manifest filename or DB local path, construct Supabase Storage URL
     else if (manifestEntry?.filename) {
       const filename = manifestEntry.filename;
-      finalFullUrl = `/premium-songs/${filename}`;
+      finalFullUrl = getSupabaseStorageUrl(filename);
       finalPreviewUrl = finalFullUrl;
-      console.info('[assign-premium] using manifest filename from public folder', { filename, fullUrl: finalFullUrl });
+      console.info('[assign-premium] using manifest filename -> Supabase Storage URL', { 
+        filename, 
+        fullUrl: finalFullUrl 
+      });
     }
-    // FOURTH PRIORITY: Use DB mp4 if it's a local path (direct static file)
+    // FOURTH PRIORITY: Convert DB local path to Supabase Storage URL
     else if (bestMatch.mp4 && bestMatch.mp4.startsWith('/premium-songs/') && bestMatch.mp4.endsWith('.mp4')) {
-      finalFullUrl = bestMatch.mp4;
-      finalPreviewUrl = bestMatch.mp3 || bestMatch.mp4;
-      console.info('[assign-premium] using DB local mp4 path', { fullUrl: finalFullUrl });
+      const filename = bestMatch.mp4.replace('/premium-songs/', '');
+      finalFullUrl = getSupabaseStorageUrl(filename);
+      finalPreviewUrl = bestMatch.mp3 ? getSupabaseStorageUrl(bestMatch.mp3.replace('/premium-songs/', '')) : finalFullUrl;
+      console.info('[assign-premium] converting DB local path to Supabase Storage URL', { 
+        dbPath: bestMatch.mp4,
+        filename,
+        fullUrl: finalFullUrl 
+      });
     }
-    // FALLBACK: Construct from id (last resort, direct static file)
+    // FALLBACK: Construct Supabase Storage URL from id
     else {
       let filename = premiumSongId;
       if (!filename.includes('.')) {
@@ -323,9 +360,13 @@ export async function POST(req: NextRequest) {
       } else if (!filename.endsWith('.mp4')) {
         filename = filename.replace(/\.[^.]+$/, '.mp4');
       }
-      finalFullUrl = `/premium-songs/${filename}`;
+      finalFullUrl = getSupabaseStorageUrl(filename);
       finalPreviewUrl = finalFullUrl;
-      console.warn('[assign-premium] fallback to constructed filename', { premiumSongId, filename, fullUrl: finalFullUrl });
+      console.warn('[assign-premium] fallback: constructing Supabase Storage URL from id', { 
+        premiumSongId, 
+        filename, 
+        fullUrl: finalFullUrl 
+      });
     }
     
     console.info('[assign-premium] final URL decision', { 
