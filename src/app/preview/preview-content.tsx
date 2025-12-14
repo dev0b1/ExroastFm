@@ -97,8 +97,11 @@ export default function PreviewContent() {
   const normalizeTemplateUrl = (url: string | null | undefined): string => {
     if (!url) return '';
     
+    console.log('[preview] Normalizing URL:', url);
+    
     // If it's already a full URL (Supabase Storage), return as-is
     if (url.startsWith('http')) {
+      console.log('[preview] URL is already full URL (Supabase)', url);
       return url;
     }
     
@@ -106,18 +109,22 @@ export default function PreviewContent() {
     let normalizedUrl = url;
     if (normalizedUrl.endsWith('.mp3')) {
       normalizedUrl = normalizedUrl.replace('.mp3', '.mp4');
+      console.log('[preview] Converted .mp3 to .mp4:', normalizedUrl);
     }
     
     // Ensure local paths start with /
     if (!normalizedUrl.startsWith('/') && !normalizedUrl.startsWith('http')) {
       normalizedUrl = `/${normalizedUrl}`;
+      console.log('[preview] Added leading slash:', normalizedUrl);
     }
     
     // If it's a templates path, ensure it's correct
     if (normalizedUrl.includes('templates/') && !normalizedUrl.startsWith('/templates/')) {
       normalizedUrl = normalizedUrl.replace('templates/', '/templates/');
+      console.log('[preview] Fixed templates path:', normalizedUrl);
     }
     
+    console.log('[preview] Final normalized URL:', normalizedUrl);
     return normalizedUrl;
   };
 
@@ -392,52 +399,53 @@ export default function PreviewContent() {
 
                   {/* Video Player */}
                   <div className="relative rounded-lg overflow-hidden bg-black">
-                    {/* Prominent DEMO badge overlay */}
+                    {/* Subtle DEMO badge - smaller and less intrusive */}
                     {song.isTemplate && (
-                      <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg flex items-center gap-2">
-                        <span className="animate-pulse">🎵</span>
-                        <span>DEMO SONG</span>
+                      <div className="absolute top-2 right-2 z-20 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium">
+                        Demo
                       </div>
                     )}
                     
                     <video
                       ref={videoRef}
-                      src={song.fullUrl || song.previewUrl}
                       onTimeUpdate={handleTimeUpdate}
                       onLoadedMetadata={handleLoadedMetadata}
                       onEnded={handleAudioEnded}
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
+                      onLoadStart={() => {
+                        const videoUrl = song.fullUrl || song.previewUrl;
+                        console.log('[preview] Video load start', { url: videoUrl, isTemplate: song.isTemplate });
+                      }}
+                      onCanPlay={() => {
+                        const videoUrl = song.fullUrl || song.previewUrl;
+                        console.log('[preview] Video can play', { url: videoUrl });
+                      }}
+                      onLoadedData={() => {
+                        const videoUrl = song.fullUrl || song.previewUrl;
+                        console.log('[preview] Video loaded data', { url: videoUrl });
+                      }}
                       onError={(e) => {
                         console.error('[preview] Video error:', e);
                         const video = e.currentTarget;
                         console.error('[preview] Video error details:', {
                           error: video.error?.message,
                           code: video.error?.code,
-                          src: video.src
+                          src: video.src,
+                          currentSrc: video.currentSrc,
+                          songUrl: song.fullUrl || song.previewUrl
                         });
                       }}
                       className="w-full rounded-lg"
                       style={{ maxHeight: '400px' }}
                       playsInline
                       preload="metadata"
-                      crossOrigin="anonymous"
+                      controls
                     >
                       <source src={song.fullUrl || song.previewUrl} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                     
-                    {/* Play button overlay */}
-                    {!isPlaying && (
-                      <button
-                        onClick={togglePlay}
-                        className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors z-10"
-                      >
-                        <div className="w-16 h-16 bg-exroast-pink hover:bg-pink-600 rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
-                          <FaPlay className="text-white text-2xl ml-1" />
-                        </div>
-                      </button>
-                    )}
                   </div>
 
                   {/* Progress bar */}
@@ -467,9 +475,9 @@ export default function PreviewContent() {
                   {!song?.isPurchased && (
                     <button
                       onClick={() => setShowUpsellModal(true)}
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2"
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-transform"
                     >
-                      <FaLock /> Get Full Video — $9.99
+                      <FaLock /> Get Your Personalized Roast — $9.99
                     </button>
                   )}
 
@@ -501,43 +509,6 @@ export default function PreviewContent() {
             </div>
           </div>
 
-          <div className="card bg-black to-heartbreak-100 border-2 border-heartbreak-200">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0">
-                <FaLock className="text-3xl text-exroast-gold" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gradient mb-2">
-                  Get Your Personalized Song
-                </h3>
-                <p className="text-white mb-4">
-                  This preview is a polished demo. Want a personalized version tailored to your story — with exclusive mastering and a downloadable MP3? Upgrade to get the full, personalized track delivered to you.
-                </p>
-                {!showSubscription && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => router.push('/pricing')}
-                    className="btn-primary rounded-none flex items-center space-x-2"
-                  >
-                    <FaDownload />
-                    <span>Upgrade to Personalized</span>
-                  </motion.button>
-                )}
-                {/* Allow users with credits (server-side) to request generation. If they don't have credits,
-                    the server will return `no_credits` and we show guidance to upgrade and wait for webhook. */}
-                <div className="mt-3">
-                  <button
-                    onClick={openPreGenModal}
-                    className="bg-white/10 text-white px-4 py-2 rounded-none font-bold inline-flex items-center gap-2 border border-white/10"
-                  >
-                    <FaDownload />
-                    <span>Generate Personalized</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {showSubscription && (
             <motion.div
