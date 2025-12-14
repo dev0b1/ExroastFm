@@ -53,7 +53,7 @@ export default function HomePage() {
                       ROAST YOUR EX
                     </h2>
                     <p className="text-xl md:text-2xl text-white font-bold">
-                      30-second AI diss track<br />that ends them
+                      60-second AI diss track<br />that ends them
                     </p>
                   </div>
                   <div className="p-6">

@@ -147,7 +147,7 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
           Create Your Savage Roast 🔥
         </h2>
         <p className="text-lg md:text-xl text-gray-300 font-semibold">
-          30-second AI diss track that ends them
+          60-second AI diss track that ends them
         </p>
       </div>
 

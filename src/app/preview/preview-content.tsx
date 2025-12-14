@@ -551,11 +551,14 @@ export default function PreviewContent() {
                         <FaShare /> {isPreloading ? 'Preparing...' : 'Share Video'}
                       </button>
                       
-                      {/* Other share options */}
+                      {/* Other share options - updated to share video file */}
                       <SocialShareButtons
                         url={shareUrl}
                         title={song.title}
                         message={song.isPurchased ? `I just paid $9.99 to have my ex roasted by AI and it's the best money I've ever spent 🔥🎵` : `Check out my ex roast demo! 🔥`}
+                        videoFile={cachedVideoFile}
+                        videoUrl={song.previewUrl || song.fullUrl}
+                        isPreloading={isPreloading}
                       />
                     </div>
                   </div>

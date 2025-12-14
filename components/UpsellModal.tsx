@@ -53,6 +53,7 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/90 backdrop-blur-md z-50"
+            style={{ pointerEvents: 'auto' }}
           />
           
           <motion.div
@@ -61,8 +62,9 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-md max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-br from-[#1a0a1f] via-[#0d0510] to-[#0a0a15] rounded-2xl p-4 sm:p-6 border border-pink-500/40 shadow-2xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#1a0a1f] via-[#0d0510] to-[#0a0a15] rounded-2xl p-4 sm:p-6 border border-pink-500/40 shadow-2xl relative overflow-hidden" onClick={(e) => e.stopPropagation()}>
               {/* Animated background effects */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/15 rounded-full blur-2xl" />

@@ -17,7 +17,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-gray-400 text-sm font-bold">
-              Turn your breakup into a savage 30-second roast song. Zero sadness. 100% petty. 💅
+              Turn your breakup into a savage 60-second roast song. Zero sadness. 100% petty. 💅
             </p>
           </div>
 
