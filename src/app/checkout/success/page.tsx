@@ -1,7 +1,7 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from 'react';
-import { FaTwitter, FaFacebook, FaCopy, FaDownload, FaShare, FaTiktok, FaWhatsapp } from 'react-icons/fa';
+import { FaTwitter, FaFacebook, FaCopy, FaDownload, FaShare, FaTiktok, FaWhatsapp, FaInstagram } from 'react-icons/fa';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -17,6 +17,8 @@ function SuccessContent() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!songId) return;
@@ -311,100 +313,314 @@ function SuccessContent() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-center gap-3">
+                  {/* Share status message */}
+                  {shareStatus && (
+                    <div className="text-center text-sm text-yellow-400 mb-2">
+                      {shareStatus}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 w-full">
+                    {/* Download - Primary action */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          setShareStatus('Downloading video...');
+                          const response = await fetch(songData.fullUrl);
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `exroast-${songId || 'song'}.mp4`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+                          setShareStatus('Downloaded!');
+                          setTimeout(() => setShareStatus(null), 2000);
+                        } catch (err) {
+                          console.error('Download failed:', err);
+                          // Fallback: direct link
+                          window.location.href = songData.fullUrl;
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                    >
+                      <FaDownload /> Download
+                    </button>
+
+                    {/* Share Video File - tries to share actual file */}
+                    <button
+                      disabled={isSharing}
+                      onClick={async () => {
+                        setIsSharing(true);
+                        setShareStatus('Preparing video...');
+                        try {
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) throw new Error('Failed to fetch video');
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          // Try to share file via Web Share API
+                          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            setShareStatus('Opening share menu...');
+                            await navigator.share({
+                              files: [file],
+                              title: 'My ExRoast Song 🔥',
+                              text: 'Check out my ExRoast song!'
+                            });
+                            setShareStatus('Shared!');
+                          } else if (navigator.share) {
+                            // Fall back to sharing URL
+                            setShareStatus('Sharing link...');
+                            await navigator.share({
+                              title: 'My ExRoast Song 🔥',
+                              text: 'Check out my ExRoast song! 🔥🎶',
+                              url: songData.fullUrl
+                            });
+                            setShareStatus('Shared!');
+                          } else {
+                            // No share API - copy to clipboard
+                            await navigator.clipboard.writeText(songData.fullUrl);
+                            setShareStatus('Link copied! Paste anywhere to share.');
+                          }
+                        } catch (err: any) {
+                          if (err.name === 'AbortError') {
+                            setShareStatus(null);
+                          } else {
+                            console.error('Share failed:', err);
+                            // Fallback: copy link
+                            try {
+                              await navigator.clipboard.writeText(songData.fullUrl);
+                              setShareStatus('Link copied! Paste anywhere to share.');
+                            } catch {
+                              setShareStatus('Could not share. Try downloading instead.');
+                            }
+                          }
+                        } finally {
+                          setIsSharing(false);
+                          setTimeout(() => setShareStatus(null), 3000);
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                    >
+                      <FaShare /> {isSharing ? 'Sharing...' : 'Share Video'}
+                    </button>
+
                     {/* Copy Link */}
                     <button 
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(songData.fullUrl);
                           setCopySuccess(true);
-                          setTimeout(() => setCopySuccess(false), 2000);
+                          setShareStatus('Link copied!');
+                          setTimeout(() => {
+                            setCopySuccess(false);
+                            setShareStatus(null);
+                          }, 2000);
                         } catch (err) {
                           console.error('Failed to copy:', err);
                         }
                       }} 
-                      className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                      className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors font-medium"
                     >
-                      <FaCopy /> {copySuccess ? 'Copied!' : 'Copy Video Link'}
+                      <FaCopy /> {copySuccess ? 'Copied!' : 'Copy Link'}
                     </button>
 
-                    {/* Download */}
-                    <a
-                      href={songData.fullUrl}
-                      download={`exroast-${songId || 'song'}.mp4`}
-                      className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                      <FaDownload /> Download
-                    </a>
-
-                    {/* Share - uses native share API or copies link */}
+                    {/* WhatsApp */}
                     <button
                       onClick={async () => {
+                        setIsSharing(true);
+                        setShareStatus('Preparing for WhatsApp...');
                         try {
-                          if (navigator.share) {
+                          // Try to share file first
+                          const response = await fetch(songData.fullUrl);
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                             await navigator.share({
-                              title: 'ExRoast Song 🔥',
-                              text: 'Check out my ExRoast song! 🔥🎶',
-                              url: songData.fullUrl
+                              files: [file],
+                              title: 'My ExRoast Song 🔥'
                             });
+                            setShareStatus('Shared!');
                           } else {
-                            await navigator.clipboard.writeText(songData.fullUrl);
-                            setCopySuccess(true);
-                            setTimeout(() => setCopySuccess(false), 2000);
+                            // Fallback to WhatsApp link
+                            window.location.href = `https://wa.me/?text=${encodeURIComponent(`Check out my ExRoast song! 🔥🎶 ${songData.fullUrl}`)}`;
                           }
                         } catch (err: any) {
                           if (err.name !== 'AbortError') {
-                            await navigator.clipboard.writeText(songData.fullUrl);
-                            setCopySuccess(true);
-                            setTimeout(() => setCopySuccess(false), 2000);
+                            window.location.href = `https://wa.me/?text=${encodeURIComponent(`Check out my ExRoast song! 🔥🎶 ${songData.fullUrl}`)}`;
                           }
+                        } finally {
+                          setIsSharing(false);
+                          setTimeout(() => setShareStatus(null), 2000);
                         }
                       }}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                      <FaShare /> Share
-                    </button>
-
-                    {/* WhatsApp - direct link */}
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`Check out my ExRoast song! 🔥🎶 ${songData.fullUrl}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                      className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg transition-colors font-medium"
                     >
                       <FaWhatsapp /> WhatsApp
-                    </a>
+                    </button>
 
-                    {/* TikTok - direct link */}
-                    <a
-                      href={`https://www.tiktok.com/upload?caption=${encodeURIComponent(`Check out my ExRoast song! 🔥🎶`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors border border-gray-700"
+                    {/* TikTok */}
+                    <button
+                      onClick={async () => {
+                        setIsSharing(true);
+                        setShareStatus('Preparing for TikTok...');
+                        try {
+                          // Try to share file first
+                          const response = await fetch(songData.fullUrl);
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                              files: [file],
+                              title: 'My ExRoast Song 🔥'
+                            });
+                            setShareStatus('Shared!');
+                          } else {
+                            // Fallback: download first, then open TikTok
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `exroast-${songId || 'song'}.mp4`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                            setShareStatus('Video downloaded! Open TikTok and upload it.');
+                            setTimeout(() => {
+                              window.location.href = 'https://www.tiktok.com/upload';
+                            }, 1500);
+                          }
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            setShareStatus('Download the video first, then upload to TikTok');
+                          }
+                        } finally {
+                          setIsSharing(false);
+                          setTimeout(() => setShareStatus(null), 4000);
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-3 rounded-lg transition-colors font-medium border border-white/20"
                     >
                       <FaTiktok /> TikTok
-                    </a>
+                    </button>
 
-                    {/* Twitter - direct link */}
-                    <a
-                      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast song! 🔥🎶")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    {/* Twitter */}
+                    <button
+                      onClick={async () => {
+                        setIsSharing(true);
+                        setShareStatus('Preparing for Twitter...');
+                        try {
+                          const response = await fetch(songData.fullUrl);
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                              files: [file],
+                              title: 'My ExRoast Song 🔥'
+                            });
+                            setShareStatus('Shared!');
+                          } else {
+                            window.location.href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast song! 🔥🎶")}`;
+                          }
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            window.location.href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast song! 🔥🎶")}`;
+                          }
+                        } finally {
+                          setIsSharing(false);
+                          setTimeout(() => setShareStatus(null), 2000);
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors font-medium"
                     >
                       <FaTwitter /> Twitter
-                    </a>
+                    </button>
 
-                    {/* Facebook - direct link */}
-                    <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors"
+                    {/* Facebook */}
+                    <button
+                      onClick={async () => {
+                        setIsSharing(true);
+                        setShareStatus('Preparing for Facebook...');
+                        try {
+                          const response = await fetch(songData.fullUrl);
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                              files: [file],
+                              title: 'My ExRoast Song 🔥'
+                            });
+                            setShareStatus('Shared!');
+                          } else {
+                            window.location.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`;
+                          }
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            window.location.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`;
+                          }
+                        } finally {
+                          setIsSharing(false);
+                          setTimeout(() => setShareStatus(null), 2000);
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-3 rounded-lg transition-colors font-medium"
                     >
                       <FaFacebook /> Facebook
-                    </a>
+                    </button>
+
+                    {/* Instagram - download first approach */}
+                    <button
+                      onClick={async () => {
+                        setIsSharing(true);
+                        setShareStatus('Preparing for Instagram...');
+                        try {
+                          const response = await fetch(songData.fullUrl);
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                              files: [file],
+                              title: 'My ExRoast Song 🔥'
+                            });
+                            setShareStatus('Shared!');
+                          } else {
+                            // Download the video for Instagram
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `exroast-${songId || 'song'}.mp4`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                            setShareStatus('Video downloaded! Open Instagram and share it.');
+                          }
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            setShareStatus('Download the video first, then upload to Instagram');
+                          }
+                        } finally {
+                          setIsSharing(false);
+                          setTimeout(() => setShareStatus(null), 4000);
+                        }
+                      }}
+                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:opacity-90 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+                    >
+                      <FaInstagram /> Instagram
+                    </button>
                   </div>
+
+                  <p className="text-gray-400 text-xs mt-4">
+                    💡 Tip: On mobile, "Share Video" will let you share the actual video file to any app!
+                  </p>
                 </div>
               ) : (
                 <div>
