@@ -1,7 +1,7 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from 'react';
-import { FaTwitter, FaFacebook, FaCopy, FaDownload } from 'react-icons/fa';
+import { FaTwitter, FaFacebook, FaCopy, FaDownload, FaShare } from 'react-icons/fa';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -246,79 +246,175 @@ function SuccessContent() {
               <p className="text-green-700 font-semibold mb-4">Your premium song is ready!</p>
               {songData?.fullUrl ? (
                 <div className="space-y-4">
-                  <video 
-                    className="w-full rounded-lg shadow-lg" 
-                    controls 
-                    preload="metadata"
-                    playsInline
-                    crossOrigin="anonymous"
-                    style={{ width: "100%" }}
-                    onLoadStart={() => {
-                      console.log('[video] Load start', { 
-                        url: songData.fullUrl,
-                        isSupabase: songData.fullUrl?.includes('supabase'),
-                        isHttp: songData.fullUrl?.startsWith('http')
-                      });
-                    }}
-                    onLoadedMetadata={() => {
-                      console.log('[video] Metadata loaded', { 
-                        url: songData.fullUrl,
-                        videoWidth: (document.querySelector('video') as HTMLVideoElement)?.videoWidth,
-                        videoHeight: (document.querySelector('video') as HTMLVideoElement)?.videoHeight
-                      });
-                    }}
-                    onLoadedData={() => {
-                      console.log('[video] Data loaded', { url: songData.fullUrl });
-                    }}
-                    onCanPlay={() => {
-                      console.log('[video] Can play', { url: songData.fullUrl });
-                    }}
-                    onError={(e) => {
-                      const video = e.currentTarget;
-                      console.error('[video] Error loading video', {
-                        url: songData.fullUrl,
-                        error: video.error,
-                        errorCode: video.error?.code,
-                        errorMessage: video.error?.message,
-                        networkState: video.networkState,
-                        readyState: video.readyState,
-                        src: video.currentSrc || video.src
-                      });
-                    }}
-                    onStalled={() => {
-                      console.warn('[video] Stalled', { url: songData.fullUrl });
-                    }}
-                    onSuspend={() => {
-                      console.warn('[video] Suspend', { url: songData.fullUrl });
-                    }}
-                  >
-                    <source src={songData.fullUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                  <div className="text-xs text-gray-500 mt-2">
-                    <p>Video URL: <code className="break-all">{songData.fullUrl}</code></p>
+                  <div className="max-w-2xl mx-auto">
+                    <video 
+                      className="w-full rounded-lg shadow-lg bg-black" 
+                      controls 
+                      preload="metadata"
+                      playsInline
+                      crossOrigin="anonymous"
+                      style={{ 
+                        maxWidth: "100%",
+                        maxHeight: "70vh",
+                        aspectRatio: "16/9",
+                        objectFit: "contain"
+                      }}
+                      onLoadStart={() => {
+                        console.log('[video] Load start', { 
+                          url: songData.fullUrl,
+                          isSupabase: songData.fullUrl?.includes('supabase'),
+                          isHttp: songData.fullUrl?.startsWith('http')
+                        });
+                      }}
+                      onLoadedMetadata={() => {
+                        console.log('[video] Metadata loaded', { 
+                          url: songData.fullUrl,
+                          videoWidth: (document.querySelector('video') as HTMLVideoElement)?.videoWidth,
+                          videoHeight: (document.querySelector('video') as HTMLVideoElement)?.videoHeight
+                        });
+                      }}
+                      onLoadedData={() => {
+                        console.log('[video] Data loaded', { url: songData.fullUrl });
+                      }}
+                      onCanPlay={() => {
+                        console.log('[video] Can play', { url: songData.fullUrl });
+                      }}
+                      onError={(e) => {
+                        const video = e.currentTarget;
+                        console.error('[video] Error loading video', {
+                          url: songData.fullUrl,
+                          error: video.error,
+                          errorCode: video.error?.code,
+                          errorMessage: video.error?.message,
+                          networkState: video.networkState,
+                          readyState: video.readyState,
+                          src: video.currentSrc || video.src
+                        });
+                      }}
+                      onStalled={() => {
+                        console.warn('[video] Stalled', { url: songData.fullUrl });
+                      }}
+                      onSuspend={() => {
+                        console.warn('[video] Suspend', { url: songData.fullUrl });
+                      }}
+                    >
+                      <source src={songData.fullUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
 
-                  <div className="flex items-center justify-center gap-3">
-                    <button onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(window.location.href);
-                        setCopySuccess(true);
-                        setTimeout(() => setCopySuccess(false), 2000);
-                      } catch {}
-                    }} className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-lg">
-                      <FaCopy /> {copySuccess ? 'Link Copied' : 'Copy Link'}
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button 
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(window.location.href);
+                          setCopySuccess(true);
+                          setTimeout(() => setCopySuccess(false), 2000);
+                        } catch (err) {
+                          console.error('Failed to copy link:', err);
+                        }
+                      }} 
+                      className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <FaCopy /> {copySuccess ? 'Link Copied!' : 'Copy Link'}
                     </button>
 
-                    <a className="flex items-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-lg" href={songData.fullUrl} download>
+                    <button
+                      onClick={async () => {
+                        try {
+                          console.log('[download] Starting download', { url: songData.fullUrl });
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch video: ${response.status}`);
+                          }
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `exroast-${songId || 'song'}.mp4`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+                          console.log('[download] Download completed');
+                        } catch (err) {
+                          console.error('[download] Download failed', err);
+                          // Fallback: open in new tab
+                          window.open(songData.fullUrl, '_blank');
+                        }
+                      }}
+                      className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
                       <FaDownload /> Download MP4
-                    </a>
+                    </button>
 
-                    <a className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg" target="_blank" rel="noreferrer" href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent("Just got my ExRoast premium song 🎶")}`}>
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Use Web Share API if available (supports sharing files)
+                          if (navigator.share && navigator.canShare) {
+                            // Fetch the video file
+                            const response = await fetch(songData.fullUrl);
+                            if (!response.ok) {
+                              throw new Error(`Failed to fetch video: ${response.status}`);
+                            }
+                            const blob = await response.blob();
+                            const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                            
+                            if (navigator.canShare({ files: [file] })) {
+                              await navigator.share({
+                                files: [file],
+                                title: 'My ExRoast Premium Song',
+                                text: 'Check out my ExRoast premium song! 🎶'
+                              });
+                              return;
+                            }
+                          }
+                          // Fallback: share the video URL
+                          if (navigator.share) {
+                            await navigator.share({
+                              title: 'My ExRoast Premium Song',
+                              text: 'Check out my ExRoast premium song! 🎶',
+                              url: songData.fullUrl
+                            });
+                          } else {
+                            // Fallback: copy video URL to clipboard
+                            await navigator.clipboard.writeText(songData.fullUrl);
+                            setCopySuccess(true);
+                            setTimeout(() => setCopySuccess(false), 2000);
+                            alert('Video URL copied to clipboard! You can paste it anywhere to share.');
+                          }
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            console.error('[share] Share failed', err);
+                            // Fallback: open share dialog with URL
+                            const shareText = `Check out my ExRoast premium song! 🎶 ${songData.fullUrl}`;
+                            await navigator.clipboard.writeText(shareText);
+                            alert('Share text copied to clipboard!');
+                          }
+                        }
+                      }}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <FaShare /> Share Video
+                    </button>
+
+                    <a 
+                      className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors" 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast premium song 🎶")}`}
+                    >
                       <FaTwitter /> Twitter
                     </a>
 
-                    <a className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg" target="_blank" rel="noreferrer" href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}>
+                    <a 
+                      className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors" 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`}
+                    >
                       <FaFacebook /> Facebook
                     </a>
                   </div>
