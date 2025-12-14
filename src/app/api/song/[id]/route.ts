@@ -45,8 +45,17 @@ export async function GET(
           if (prem) {
             const p: any = prem;
             const storage = p.storageUrl || null;
-            const fullUrl = p.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || p.mp3 || storage || null;
-            const previewUrl = p.mp3 || fullUrl || '/audio/placeholder-preview.mp3';
+            let fullUrl = p.mp4 || (storage && String(storage).toLowerCase().endsWith('.mp4') ? storage : null) || p.mp3 || storage || null;
+            let previewUrl = p.mp3 || fullUrl || '/audio/placeholder-preview.mp3';
+            
+            // Normalize template URLs: convert .mp3 to .mp4 for templates
+            if (fullUrl && fullUrl.endsWith('.mp3')) {
+              fullUrl = fullUrl.replace('.mp3', '.mp4');
+            }
+            if (previewUrl && previewUrl.endsWith('.mp3')) {
+              previewUrl = previewUrl.replace('.mp3', '.mp4');
+            }
+            
             return NextResponse.json({
               success: true,
               song: {
@@ -74,7 +83,27 @@ export async function GET(
         );
     }
 
-    console.info('[api/song] returning song', { id: song.id, isPurchased: song.isPurchased, hasFullUrl: !!song.fullUrl, previewUrl: !!song.previewUrl });
+    // Normalize template URLs: convert .mp3 to .mp4 if needed
+    let previewUrl = song.previewUrl;
+    let fullUrl = song.isPurchased ? song.fullUrl : song.previewUrl;
+    
+    if (song.isTemplate) {
+      if (previewUrl && previewUrl.endsWith('.mp3')) {
+        previewUrl = previewUrl.replace('.mp3', '.mp4');
+      }
+      if (fullUrl && fullUrl.endsWith('.mp3')) {
+        fullUrl = fullUrl.replace('.mp3', '.mp4');
+      }
+      // Ensure local paths start with /
+      if (previewUrl && !previewUrl.startsWith('/') && !previewUrl.startsWith('http')) {
+        previewUrl = `/${previewUrl}`;
+      }
+      if (fullUrl && !fullUrl.startsWith('/') && !fullUrl.startsWith('http')) {
+        fullUrl = `/${fullUrl}`;
+      }
+    }
+    
+    console.info('[api/song] returning song', { id: song.id, isPurchased: song.isPurchased, hasFullUrl: !!song.fullUrl, previewUrl: !!previewUrl, isTemplate: song.isTemplate });
     return NextResponse.json({
       success: true,
       song: {
@@ -83,8 +112,8 @@ export async function GET(
         story: song.story,
         style: song.style,
         lyrics: song.lyrics || '',
-        previewUrl: song.previewUrl,
-        fullUrl: song.isPurchased ? song.fullUrl : song.previewUrl,
+        previewUrl,
+        fullUrl,
         isPurchased: song.isPurchased,
         isTemplate: song.isTemplate || false,
         createdAt: song.createdAt,

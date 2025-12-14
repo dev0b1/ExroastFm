@@ -33,13 +33,27 @@ export async function POST(request: NextRequest) {
     console.log('Selected template:', selectedTemplate.filename, 'Score:', match?.score || 0);
 
     // Get lyrics for the selected template
-    const templateId = selectedTemplate.filename.replace('.mp3', '');
+    const templateId = selectedTemplate.filename.replace('.mp3', '').replace('.mp4', '');
     const templateLyrics = LYRICS_DATA[templateId] || '';
+
+    // Normalize template URL: convert .mp3 to .mp4 if needed
+    let templateUrl = selectedTemplate.storageUrl;
+    if (templateUrl.endsWith('.mp3')) {
+      templateUrl = templateUrl.replace('.mp3', '.mp4');
+    }
+    // Ensure local paths start with /
+    if (!templateUrl.startsWith('/') && !templateUrl.startsWith('http')) {
+      templateUrl = `/${templateUrl}`;
+    }
+    // Fix templates path
+    if (templateUrl.includes('templates/') && !templateUrl.startsWith('/templates/')) {
+      templateUrl = templateUrl.replace('templates/', '/templates/');
+    }
 
     const [song] = await db.insert(songs).values({
       title: `${style.charAt(0).toUpperCase() + style.slice(1)} Roast`,
       lyrics: templateLyrics,
-      previewUrl: selectedTemplate.storageUrl,
+      previewUrl: templateUrl,
       fullUrl: '',
       style,
       story: story.substring(0, 500),
@@ -67,8 +81,8 @@ export async function POST(request: NextRequest) {
       success: true,
       songId: song.id,
       title: song.title,
-      // Return the mp3 preview URL directly for free users (will be replaced with video later)
-      previewUrl: selectedTemplate.storageUrl,
+      // Return the normalized MP4 preview URL
+      previewUrl: templateUrl,
       message: 'Template preview generated! Upgrade to Pro for personalized roasts.',
       isTemplate: true,
       matchScore: match?.score || 0

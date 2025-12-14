@@ -55,6 +55,7 @@ export default function PreviewContent() {
   const [actualDuration, setActualDuration] = useState(10);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasShownModalRef = useRef(false);
+  const midPlayModalShownRef = useRef(false);
 
   useEffect(() => {
     if (songId) {
@@ -92,15 +93,51 @@ export default function PreviewContent() {
     return () => { mounted = false; };
   }, [song]);
 
+  // Helper function to normalize template video URLs
+  const normalizeTemplateUrl = (url: string | null | undefined): string => {
+    if (!url) return '';
+    
+    // If it's already a full URL (Supabase Storage), return as-is
+    if (url.startsWith('http')) {
+      return url;
+    }
+    
+    // Convert .mp3 to .mp4 for templates (since we updated to MP4)
+    let normalizedUrl = url;
+    if (normalizedUrl.endsWith('.mp3')) {
+      normalizedUrl = normalizedUrl.replace('.mp3', '.mp4');
+    }
+    
+    // Ensure local paths start with /
+    if (!normalizedUrl.startsWith('/') && !normalizedUrl.startsWith('http')) {
+      normalizedUrl = `/${normalizedUrl}`;
+    }
+    
+    // If it's a templates path, ensure it's correct
+    if (normalizedUrl.includes('templates/') && !normalizedUrl.startsWith('/templates/')) {
+      normalizedUrl = normalizedUrl.replace('templates/', '/templates/');
+    }
+    
+    return normalizedUrl;
+  };
+
   const fetchSong = async (id: string) => {
     try {
       const response = await fetch(`/api/song/${id}`);
       const data = await response.json();
       
       if (data.success) {
-        setSong(data.song);
+        const songData = data.song;
+        
+        // Normalize template URLs (convert .mp3 to .mp4 if needed)
+        if (songData.isTemplate) {
+          songData.previewUrl = normalizeTemplateUrl(songData.previewUrl);
+          songData.fullUrl = normalizeTemplateUrl(songData.fullUrl || songData.previewUrl);
+        }
+        
+        setSong(songData);
         // Initialize edited lyrics for pre-generation modal
-        setEditedLyrics(data.song?.lyrics ?? "");
+        setEditedLyrics(songData?.lyrics ?? "");
         
         if (typeof window !== 'undefined') {
           const hasSeenDailyQuoteOptIn = localStorage.getItem('hasSeenDailyQuoteOptIn');
@@ -150,8 +187,9 @@ export default function PreviewContent() {
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      // reset the shown-modal flag so replays can show the upsell again
+      // reset the shown-modal flags so replays can show the upsell again
       hasShownModalRef.current = false;
+      midPlayModalShownRef.current = false;
       videoRef.current.play();
       setIsPlaying(true);
     }
@@ -161,6 +199,15 @@ export default function PreviewContent() {
     if (!videoRef.current) return;
     const current = videoRef.current.currentTime;
     setCurrentTime(current);
+    
+    // Show upsell modal mid-play for demo songs (after 10-15 seconds)
+    if (!song?.isPurchased && song?.isTemplate && !hasShownModalRef.current && !midPlayModalShownRef.current) {
+      // Show modal after 12 seconds of playback
+      if (current >= 12 && current < 13) {
+        midPlayModalShownRef.current = true;
+        setShowUpsellModal(true);
+      }
+    }
   };
 
   const handleAudioEnded = () => {
@@ -345,6 +392,14 @@ export default function PreviewContent() {
 
                   {/* Video Player */}
                   <div className="relative rounded-lg overflow-hidden bg-black">
+                    {/* Prominent DEMO badge overlay */}
+                    {song.isTemplate && (
+                      <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg flex items-center gap-2">
+                        <span className="animate-pulse">🎵</span>
+                        <span>DEMO SONG</span>
+                      </div>
+                    )}
+                    
                     <video
                       ref={videoRef}
                       src={song.fullUrl || song.previewUrl}
@@ -353,17 +408,30 @@ export default function PreviewContent() {
                       onEnded={handleAudioEnded}
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
+                      onError={(e) => {
+                        console.error('[preview] Video error:', e);
+                        const video = e.currentTarget;
+                        console.error('[preview] Video error details:', {
+                          error: video.error?.message,
+                          code: video.error?.code,
+                          src: video.src
+                        });
+                      }}
                       className="w-full rounded-lg"
                       style={{ maxHeight: '400px' }}
                       playsInline
                       preload="metadata"
-                    />
+                      crossOrigin="anonymous"
+                    >
+                      <source src={song.fullUrl || song.previewUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
                     
                     {/* Play button overlay */}
                     {!isPlaying && (
                       <button
                         onClick={togglePlay}
-                        className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors"
+                        className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors z-10"
                       >
                         <div className="w-16 h-16 bg-exroast-pink hover:bg-pink-600 rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
                           <FaPlay className="text-white text-2xl ml-1" />
