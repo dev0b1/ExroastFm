@@ -60,9 +60,9 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-md"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-md max-h-[90vh] overflow-y-auto"
           >
-            <div className="bg-gradient-to-br from-[#1a0a1f] via-[#0d0510] to-[#0a0a15] rounded-2xl p-6 border border-pink-500/40 shadow-2xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#1a0a1f] via-[#0d0510] to-[#0a0a15] rounded-2xl p-4 sm:p-6 border border-pink-500/40 shadow-2xl relative overflow-hidden">
               {/* Animated background effects */}
               <div className="absolute top-0 right-0 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/15 rounded-full blur-2xl" />
@@ -70,10 +70,10 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
               
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 text-white hover:text-pink-400 transition-all rounded-full p-2 z-10 shadow-lg"
                 aria-label="Close"
               >
-                <FaTimes className="text-lg" />
+                <FaTimes className="text-lg sm:text-xl" />
               </button>
 
               {/* Emotional header */}
@@ -109,7 +109,7 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
                   {exName ? (
                     <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast of {exName}</span> and show them what they lost. Share it everywhere! 🔥</>
                   ) : (
-                    <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast video</span> and show them what they lost. Share it everywhere — let them see you winning. 🔥</>
+                    <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast video</span> personalized to your story. Don't hold back — include their name or nickname for maximum impact! Share it everywhere — let them see you winning. 🔥</>
                   )}
                 </p>
               </div>

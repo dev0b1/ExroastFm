@@ -242,6 +242,10 @@ export default function TemplatePage() {
         }
 
         setTimeout(() => {
+          // Scroll to top before navigation
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }
           router.push(`/preview?songId=${data.songId}`);
         }, 1500);
       } else {

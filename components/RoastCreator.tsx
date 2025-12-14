@@ -115,6 +115,10 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
         // daily opt-in is handled in the Daily tab; creation flow no longer contains the opt-in card
 
         setTimeout(() => {
+          // Scroll to top before navigation
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          }
           if (onComplete) onComplete(data.songId);
           else router.push(`/preview?songId=${data.songId}`);
         }, 900);
@@ -161,7 +165,7 @@ export default function RoastCreator({ userId, initialMode, onComplete }: RoastC
               />
               <div className="absolute bottom-4 right-4 text-sm text-white/70 font-medium">{story.length}/500</div>
             </div>
-          <p className="text-sm text-white italic">💡 The more specific, the more savage the roast</p>
+          <p className="text-sm text-white italic">💡 The more specific, the more savage the roast. <span className="text-pink-400 font-semibold">Don't hold back — include their name or nickname for a personalized roast!</span></p>
         </div>
 
         <div className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">

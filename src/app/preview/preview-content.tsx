@@ -471,29 +471,6 @@ export default function PreviewContent() {
                     
                   </div>
 
-                  {/* Progress bar */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={togglePlay}
-                      className="bg-exroast-pink text-white px-5 py-2 rounded-full font-bold flex-shrink-0 text-sm"
-                    >
-                      {isPlaying ? <><FaPause className="inline mr-1"/> Pause</> : <><FaPlay className="inline mr-1"/> Play</>}
-                    </button>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden w-full">
-                        <div
-                          className="h-2 bg-exroast-pink"
-                          style={{ width: `${Math.max(0, Math.min(100, (currentTime / (duration || 1)) * 100))}%`, transition: 'width 180ms linear' }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-300 mt-1">
-                        <span>{formatTime(currentTime)}</span>
-                        <span>{formatTime(duration || 0)}</span>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Upgrade CTA - prominent for non-purchased */}
                   {!song?.isPurchased && (
                     <button
