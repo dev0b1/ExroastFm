@@ -222,7 +222,7 @@ function SuccessContent() {
   }, [songId]);
 
   return (
-    <div className="max-w-2xl mx-auto p-8 text-center">
+    <div className="max-w-4xl mx-auto p-8 text-center">
       <h1 className="text-3xl font-bold text-green-600 mb-4">Payment Successful! 🎉</h1>
 
       {!songId ? (
@@ -246,40 +246,33 @@ function SuccessContent() {
 
           {verified === true && (
             <>
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-pink-600 mb-2">🔥 Your Roast Song is Ready! 🔥</h2>
-                <p className="text-gray-700 text-lg">Time to roast your ex! Play it, share it, and let the world know what they're missing. This is your moment to shine! 💀✨</p>
-              </div>
+              <p className="text-gray-700 text-lg mb-4">Time to roast your ex! Play it, share it, and let the world know what they're missing. 🔥💀</p>
               {songData?.fullUrl ? (
                 <div className="space-y-4">
-                  <div className="max-w-3xl mx-auto bg-gray-900 rounded-xl p-4 shadow-2xl">
-                    <video 
-                      className="w-full rounded-lg bg-black" 
-                      preload="metadata"
-                      playsInline
-                      crossOrigin="anonymous"
-                      style={{ 
-                        width: "100%",
-                        height: "auto",
-                        maxHeight: "75vh",
-                        aspectRatio: "16/9",
-                        objectFit: "contain"
-                      }}
-                      controls={false}
-                      ref={(video) => {
-                        if (video) {
-                          setVideoRef(video);
-                          // Store video ref for custom controls
-                          (window as any).__videoRef = video;
-                        }
-                      }}
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                      onVolumeChange={() => {
-                        if (videoRef) {
-                          setIsMuted(videoRef.muted);
-                        }
-                      }}
+                  <video 
+                    className="w-full rounded-lg shadow-lg bg-black" 
+                    preload="metadata"
+                    playsInline
+                    crossOrigin="anonymous"
+                    style={{ 
+                      width: "100%",
+                      minHeight: "400px",
+                      maxHeight: "80vh"
+                    }}
+                    controls={false}
+                    ref={(video) => {
+                      if (video) {
+                        setVideoRef(video);
+                        (window as any).__videoRef = video;
+                      }
+                    }}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onVolumeChange={() => {
+                      if (videoRef) {
+                        setIsMuted(videoRef.muted);
+                      }
+                    }}
                       onLoadStart={() => {
                         console.log('[video] Load start', { 
                           url: songData.fullUrl,
@@ -371,7 +364,6 @@ function SuccessContent() {
                         {isMuted ? '🔇 Unmute' : '🔊 Mute'}
                       </button>
                     </div>
-                  </div>
 
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <button 
