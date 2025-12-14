@@ -10,7 +10,9 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed-templates.ts",
-    "db:import:premium": "tsx scripts/import-premium-songs.ts"
+    "db:import:premium": "tsx scripts/import-premium-songs.ts",
+    "upload:premium-songs": "tsx scripts/upload-premium-songs-to-supabase.ts",
+    "update:db-from-uploads": "tsx scripts/update-db-from-upload-results.ts"
   },
   "dependencies": {
     "@dodopayments/nextjs": "^0.3.1",

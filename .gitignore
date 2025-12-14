@@ -41,5 +41,10 @@ prisma/dev.db
 prisma/dev.db-journal
 
 # Ignore locally added premium song assets (large MP4s)
-public/premium-songs/
+# Files are uploaded to Supabase Storage instead of Git
+# See docs/UPLOAD_PREMIUM_SONGS.md for upload instructions
+public/premium-songs/*.mp4
+public/premium-songs/*.mp3
+# Keep manifest.json committed
+!public/premium-songs/manifest.json
 backup-with-premium.bundle
