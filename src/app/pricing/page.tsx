@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaCheck, FaStar, FaShieldAlt, FaLock } from "react-icons/fa";
 // Header/Footer provided by NavWrapper in root layout
-import AuthAwareCTA from "@/components/AuthAwareCTA";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { SINGLE_AMOUNT } from '@/lib/pricing';
 import { openPrimaryCheckout } from '@/lib/checkout';
@@ -36,7 +35,7 @@ export default function PricingPage() {
               </div>
               <div className="flex items-center gap-2 text-white bg-gray-900/50 px-6 py-3 rounded-full border border-exroast-gold/30">
                 <FaLock className="text-exroast-gold" />
-                <span className="text-sm">Secure Paddle Payments</span>
+                <span className="text-sm">Secure Dodo Payments</span>
               </div>
             </div>
           </motion.div>
@@ -72,9 +71,9 @@ export default function PricingPage() {
                   <span>Watermarked shares</span>
                 </li>
               </ul>
-              <AuthAwareCTA className="btn-secondary w-full">
+              <Link href="/template" className="btn-secondary w-full inline-block text-center">
                 Try Free Now
-              </AuthAwareCTA>
+              </Link>
             </motion.div>
 
             <motion.div
@@ -231,14 +230,14 @@ export default function PricingPage() {
             <div className="flex items-center gap-3 bg-gray-900/50 px-8 py-4 rounded-lg border border-gray-800">
               <div className="text-3xl">🎵</div>
               <div>
-                <div className="text-white font-bold">Powered by Suno</div>
+                <div className="text-white font-bold">Powered by ElevenLabs Music</div>
                 <div className="text-gray-400 text-sm">AI Music Generation</div>
               </div>
             </div>
             <div className="flex items-center gap-3 bg-gray-900/50 px-8 py-4 rounded-lg border border-gray-800">
               <FaLock className="text-exroast-gold text-2xl" />
               <div>
-                <div className="text-white font-bold">Secure Paddle</div>
+                <div className="text-white font-bold">Secure Dodo Payments</div>
                 <div className="text-gray-400 text-sm">Safe Payments</div>
               </div>
             </div>
