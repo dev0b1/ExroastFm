@@ -328,11 +328,15 @@ export async function POST(req: NextRequest) {
       console.warn('[assign-premium] fallback to constructed filename', { premiumSongId, filename, fullUrl: finalFullUrl });
     }
     
-    console.info('[assign-premium] constructed path', { 
+    console.info('[assign-premium] final URL decision', { 
       premiumSongId: bestMatch.id, 
       dbMp4: bestMatch.mp4,
       finalFullUrl,
-      isMp4: finalFullUrl?.endsWith('.mp4')
+      isMp4: finalFullUrl?.endsWith('.mp4'),
+      isSupabase: finalFullUrl?.includes('supabase'),
+      isHttp: finalFullUrl?.startsWith('http'),
+      isHttps: finalFullUrl?.startsWith('https'),
+      urlLength: finalFullUrl?.length
     });
 
     if (!finalFullUrl) {
@@ -385,14 +389,29 @@ export async function POST(req: NextRequest) {
       matchedStyle: songMusicStyleLower
     });
 
-    return NextResponse.json({
+    const response = {
       success: true,
       songId,
       premiumSongId: bestMatch.id,
       fullUrl: finalFullUrl,
       previewUrl: finalPreviewUrl,
       title: bestMatch.title,
+    };
+    
+    console.info('[assign-premium] returning response', {
+      success: response.success,
+      songId: response.songId,
+      premiumSongId: response.premiumSongId,
+      fullUrl: response.fullUrl,
+      previewUrl: response.previewUrl,
+      title: response.title,
+      fullUrlIsSupabase: response.fullUrl?.includes('supabase'),
+      fullUrlIsHttp: response.fullUrl?.startsWith('http'),
+      fullUrlEndsWithMp4: response.fullUrl?.endsWith('.mp4'),
+      fullUrlLength: response.fullUrl?.length
     });
+    
+    return NextResponse.json(response);
   } catch (error: any) {
     console.error('[assign-premium] error', error);
     return NextResponse.json(

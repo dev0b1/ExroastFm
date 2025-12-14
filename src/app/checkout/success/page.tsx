@@ -65,12 +65,48 @@ function SuccessContent() {
         
         if (assignRes.ok) {
           const assignData = await assignRes.json();
-          console.log('[checkout success] assign-premium response', assignData);
+          console.log('[checkout success] assign-premium response', {
+            success: assignData?.success,
+            fullUrl: assignData?.fullUrl,
+            previewUrl: assignData?.previewUrl,
+            premiumSongId: assignData?.premiumSongId,
+            title: assignData?.title,
+            isSupabaseUrl: assignData?.fullUrl?.includes('supabase'),
+            isHttpUrl: assignData?.fullUrl?.startsWith('http'),
+            endsWithMp4: assignData?.fullUrl?.endsWith('.mp4')
+          });
+          
           if (assignData?.success && assignData.fullUrl) {
             // Verify it's an mp4 file
             if (!assignData.fullUrl.endsWith('.mp4')) {
               console.warn('[checkout success] assigned URL is not mp4:', assignData.fullUrl);
             }
+            
+            // Test the URL before setting it
+            try {
+              const testRes = await fetch(assignData.fullUrl, { method: 'HEAD' });
+              console.log('[checkout success] URL test result', {
+                url: assignData.fullUrl,
+                status: testRes.status,
+                contentType: testRes.headers.get('content-type'),
+                contentLength: testRes.headers.get('content-length'),
+                acceptRanges: testRes.headers.get('accept-ranges')
+              });
+              
+              if (!testRes.ok) {
+                console.error('[checkout success] URL test failed', {
+                  url: assignData.fullUrl,
+                  status: testRes.status,
+                  statusText: testRes.statusText
+                });
+              }
+            } catch (testError) {
+              console.error('[checkout success] URL test error', {
+                url: assignData.fullUrl,
+                error: testError
+              });
+            }
+            
             // Fetch updated song with premium URL
             const updatedRes = await fetch(`/api/song/${encodeURIComponent(songId)}`);
             if (updatedRes.ok) {
@@ -78,7 +114,10 @@ function SuccessContent() {
               if (updatedData?.success && updatedData.song) {
                 console.log('[checkout success] updated song data', { 
                   fullUrl: updatedData.song.fullUrl, 
-                  isMp4: updatedData.song.fullUrl?.endsWith('.mp4') 
+                  isMp4: updatedData.song.fullUrl?.endsWith('.mp4'),
+                  isSupabase: updatedData.song.fullUrl?.includes('supabase'),
+                  isHttp: updatedData.song.fullUrl?.startsWith('http'),
+                  previewUrl: updatedData.song.previewUrl
                 });
                 setSongData(updatedData.song);
                 setVerified(true);
@@ -91,7 +130,11 @@ function SuccessContent() {
           }
         } else {
           const errorData = await assignRes.json().catch(() => ({}));
-          console.error('[checkout success] assign-premium request failed', { status: assignRes.status, error: errorData });
+          console.error('[checkout success] assign-premium request failed', { 
+            status: assignRes.status, 
+            statusText: assignRes.statusText,
+            error: errorData 
+          });
         }
         
         // Fallback: if assign-premium failed, try verify endpoint
@@ -210,10 +253,51 @@ function SuccessContent() {
                     playsInline
                     crossOrigin="anonymous"
                     style={{ width: "100%" }}
+                    onLoadStart={() => {
+                      console.log('[video] Load start', { 
+                        url: songData.fullUrl,
+                        isSupabase: songData.fullUrl?.includes('supabase'),
+                        isHttp: songData.fullUrl?.startsWith('http')
+                      });
+                    }}
+                    onLoadedMetadata={() => {
+                      console.log('[video] Metadata loaded', { 
+                        url: songData.fullUrl,
+                        videoWidth: (document.querySelector('video') as HTMLVideoElement)?.videoWidth,
+                        videoHeight: (document.querySelector('video') as HTMLVideoElement)?.videoHeight
+                      });
+                    }}
+                    onLoadedData={() => {
+                      console.log('[video] Data loaded', { url: songData.fullUrl });
+                    }}
+                    onCanPlay={() => {
+                      console.log('[video] Can play', { url: songData.fullUrl });
+                    }}
+                    onError={(e) => {
+                      const video = e.currentTarget;
+                      console.error('[video] Error loading video', {
+                        url: songData.fullUrl,
+                        error: video.error,
+                        errorCode: video.error?.code,
+                        errorMessage: video.error?.message,
+                        networkState: video.networkState,
+                        readyState: video.readyState,
+                        src: video.currentSrc || video.src
+                      });
+                    }}
+                    onStalled={() => {
+                      console.warn('[video] Stalled', { url: songData.fullUrl });
+                    }}
+                    onSuspend={() => {
+                      console.warn('[video] Suspend', { url: songData.fullUrl });
+                    }}
                   >
                     <source src={songData.fullUrl} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
+                  <div className="text-xs text-gray-500 mt-2">
+                    <p>Video URL: <code className="break-all">{songData.fullUrl}</code></p>
+                  </div>
 
                   <div className="flex items-center justify-center gap-3">
                     <button onClick={async () => {
