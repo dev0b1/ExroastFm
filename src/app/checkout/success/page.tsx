@@ -2,6 +2,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from 'react';
 import { FaTwitter, FaFacebook, FaCopy, FaDownload, FaShare, FaTiktok, FaWhatsapp, FaInstagram } from 'react-icons/fa';
+import { Header } from '@/components/Header';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
