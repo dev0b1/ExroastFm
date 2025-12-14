@@ -54,7 +54,6 @@ export default function PreviewContent() {
   const [duration, setDuration] = useState(0);
   const [actualDuration, setActualDuration] = useState(10);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hasShownModalRef = useRef(false);
   const midPlayModalShownRef = useRef(false);
   const [cachedVideoFile, setCachedVideoFile] = useState<File | null>(null);
   const [isPreloading, setIsPreloading] = useState(false);
