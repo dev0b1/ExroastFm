@@ -493,7 +493,9 @@ export default function PreviewContent() {
       <UpsellModal
         isOpen={showUpsellModal}
         onClose={() => setShowUpsellModal(false)}
-          onUpgrade={async (tier) => {
+        story={song?.story}
+        style={song?.style}
+        onUpgrade={async (tier) => {
           console.log('Upgrading to:', tier);
           setShowUpsellModal(false);
           // For one-time purchases we open the single-song checkout directly

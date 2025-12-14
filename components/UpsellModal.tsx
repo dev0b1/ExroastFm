@@ -7,9 +7,42 @@ interface UpsellModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpgrade: (tier: 'one-time' | 'unlimited') => void;
+  story?: string;
+  style?: string;
 }
 
-export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
+// Try to extract a name from the story (looks for common patterns)
+function extractName(story: string): string | null {
+  if (!story) return null;
+  
+  // Common patterns: "my ex John", "ex named Sarah", "boyfriend Mike", "girlfriend Lisa", etc.
+  const patterns = [
+    /\bex\s+(?:named?\s+)?([A-Z][a-z]+)/i,
+    /\b(?:my\s+)?(?:ex-?)?\s*(?:boyfriend|girlfriend|partner|husband|wife)\s+(?:named?\s+)?([A-Z][a-z]+)/i,
+    /\b([A-Z][a-z]+)\s+(?:was|is)\s+my\s+ex/i,
+    /\bdating\s+([A-Z][a-z]+)/i,
+    /\bwith\s+([A-Z][a-z]+)\s+for/i,
+    /\b([A-Z][a-z]+)\s+(?:cheated|ghosted|dumped|left|broke)/i,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = story.match(pattern);
+    if (match && match[1] && match[1].length >= 2 && match[1].length <= 15) {
+      // Make sure it's not a common word
+      const commonWords = ['the', 'and', 'but', 'was', 'were', 'been', 'have', 'has', 'had', 'this', 'that', 'they', 'them', 'their', 'what', 'when', 'where', 'which', 'while', 'after', 'before', 'about', 'because', 'being', 'could', 'would', 'should', 'there', 'these', 'those', 'through', 'during', 'without', 'between', 'around', 'always', 'never', 'really', 'still', 'just', 'only', 'even', 'also', 'back', 'been', 'being', 'both', 'came', 'come', 'could', 'down', 'each', 'find', 'first', 'from', 'gave', 'give', 'going', 'gone', 'good', 'great', 'here', 'into', 'just', 'keep', 'know', 'last', 'like', 'long', 'look', 'made', 'make', 'many', 'more', 'most', 'much', 'must', 'need', 'next', 'once', 'over', 'same', 'said', 'some', 'such', 'take', 'tell', 'than', 'then', 'time', 'told', 'took', 'turn', 'used', 'very', 'want', 'well', 'went', 'will', 'with', 'work', 'year'];
+      if (!commonWords.includes(match[1].toLowerCase())) {
+        return match[1];
+      }
+    }
+  }
+  
+  return null;
+}
+
+export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: UpsellModalProps) {
+  const exName = story ? extractName(story) : null;
+  const styleLabel = style ? style.charAt(0).toUpperCase() + style.slice(1) : 'Savage';
+  
   return (
     <AnimatePresence>
       {isOpen && (
@@ -56,14 +89,28 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
                   💔
                 </motion.div>
                 <h2 className="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
-                  They Broke Your Heart.<br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
-                    Now Break the Internet.
-                  </span>
+                  {exName ? (
+                    <>
+                      {exName} Broke Your Heart.<br/>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                        Time to Break Theirs.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      They Broke Your Heart.<br/>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                        Now Break the Internet.
+                      </span>
+                    </>
+                  )}
                 </h2>
                 <p className="text-gray-300 text-sm leading-relaxed">
-                  That was just a preview. Get your <span className="text-pink-400 font-bold">full savage roast video</span> and show them what they lost. 
-                  Share it everywhere — let them see you winning. 🔥
+                  {exName ? (
+                    <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast of {exName}</span> and show them what they lost. Share it everywhere! 🔥</>
+                  ) : (
+                    <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast video</span> and show them what they lost. Share it everywhere — let them see you winning. 🔥</>
+                  )}
                 </p>
               </div>
 
@@ -79,8 +126,8 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
                 <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3 border border-white/5">
                   <div className="text-2xl">🎵</div>
                   <div>
-                    <span className="text-white font-semibold">Your Story, Your Roast</span>
-                    <p className="text-gray-400 text-xs">Personalized to your breakup — it hits different</p>
+                    <span className="text-white font-semibold">{exName ? `Your ${exName} Roast` : 'Your Story, Your Roast'}</span>
+                    <p className="text-gray-400 text-xs">{exName ? `Matched to your ${exName} story — it hits different` : 'Personalized to your breakup — it hits different'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 bg-white/5 rounded-lg p-3 border border-white/5">
@@ -111,7 +158,7 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
                 className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 text-white font-extrabold py-4 px-6 rounded-xl text-lg shadow-xl shadow-pink-500/30 mb-3 relative overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  <FaBolt /> Get My Revenge Roast — $9.99
+                  <FaBolt /> {exName ? `Roast ${exName} Now` : 'Get My Revenge Roast'} — $9.99
                 </span>
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-500"
