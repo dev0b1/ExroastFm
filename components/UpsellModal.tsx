@@ -52,10 +52,10 @@ export function UpsellModal({ isOpen, onClose, onUpgrade }: UpsellModalProps) {
                   🔥
                 </motion.div>
                 <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
-                  Your Roast is Ready!
+                  That Was Just the Demo!
                 </h2>
                 <p className="text-gray-300 text-sm">
-                  Unlock the full video to download, share, and roast your ex everywhere 💀
+                  Get your <span className="text-pink-400 font-bold">personalized roast video</span> matched to your story. Download it, share it, and let your ex know what they're missing 💀
                 </p>
               </div>
 
