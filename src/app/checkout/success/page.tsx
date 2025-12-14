@@ -1,7 +1,7 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, Suspense } from 'react';
-import { FaTwitter, FaFacebook, FaCopy, FaDownload, FaShare } from 'react-icons/fa';
+import { FaTwitter, FaFacebook, FaCopy, FaDownload, FaShare, FaTiktok, FaWhatsapp } from 'react-icons/fa';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -15,6 +15,9 @@ function SuccessContent() {
   const [bestMatch, setBestMatch] = useState<string | null>(null);
   const [songData, setSongData] = useState<any | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (!songId) return;
@@ -230,7 +233,7 @@ function SuccessContent() {
         </>
       ) : (
         <>
-          <p className="text-gray-600 mb-6">Thanks — we're finalizing your premium song. This page will update when the song is unlocked.</p>
+          <p className="text-gray-600 mb-6">🔥 Your roast song is being prepared! Get ready to serve your ex the ultimate burn. This page will update when your savage roast is ready to unleash! 💀</p>
 
           {checking && (
             <div className="flex flex-col items-center mb-4">
@@ -243,21 +246,39 @@ function SuccessContent() {
 
           {verified === true && (
             <>
-              <p className="text-green-700 font-semibold mb-4">Your premium song is ready!</p>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-pink-600 mb-2">🔥 Your Roast Song is Ready! 🔥</h2>
+                <p className="text-gray-700 text-lg">Time to roast your ex! Play it, share it, and let the world know what they're missing. This is your moment to shine! 💀✨</p>
+              </div>
               {songData?.fullUrl ? (
                 <div className="space-y-4">
-                  <div className="max-w-2xl mx-auto">
+                  <div className="max-w-3xl mx-auto bg-gray-900 rounded-xl p-4 shadow-2xl">
                     <video 
-                      className="w-full rounded-lg shadow-lg bg-black" 
-                      controls 
+                      className="w-full rounded-lg bg-black" 
                       preload="metadata"
                       playsInline
                       crossOrigin="anonymous"
                       style={{ 
-                        maxWidth: "100%",
-                        maxHeight: "70vh",
+                        width: "100%",
+                        height: "auto",
+                        maxHeight: "75vh",
                         aspectRatio: "16/9",
                         objectFit: "contain"
+                      }}
+                      controls={false}
+                      ref={(video) => {
+                        if (video) {
+                          setVideoRef(video);
+                          // Store video ref for custom controls
+                          (window as any).__videoRef = video;
+                        }
+                      }}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      onVolumeChange={() => {
+                        if (videoRef) {
+                          setIsMuted(videoRef.muted);
+                        }
                       }}
                       onLoadStart={() => {
                         console.log('[video] Load start', { 
@@ -301,6 +322,55 @@ function SuccessContent() {
                       <source src={songData.fullUrl} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
+                    
+                    {/* Custom Video Controls */}
+                    <div className="mt-4 flex items-center justify-center gap-4 bg-gray-800 rounded-lg p-3">
+                      <button
+                        onClick={() => {
+                          if (videoRef) {
+                            if (isPlaying) {
+                              videoRef.pause();
+                            } else {
+                              videoRef.play();
+                            }
+                          }
+                        }}
+                        className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      >
+                        {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (videoRef) {
+                            videoRef.currentTime = Math.max(0, videoRef.currentTime - 10);
+                          }
+                        }}
+                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors"
+                      >
+                        ⏪ -10s
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (videoRef) {
+                            videoRef.currentTime = Math.min(videoRef.duration, videoRef.currentTime + 10);
+                          }
+                        }}
+                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors"
+                      >
+                        +10s ⏩
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (videoRef) {
+                            videoRef.muted = !videoRef.muted;
+                            setIsMuted(videoRef.muted);
+                          }
+                        }}
+                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors"
+                      >
+                        {isMuted ? '🔇 Unmute' : '🔊 Mute'}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center justify-center gap-3">
@@ -352,21 +422,21 @@ function SuccessContent() {
                     <button
                       onClick={async () => {
                         try {
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch video: ${response.status}`);
+                          }
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
                           // Use Web Share API if available (supports sharing files)
                           if (navigator.share && navigator.canShare) {
-                            // Fetch the video file
-                            const response = await fetch(songData.fullUrl);
-                            if (!response.ok) {
-                              throw new Error(`Failed to fetch video: ${response.status}`);
-                            }
-                            const blob = await response.blob();
-                            const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
-                            
                             if (navigator.canShare({ files: [file] })) {
                               await navigator.share({
                                 files: [file],
                                 title: 'My ExRoast Premium Song',
-                                text: 'Check out my ExRoast premium song! 🎶'
+                                text: 'Check out my ExRoast premium song! 🔥🎶'
                               });
                               return;
                             }
@@ -375,7 +445,7 @@ function SuccessContent() {
                           if (navigator.share) {
                             await navigator.share({
                               title: 'My ExRoast Premium Song',
-                              text: 'Check out my ExRoast premium song! 🎶',
+                              text: 'Check out my ExRoast premium song! 🔥🎶',
                               url: songData.fullUrl
                             });
                           } else {
@@ -388,10 +458,11 @@ function SuccessContent() {
                         } catch (err: any) {
                           if (err.name !== 'AbortError') {
                             console.error('[share] Share failed', err);
-                            // Fallback: open share dialog with URL
-                            const shareText = `Check out my ExRoast premium song! 🎶 ${songData.fullUrl}`;
-                            await navigator.clipboard.writeText(shareText);
-                            alert('Share text copied to clipboard!');
+                            // Fallback: copy video URL to clipboard
+                            await navigator.clipboard.writeText(songData.fullUrl);
+                            setCopySuccess(true);
+                            setTimeout(() => setCopySuccess(false), 2000);
+                            alert('Video URL copied to clipboard!');
                           }
                         }
                       }}
@@ -400,23 +471,157 @@ function SuccessContent() {
                       <FaShare /> Share Video
                     </button>
 
-                    <a 
-                      className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors" 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast premium song 🎶")}`}
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch video: ${response.status}`);
+                          }
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          // Use Web Share API for WhatsApp
+                          if (navigator.share && navigator.canShare) {
+                            if (navigator.canShare({ files: [file] })) {
+                              await navigator.share({
+                                files: [file],
+                                title: 'My ExRoast Premium Song',
+                                text: 'Check out my ExRoast premium song! 🔥🎶'
+                              });
+                              return;
+                            }
+                          }
+                          // Fallback: WhatsApp web share
+                          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Check out my ExRoast premium song! 🔥🎶 ${songData.fullUrl}`)}`;
+                          window.open(whatsappUrl, '_blank');
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            console.error('[whatsapp] Share failed', err);
+                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Check out my ExRoast premium song! 🔥🎶 ${songData.fullUrl}`)}`;
+                            window.open(whatsappUrl, '_blank');
+                          }
+                        }
+                      }}
+                      className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <FaWhatsapp /> WhatsApp
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch video: ${response.status}`);
+                          }
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          // Use Web Share API for TikTok
+                          if (navigator.share && navigator.canShare) {
+                            if (navigator.canShare({ files: [file] })) {
+                              await navigator.share({
+                                files: [file],
+                                title: 'My ExRoast Premium Song',
+                                text: 'Check out my ExRoast premium song! 🔥🎶'
+                              });
+                              return;
+                            }
+                          }
+                          // Fallback: TikTok upload page
+                          const tiktokUrl = `https://www.tiktok.com/upload?caption=${encodeURIComponent(`Check out my ExRoast premium song! 🔥🎶 ${songData.fullUrl}`)}`;
+                          window.open(tiktokUrl, '_blank');
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            console.error('[tiktok] Share failed', err);
+                            const tiktokUrl = `https://www.tiktok.com/upload?caption=${encodeURIComponent(`Check out my ExRoast premium song! 🔥🎶 ${songData.fullUrl}`)}`;
+                            window.open(tiktokUrl, '_blank');
+                          }
+                        }
+                      }}
+                      className="flex items-center gap-2 bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <FaTiktok /> TikTok
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch video: ${response.status}`);
+                          }
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          // Use Web Share API for Twitter
+                          if (navigator.share && navigator.canShare) {
+                            if (navigator.canShare({ files: [file] })) {
+                              await navigator.share({
+                                files: [file],
+                                title: 'My ExRoast Premium Song',
+                                text: 'Just got my ExRoast premium song! 🔥🎶'
+                              });
+                              return;
+                            }
+                          }
+                          // Fallback: Twitter share with video URL
+                          const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast premium song! 🔥🎶")}`;
+                          window.open(twitterUrl, '_blank');
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            console.error('[twitter] Share failed', err);
+                            const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(songData.fullUrl)}&text=${encodeURIComponent("Just got my ExRoast premium song! 🔥🎶")}`;
+                            window.open(twitterUrl, '_blank');
+                          }
+                        }
+                      }}
+                      className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
                     >
                       <FaTwitter /> Twitter
-                    </a>
+                    </button>
 
-                    <a 
-                      className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors" 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`}
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Fetch the video file
+                          const response = await fetch(songData.fullUrl);
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch video: ${response.status}`);
+                          }
+                          const blob = await response.blob();
+                          const file = new File([blob], `exroast-${songId || 'song'}.mp4`, { type: 'video/mp4' });
+                          
+                          // Use Web Share API for Facebook
+                          if (navigator.share && navigator.canShare) {
+                            if (navigator.canShare({ files: [file] })) {
+                              await navigator.share({
+                                files: [file],
+                                title: 'My ExRoast Premium Song',
+                                text: 'Check out my ExRoast premium song! 🔥🎶'
+                              });
+                              return;
+                            }
+                          }
+                          // Fallback: Facebook share with video URL
+                          const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`;
+                          window.open(facebookUrl, '_blank');
+                        } catch (err: any) {
+                          if (err.name !== 'AbortError') {
+                            console.error('[facebook] Share failed', err);
+                            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(songData.fullUrl)}`;
+                            window.open(facebookUrl, '_blank');
+                          }
+                        }
+                      }}
+                      className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg transition-colors"
                     >
                       <FaFacebook /> Facebook
-                    </a>
+                    </button>
                   </div>
                 </div>
               ) : (
