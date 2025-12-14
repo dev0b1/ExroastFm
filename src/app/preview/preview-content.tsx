@@ -11,7 +11,7 @@ import { SubscriptionCTA } from "@/components/SubscriptionCTA";
 import { UpsellModal } from "@/components/UpsellModal";
 import { SocialShareButtons } from "@/components/SocialShareButtons";
 import { LoadingAnimation } from "@/components/LoadingAnimation";
-import { LyricsOverlay } from "@/components/LyricsOverlay";
+// LyricsOverlay removed - now using video instead of audio
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { getSongObjectURL } from '../../lib/offline-store';
 import Link from "next/link";
@@ -53,7 +53,7 @@ export default function PreviewContent() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [actualDuration, setActualDuration] = useState(10);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const hasShownModalRef = useRef(false);
 
   useEffect(() => {
@@ -144,22 +144,22 @@ export default function PreviewContent() {
   }
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    if (!videoRef.current) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      videoRef.current.pause();
       setIsPlaying(false);
     } else {
       // reset the shown-modal flag so replays can show the upsell again
       hasShownModalRef.current = false;
-      audioRef.current.play();
+      videoRef.current.play();
       setIsPlaying(true);
     }
   };
 
   const handleTimeUpdate = () => {
-    if (!audioRef.current) return;
-    const current = audioRef.current.currentTime;
+    if (!videoRef.current) return;
+    const current = videoRef.current.currentTime;
     setCurrentTime(current);
   };
 
@@ -181,8 +181,8 @@ export default function PreviewContent() {
   // purchases will be handled server-side and the client can refetch song state as needed.
 
   const handleLoadedMetadata = () => {
-    if (!audioRef.current) return;
-    const loadedDuration = audioRef.current.duration;
+    if (!videoRef.current) return;
+    const loadedDuration = videoRef.current.duration;
     setActualDuration(loadedDuration);
     setDuration(loadedDuration);
   };
@@ -338,110 +338,94 @@ export default function PreviewContent() {
                     <h3 className="font-semibold text-lg text-gradient">{song.title}</h3>
                     {song.isTemplate ? (
                       <span className="text-xs bg-exroast-pink text-white px-3 py-1 rounded-full font-medium">
-                        Demo (full)
+                        Demo
                       </span>
                     ) : null}
                   </div>
 
-                  <div>
-                    <LyricsOverlay 
-                      lyrics={song.lyrics}
-                      duration={song.isPurchased ? actualDuration : 10}
-                      isPlaying={isPlaying}
-                      currentTime={currentTime}
+                  {/* Video Player */}
+                  <div className="relative rounded-lg overflow-hidden bg-black">
+                    <video
+                      ref={videoRef}
+                      src={song.fullUrl || song.previewUrl}
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onEnded={handleAudioEnded}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      className="w-full rounded-lg"
+                      style={{ maxHeight: '400px' }}
+                      playsInline
+                      preload="metadata"
                     />
-                  </div>
-
-                  <div className="flex flex-col gap-3 mt-6 w-full">
-                    <div className="flex items-center gap-4 w-full">
+                    
+                    {/* Play button overlay */}
+                    {!isPlaying && (
                       <button
                         onClick={togglePlay}
-                        className="bg-exroast-pink text-white px-6 py-3 rounded-full font-bold flex-shrink-0"
+                        className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-colors"
                       >
-                        {isPlaying ? <><FaPause className="inline mr-2"/> Pause</> : <><FaPlay className="inline mr-2"/> Play</>}
-                      </button>
-
-                      {/* Progress + timer: use full duration (no 20s cap) */}
-                      <div className="flex-1 min-w-0">
-                        <div className="w-full">
-                          <div className="h-2 bg-white/10 rounded-full overflow-hidden w-full">
-                            <div
-                              className="h-2 bg-exroast-pink"
-                              style={{ width: `${Math.max(0, Math.min(100, (() => {
-                                const maxDuration = (duration || actualDuration || 0);
-                                const denom = maxDuration || 1;
-                                return (currentTime / denom) * 100;
-                              })()))}%`, transition: 'width 180ms linear' }}
-                            />
-                          </div>
-                          <div className="flex justify-between text-xs text-gray-300 mt-1">
-                            {(() => {
-                              const maxDuration = (duration || actualDuration || 0);
-                              return (
-                                <>
-                                  <span>{formatTime(Math.min(currentTime, maxDuration || 0))}</span>
-                                  <span>{formatTime(Math.ceil(maxDuration || 0))}</span>
-                                </>
-                              );
-                            })()}
-                          </div>
+                        <div className="w-16 h-16 bg-exroast-pink hover:bg-pink-600 rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
+                          <FaPlay className="text-white text-2xl ml-1" />
                         </div>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={togglePlay}
+                      className="bg-exroast-pink text-white px-5 py-2 rounded-full font-bold flex-shrink-0 text-sm"
+                    >
+                      {isPlaying ? <><FaPause className="inline mr-1"/> Pause</> : <><FaPlay className="inline mr-1"/> Play</>}
+                    </button>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden w-full">
+                        <div
+                          className="h-2 bg-exroast-pink"
+                          style={{ width: `${Math.max(0, Math.min(100, (currentTime / (duration || 1)) * 100))}%`, transition: 'width 180ms linear' }}
+                        />
                       </div>
-                    </div>
-
-                    {/* Downloads & upgrade: placed below to give horizontal space for controls */}
-                    <div className="flex items-center gap-3">
-                        <a href={song.previewUrl} download className="bg-white/10 text-white px-4 py-2 rounded-full font-bold inline-flex items-center gap-2 border border-white/10" style={{ transform: 'scale(0.87)' }}>
-                          <FaDownload /> {song.isTemplate ? 'Download Full Demo' : 'Download Demo'}
-                        </a>
-
-                      {song?.isPurchased ? (
-                        <a href={song.fullUrl} download className="bg-white text-black px-4 py-2 rounded-full font-bold inline-flex items-center gap-2" style={{ transform: 'scale(0.87)' }}>
-                          <FaDownload /> Download Full MP3
-                        </a>
-                      ) : (
-                        <button
-                          onClick={() => setShowUpsellModal(true)}
-                          className="bg-white/10 text-white px-4 py-2 rounded-full font-bold inline-flex items-center gap-2 border border-white/10"
-                          title="Upgrade to download the full MP3"
-                          style={{ transform: 'scale(0.87)' }}
-                        >
-                          <FaLock className="mr-2" /> Upgrade for Full MP3
-                        </button>
-                      )}
+                      <div className="flex justify-between text-xs text-gray-300 mt-1">
+                        <span>{formatTime(currentTime)}</span>
+                        <span>{formatTime(duration || 0)}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Use a clipped audio fragment for public demos to ensure playback stops at 20s.
-                      Appending a media fragment (#t=0,20) encourages browsers to limit playback to that range.
-                      Keep timeupdate handler as a safety net for browsers that don't honor fragments. */}
-                  <audio
-                    ref={audioRef}
-                    // Play full demo for templates and public demos — no clipping
-                    src={(song.fullUrl || song.previewUrl)}
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onEnded={handleAudioEnded}
-                    className="hidden"
-                  />
+                  {/* Upgrade CTA - prominent for non-purchased */}
+                  {!song?.isPurchased && (
+                    <button
+                      onClick={() => setShowUpsellModal(true)}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2"
+                    >
+                      <FaLock /> Get Full Video — $9.99
+                    </button>
+                  )}
+
+                  {/* Download buttons */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    {song?.isPurchased ? (
+                      <a href={song.fullUrl} download className="bg-white text-black px-4 py-2 rounded-full font-bold inline-flex items-center gap-2">
+                        <FaDownload /> Download Full Video
+                      </a>
+                    ) : (
+                      <a href={song.previewUrl} download className="bg-white/10 text-white px-4 py-2 rounded-full font-bold inline-flex items-center gap-2 border border-white/10">
+                        <FaDownload /> Download Demo
+                      </a>
+                    )}
+                  </div>
 
                   <div className="border-t border-white/10 pt-6">
-                    <h4 className="text-sm font-semibold text-white mb-3">Share Your Song</h4>
-                    {/* Social share: always allow sharing the preview/demo link. Full-song sharing is available after purchase. */}
+                    <h4 className="text-sm font-semibold text-white mb-3">Share Your Roast</h4>
                     <div className="flex flex-wrap gap-3">
                       <SocialShareButtons
                         url={shareUrl}
                         title={song.title}
-                        message={song.isPurchased ? `I just paid $9.99 to have my ex roasted by AI and it’s the best money I’ve ever spent 🔥🎵` : `Check out this demo!`}
+                        message={song.isPurchased ? `I just paid $9.99 to have my ex roasted by AI and it's the best money I've ever spent 🔥🎵` : `Check out my ex roast demo! 🔥`}
                       />
-                      {!song.isPurchased && (
-                        <button
-                          onClick={() => setShowUpsellModal(true)}
-                          className="bg-white/10 text-white px-6 py-3 rounded-full font-bold inline-flex items-center gap-2 border border-white/10"
-                        >
-                          <FaLock className="mr-2" /> Upgrade for Full MP3
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>
