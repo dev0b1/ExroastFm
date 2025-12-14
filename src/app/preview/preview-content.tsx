@@ -15,7 +15,7 @@ import { LoadingAnimation } from "@/components/LoadingAnimation";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { getSongObjectURL } from '../../lib/offline-store';
 import Link from "next/link";
-import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaInstagram, FaWhatsapp, FaTwitter, FaLink } from "react-icons/fa";
+import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaInstagram, FaWhatsapp, FaTwitter, FaLink, FaShare } from "react-icons/fa";
 // daily petty opt-in removed from preview flow
 // import { getDailySavageQuote } from "@/lib/suno-nudge";
 import { openPrimaryCheckout, openDodoOverlayCheckout } from '@/lib/checkout';
@@ -56,6 +56,8 @@ export default function PreviewContent() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasShownModalRef = useRef(false);
   const midPlayModalShownRef = useRef(false);
+  const [cachedVideoFile, setCachedVideoFile] = useState<File | null>(null);
+  const [isPreloading, setIsPreloading] = useState(false);
 
   useEffect(() => {
     if (songId) {
@@ -92,6 +94,33 @@ export default function PreviewContent() {
     tryLoadLocal();
     return () => { mounted = false; };
   }, [song]);
+
+  // Auto-preload video file for instant sharing
+  useEffect(() => {
+    if (!song?.previewUrl || cachedVideoFile || isPreloading) return;
+    
+    const preloadVideo = async () => {
+      try {
+        setIsPreloading(true);
+        console.log('[preview] Preloading video for sharing', { url: song.previewUrl });
+        
+        const response = await fetch(song.previewUrl);
+        if (!response.ok) throw new Error('Failed to fetch video');
+        
+        const blob = await response.blob();
+        const file = new File([blob], `exroast-demo-${song.id || 'song'}.mp4`, { type: 'video/mp4' });
+        setCachedVideoFile(file);
+        
+        console.log('[preview] Video preloaded for sharing', { size: blob.size });
+      } catch (err) {
+        console.error('[preview] Failed to preload video', err);
+      } finally {
+        setIsPreloading(false);
+      }
+    };
+    
+    preloadVideo();
+  }, [song?.previewUrl, song?.id, cachedVideoFile, isPreloading]);
 
   // Helper function to normalize template video URLs
   const normalizeTemplateUrl = (url: string | null | undefined): string => {
@@ -390,21 +419,15 @@ export default function PreviewContent() {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-lg text-gradient">{song.title}</h3>
-                    {song.isTemplate ? (
-                      <span className="text-xs bg-exroast-pink text-white px-3 py-1 rounded-full font-medium">
-                        Demo
+                    {song.isTemplate && (
+                      <span className="text-xs bg-exroast-pink text-white px-3 py-1 rounded-full font-bold">
+                        DEMO
                       </span>
-                    ) : null}
+                    )}
                   </div>
 
                   {/* Video Player */}
                   <div className="relative rounded-lg overflow-hidden bg-black">
-                    {/* Subtle DEMO badge - smaller and less intrusive */}
-                    {song.isTemplate && (
-                      <div className="absolute top-2 right-2 z-20 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium">
-                        Demo
-                      </div>
-                    )}
                     
                     <video
                       ref={videoRef}
@@ -477,7 +500,7 @@ export default function PreviewContent() {
                       onClick={() => setShowUpsellModal(true)}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-transform"
                     >
-                      <FaLock /> Get Your Personalized Roast — $9.99
+                      <FaLock /> Get Your Personalized Roast
                     </button>
                   )}
 
@@ -497,6 +520,61 @@ export default function PreviewContent() {
                   <div className="border-t border-white/10 pt-6">
                     <h4 className="text-sm font-semibold text-white mb-3">Share Your Roast</h4>
                     <div className="flex flex-wrap gap-3">
+                      {/* Share Video File Button */}
+                      <button
+                        disabled={isPreloading}
+                        onClick={async () => {
+                          try {
+                            const videoUrl = song.previewUrl || song.fullUrl;
+                            if (!videoUrl) return;
+                            
+                            const file = cachedVideoFile || await (async () => {
+                              const response = await fetch(videoUrl);
+                              const blob = await response.blob();
+                              return new File([blob], `exroast-demo-${song.id || 'song'}.mp4`, { type: 'video/mp4' });
+                            })();
+                            
+                            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                              await navigator.share({
+                                files: [file],
+                                title: 'My ExRoast Demo 🔥',
+                                text: 'Check out my ex roast demo! 🔥'
+                              });
+                            } else if (navigator.share) {
+                              await navigator.share({
+                                title: 'My ExRoast Demo 🔥',
+                                text: 'Check out my ex roast demo! 🔥🎶',
+                                url: videoUrl
+                              });
+                            } else {
+                              // Fallback: download
+                              const url = URL.createObjectURL(file);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = file.name;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            }
+                          } catch (err: any) {
+                            if (err.name !== 'AbortError') {
+                              console.error('Share failed:', err);
+                              // Fallback: download
+                              const videoUrl = song.previewUrl || song.fullUrl;
+                              if (videoUrl) {
+                                const a = document.createElement('a');
+                                a.href = videoUrl;
+                                a.download = `exroast-demo-${song.id || 'song'}.mp4`;
+                                a.click();
+                              }
+                            }
+                          }
+                        }}
+                        className="bg-exroast-pink hover:bg-pink-600 text-white px-4 py-2 rounded-full font-bold inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                      >
+                        <FaShare /> {isPreloading ? 'Preparing...' : 'Share Video'}
+                      </button>
+                      
+                      {/* Other share options */}
                       <SocialShareButtons
                         url={shareUrl}
                         title={song.title}

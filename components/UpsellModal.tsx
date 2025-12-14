@@ -28,8 +28,8 @@ function extractName(story: string): string | null {
   for (const pattern of patterns) {
     const match = story.match(pattern);
     if (match && match[1] && match[1].length >= 2 && match[1].length <= 15) {
-      // Make sure it's not a common word
-      const commonWords = ['the', 'and', 'but', 'was', 'were', 'been', 'have', 'has', 'had', 'this', 'that', 'they', 'them', 'their', 'what', 'when', 'where', 'which', 'while', 'after', 'before', 'about', 'because', 'being', 'could', 'would', 'should', 'there', 'these', 'those', 'through', 'during', 'without', 'between', 'around', 'always', 'never', 'really', 'still', 'just', 'only', 'even', 'also', 'back', 'been', 'being', 'both', 'came', 'come', 'could', 'down', 'each', 'find', 'first', 'from', 'gave', 'give', 'going', 'gone', 'good', 'great', 'here', 'into', 'just', 'keep', 'know', 'last', 'like', 'long', 'look', 'made', 'make', 'many', 'more', 'most', 'much', 'must', 'need', 'next', 'once', 'over', 'same', 'said', 'some', 'such', 'take', 'tell', 'than', 'then', 'time', 'told', 'took', 'turn', 'used', 'very', 'want', 'well', 'went', 'will', 'with', 'work', 'year'];
+      // Make sure it's not a common word or pronoun
+      const commonWords = ['the', 'and', 'but', 'was', 'were', 'been', 'have', 'has', 'had', 'this', 'that', 'they', 'them', 'their', 'what', 'when', 'where', 'which', 'while', 'after', 'before', 'about', 'because', 'being', 'could', 'would', 'should', 'there', 'these', 'those', 'through', 'during', 'without', 'between', 'around', 'always', 'never', 'really', 'still', 'just', 'only', 'even', 'also', 'back', 'been', 'being', 'both', 'came', 'come', 'could', 'down', 'each', 'find', 'first', 'from', 'gave', 'give', 'going', 'gone', 'good', 'great', 'here', 'into', 'just', 'keep', 'know', 'last', 'like', 'long', 'look', 'made', 'make', 'many', 'more', 'most', 'much', 'must', 'need', 'next', 'once', 'over', 'same', 'said', 'some', 'such', 'take', 'tell', 'than', 'then', 'time', 'told', 'took', 'turn', 'used', 'very', 'want', 'well', 'went', 'will', 'with', 'work', 'year', 'he', 'she', 'him', 'her', 'his', 'hers', 'it', 'its', 'we', 'us', 'our', 'ours', 'you', 'your', 'yours', 'i', 'me', 'my', 'mine'];
       if (!commonWords.includes(match[1].toLowerCase())) {
         return match[1];
       }
@@ -158,7 +158,7 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
                 className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 text-white font-extrabold py-4 px-6 rounded-xl text-lg shadow-xl shadow-pink-500/30 mb-3 relative overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  <FaBolt /> {exName ? `Roast ${exName} Now` : 'Get My Revenge Roast'} — $9.99
+                  <FaBolt /> {exName ? `Roast ${exName} Now` : 'Get My Revenge Roast'}
                 </span>
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-500"
