@@ -109,9 +109,9 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
                 </h2>
                 <p className="text-gray-300 text-sm leading-relaxed">
                   {exName ? (
-                    <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast of {exName}</span> and show them what they lost. Share it everywhere! 🔥</>
+                    <>That was just a <span className="text-pink-400 font-bold">general demo</span>. Get your <span className="text-pink-400 font-bold">personalized {styleLabel.toLowerCase()} roast of {exName}</span> tailored to your exact story and show them what they lost. Share it everywhere! 🔥</>
                   ) : (
-                    <>That was just a preview. Get your <span className="text-pink-400 font-bold">full {styleLabel.toLowerCase()} roast video</span> personalized to your story. Don't hold back — include their name or nickname for maximum impact! Share it everywhere — let them see you winning. 🔥</>
+                    <>That was just a <span className="text-pink-400 font-bold">general demo</span>. Get your <span className="text-pink-400 font-bold">personalized {styleLabel.toLowerCase()} roast video</span> tailored to your exact story. Don't hold back — include their name or nickname for maximum impact! Share it everywhere — let them see you winning. 🔥</>
                   )}
                 </p>
               </div>
