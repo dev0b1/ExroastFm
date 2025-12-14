@@ -632,6 +632,7 @@ function SuccessContent() {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
