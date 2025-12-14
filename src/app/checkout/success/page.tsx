@@ -256,8 +256,10 @@ function SuccessContent() {
   }, [songData?.fullUrl, songId, cachedVideoFile]);
 
   return (
-    <div className="max-w-4xl mx-auto p-8 text-center">
-      <h1 className="text-3xl font-bold text-green-600 mb-4">Payment Successful! 🎉</h1>
+    <div className="min-h-screen bg-black">
+      <Header />
+      <div className="max-w-4xl mx-auto p-8 text-center pt-24">
+        <h1 className="text-3xl font-bold text-green-600 mb-4">Payment Successful! 🎉</h1>
 
       {!songId ? (
         <>
@@ -280,7 +282,7 @@ function SuccessContent() {
 
           {verified === true && (
             <>
-              <p className="text-white text-lg mb-6 font-medium">Time to roast your ex! Play it, share it, and let the world know what they're missing. 🔥💀</p>
+              <p className="text-white text-lg mb-6 font-medium">Your roast is ready! 🔥</p>
               {songData?.fullUrl ? (
                 <div className="space-y-6">
                   {/* Video container with centered play button */}

@@ -223,8 +223,7 @@ export default function PreviewContent() {
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      // reset the shown-modal flags so replays can show the upsell again
-      hasShownModalRef.current = false;
+      // reset the mid-play modal flag so replays can show the upsell again
       midPlayModalShownRef.current = false;
       videoRef.current.play();
       setIsPlaying(true);
@@ -236,10 +235,10 @@ export default function PreviewContent() {
     const current = videoRef.current.currentTime;
     setCurrentTime(current);
     
-    // Show upsell modal mid-play for demo songs (after 10-15 seconds)
-    if (!song?.isPurchased && song?.isTemplate && !hasShownModalRef.current && !midPlayModalShownRef.current) {
-      // Show modal after 12 seconds of playback
-      if (current >= 12 && current < 13) {
+    // Show upsell modal mid-play for demo songs (after 20 seconds) - every time
+    if (!song?.isPurchased && song?.isTemplate && !midPlayModalShownRef.current) {
+      // Show modal after 20 seconds of playback
+      if (current >= 20 && current < 21) {
         midPlayModalShownRef.current = true;
         setShowUpsellModal(true);
       }
@@ -249,12 +248,10 @@ export default function PreviewContent() {
   const handleAudioEnded = () => {
     setIsPlaying(false);
     
-    // Show the upsell modal after preview ends for any unpurchased song.
-    if (!song.isPurchased && !hasShownModalRef.current && typeof window !== 'undefined') {
+    // Show the upsell modal after preview ends for any unpurchased song - every time
+    if (!song.isPurchased) {
       setTimeout(() => {
         setShowUpsellModal(true);
-        try { localStorage.setItem('hasGeneratedFirstSong', 'true'); } catch (e) {}
-        hasShownModalRef.current = true;
       }, 500);
       return;
     }
