@@ -5,6 +5,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import GuestCheckoutModal from "@/components/GuestCheckoutModal";
 import DodoConfigBanner from "@/components/DodoConfigBanner";
 import NavWrapper from "@/components/NavWrapper";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   title: "🔥 ExRoast.buzz - Turn Your Breakup Into a Savage Roast Song",
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased bg-black min-h-screen font-sans">
+        <GoogleAnalytics />
         {/* Dodo SDK is bundled via npm `dodopayments-checkout` - no CDN loader required */}
         <ScrollToTop />
         <GuestCheckoutModal />

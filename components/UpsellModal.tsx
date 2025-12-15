@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaHeart, FaFire, FaBolt } from 'react-icons/fa';
+import { trackUpgradeButtonClick, trackUpgradeModalView } from '@/lib/analytics';
 
 interface UpsellModalProps {
   isOpen: boolean;
@@ -42,6 +44,13 @@ function extractName(story: string): string | null {
 export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: UpsellModalProps) {
   const exName = story ? extractName(story) : null;
   const styleLabel = style ? style.charAt(0).toUpperCase() + style.slice(1) : 'Savage';
+  
+  // Track modal view when it opens
+  useEffect(() => {
+    if (isOpen) {
+      trackUpgradeModalView();
+    }
+  }, [isOpen]);
   
   return (
     <AnimatePresence>
@@ -156,7 +165,10 @@ export function UpsellModal({ isOpen, onClose, onUpgrade, story, style }: Upsell
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => onUpgrade('one-time')}
+                onClick={() => {
+                  trackUpgradeButtonClick('upsell_modal');
+                  onUpgrade('one-time');
+                }}
                 className="w-full bg-gradient-to-r from-pink-500 via-pink-600 to-purple-600 text-white font-extrabold py-4 px-6 rounded-xl text-lg shadow-xl shadow-pink-500/30 mb-3 relative overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">

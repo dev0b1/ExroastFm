@@ -4,12 +4,20 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { trackPageView } from "@/lib/analytics";
 
 export default function NavWrapper({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [mounted, setMounted] = useState(false);
   const supabase = createClientComponentClient();
   const pathname = usePathname();
+
+  // Track page views for Google Analytics
+  useEffect(() => {
+    if (pathname) {
+      trackPageView(pathname);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     let mountedFlag = true;

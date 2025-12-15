@@ -20,6 +20,7 @@ import { FaLock, FaDownload, FaPlay, FaPause, FaFire, FaDumbbell, FaTiktok, FaIn
 // import { getDailySavageQuote } from "@/lib/suno-nudge";
 import { openPrimaryCheckout, openDodoOverlayCheckout } from '@/lib/checkout';
 import { SINGLE_AMOUNT } from '@/lib/pricing';
+import { trackUpgradeButtonClick } from '@/lib/analytics';
 
 interface Song {
   id: string;
@@ -470,7 +471,10 @@ export default function PreviewContent() {
                   {/* Upgrade CTA - prominent for non-purchased */}
                   {!song?.isPurchased && (
                     <button
-                      onClick={() => setShowUpsellModal(true)}
+                      onClick={() => {
+                        trackUpgradeButtonClick('preview_page');
+                        setShowUpsellModal(true);
+                      }}
                       className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2 hover:scale-105 transition-transform"
                     >
                       <FaLock /> Get Your Personalized Roast

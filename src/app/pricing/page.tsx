@@ -7,6 +7,7 @@ import { FaCheck, FaStar, FaShieldAlt, FaLock } from "react-icons/fa";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { SINGLE_AMOUNT } from '@/lib/pricing';
 import { openPrimaryCheckout } from '@/lib/checkout';
+import { trackUpgradeButtonClick } from '@/lib/analytics';
 
 export default function PricingPage() {
   return (
@@ -113,6 +114,7 @@ export default function PricingPage() {
               <button
                 className="btn-primary w-full"
                 onClick={() => {
+                  trackUpgradeButtonClick('pricing_page');
                   if (typeof window !== 'undefined') {
                     openPrimaryCheckout();
                   }
