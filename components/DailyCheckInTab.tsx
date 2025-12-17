@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { openTierCheckout } from '@/lib/checkout';
 import { motion } from "framer-motion";
-import { FaSpinner, FaMusic, FaFire } from "react-icons/fa";
+import { FaSpinner, FaMusic, FaFire, FaQuoteLeft } from "react-icons/fa";
 import { ConfettiPop } from "@/components/ConfettiPop";
 import { DailyQuoteOptInModal } from "@/components/DailyQuoteOptInModal";
 import { UpsellModal } from "@/components/UpsellModal";
@@ -31,12 +31,7 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
   const [expanded, setExpanded] = useState<boolean>(false);
   const [showOptInModal, setShowOptInModal] = useState(false);
   const [isPro, setIsPro] = useState(false);
-  const [demoAudioSrc, setDemoAudioSrc] = useState<string | null>(null);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // No polling necessary: daily check-ins use demo templates that are saved
-  // immediately on the server and returned as `motivationAudioUrl`.
 
   useEffect(() => {
     if (hasCheckedInToday) {
@@ -71,10 +66,6 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
         if (data.checkIn?.motivationText) {
           setTodayMotivation(data.checkIn.motivationText);
         }
-        // if today has an audio nudge saved, surface it in the UI
-        if (data.checkIn?.motivationAudioUrl) {
-          setDemoAudioSrc(data.checkIn.motivationAudioUrl);
-        }
       }
     } catch (error) {
       console.error("Error fetching today's motivation:", error);
@@ -93,29 +84,13 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
         body: JSON.stringify({
           userId,
           mood: selectedMood,
-          message: message.trim(),
-          preferAudio: true
+          message: message.trim()
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         setMotivation(data.motivation);
-        // prefer server-generated audio when available, otherwise fall back to local demo file
-        const serverAudio: string | null = data.motivationAudioUrl || null;
-        if (serverAudio) {
-          setDemoAudioSrc(serverAudio);
-        } else {
-          // pick demo nudge based on selected mood; file names live in public/demo-nudges/
-          // filenames: hurting.mp3, confidence.mp3, angry.mp3, feeling-unstoppable.mp3
-          const moodToFile = (m: string) => {
-            if (!m) return 'hurting';
-            if (m === 'unstoppable') return 'feeling-unstoppable';
-            return m; // 'hurting', 'confidence', 'angry'
-          };
-          const fileName = moodToFile(selectedMood || data.mood || 'hurting');
-          setDemoAudioSrc(`/demo-nudges/${fileName}.mp3`);
-        }
         setShowConfetti(true);
         if (data.streak !== undefined) {
           onStreakUpdate(data.streak);
@@ -151,28 +126,28 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
     setShowOptInModal(false);
   };
 
-  // (No polling required — server returns demo template audio immediately.)
+  // Text-only motivations are returned immediately based on user input
 
   // Opt-in banner component
   const OptInBanner = () => (
     <div className="p-4 md:p-6 border-b border-white/10">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-exroast-pink to-exroast-gold flex items-center justify-center">
-            <FaFire className="text-white text-lg" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-exroast-pink to-exroast-gold flex items-center justify-center">
+                <FaFire className="text-white text-lg" />
+              </div>
+              <div>
+                <div className="text-sm md:text-base text-white font-bold">Daily Motivation & Glow-Ups 🔥</div>
+                <div className="text-xs md:text-sm text-gray-400">Personalized text motivations based on your daily check-ins. Share your story and get the perfect message.</div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowOptInModal(true)} 
+              className="text-xs md:text-sm bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
+            >
+              Manage
+            </button>
           </div>
-          <div>
-            <div className="text-sm md:text-base text-white font-bold">Daily Petty Power-Ups 🔥</div>
-            <div className="text-xs md:text-sm text-gray-400">Short text quotes delivered daily. Audio nudges available (Pro or limited free).</div>
-          </div>
-        </div>
-        <button 
-          onClick={() => setShowOptInModal(true)} 
-          className="text-xs md:text-sm bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
-        >
-          Manage
-        </button>
-      </div>
     </div>
   );
 
@@ -208,16 +183,13 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
                 className="space-y-4"
               >
                 {todayMotivation ? (
-                  <div className="bg-white/5 border-2 border-exroast-gold rounded-lg p-4 md:p-6 space-y-4">
-                    <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed">
-                      {todayMotivation}
-                    </p>
-                    {demoAudioSrc && (
-                      <div>
-                        <audio controls src={demoAudioSrc} className="w-full mt-2" />
-                        <div className="text-xs text-gray-300 mt-2">Your saved audio nudge — full playback available.</div>
-                      </div>
-                    )}
+                  <div className="bg-gradient-to-br from-white/5 to-white/0 border-2 border-exroast-gold rounded-lg p-6 md:p-8 space-y-4">
+                    <div className="flex items-start gap-4">
+                      <FaQuoteLeft className="text-exroast-gold text-2xl md:text-3xl flex-shrink-0 mt-1" />
+                      <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed font-medium">
+                        {todayMotivation}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-gray-400 text-center py-4">No saved motivation yet.</p>
@@ -256,38 +228,30 @@ export function DailyCheckInTab({ userId, onStreakUpdate, hasCheckedInToday }: D
           </motion.h2>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white/5 border-2 border-exroast-gold rounded-lg p-6 md:p-8"
+            className="bg-gradient-to-br from-white/10 via-white/5 to-transparent border-2 border-exroast-gold rounded-lg p-6 md:p-8 lg:p-10 shadow-xl"
           >
-            <p className="text-lg sm:text-xl md:text-2xl text-white leading-relaxed font-medium">
-              {motivation}
-            </p>
+            <div className="flex items-start gap-4 md:gap-6">
+              <FaQuoteLeft className="text-exroast-gold text-3xl md:text-4xl lg:text-5xl flex-shrink-0 mt-1" />
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-white leading-relaxed font-medium">
+                {motivation}
+              </p>
+            </div>
           </motion.div>
 
-          {/* Demo nudge + petty powerups */}
-          {demoAudioSrc && (
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <div className="flex-1 w-full">
-                <div className="bg-black/50 border border-white/10 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                        <audio
-                      ref={(el) => { audioRef.current = el || null; }}
-                      controls
-                      src={demoAudioSrc}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="text-xs text-gray-300 mt-2">Play to listen — personalized audio nudges available.</div>
-                </div>
-              </div>
-
-              <div className="w-full md:w-72">
-                <OptInBanner />
-              </div>
-            </div>
-          )}
+          {/* Additional motivation context */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6"
+          >
+            <p className="text-sm md:text-base text-gray-300 text-center">
+              💪 This motivation was personalized just for you based on what you shared today. Keep that energy going!
+            </p>
+          </motion.div>
 
           <div className="space-y-3 md:space-y-4">
             <motion.button

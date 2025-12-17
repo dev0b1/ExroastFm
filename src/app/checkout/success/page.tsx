@@ -23,16 +23,50 @@ function SuccessContent() {
   const [cachedVideoFile, setCachedVideoFile] = useState<File | null>(null);
   const [isPreloading, setIsPreloading] = useState(false);
 
+  const [paymentPending, setPaymentPending] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!songId) return;
     let cancelled = false;
 
-    // First, assign a premium song from the database based on the user's story/style
-    const assignPremiumSong = async () => {
+    // First verify payment, then assign a premium song
+    const verifyAndAssignPremiumSong = async () => {
       try {
         setChecking(true);
+        setPaymentPending(false);
+        setPaymentError(null);
         
-        // Fetch the song to get story and style for matching
+        // Step 1: Verify payment status first
+        console.log('[checkout success] Verifying payment for songId:', songId);
+        const verifyRes = await fetch('/api/transactions/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ songId })
+        });
+        
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          console.log('[checkout success] Payment verification result:', verifyData);
+          
+          // If payment is not verified, show pending state
+          if (!verifyData.verified) {
+            console.warn('[checkout success] Payment not verified yet');
+            setPaymentPending(true);
+            setVerified(false);
+            setChecking(false);
+            // Don't proceed to assign premium - wait for webhook
+            return;
+          }
+        } else {
+          console.warn('[checkout success] Payment verification request failed');
+          setPaymentPending(true);
+          setVerified(false);
+          setChecking(false);
+          return;
+        }
+
+        // Step 2: Fetch the song to get story and style for matching
         const songRes = await fetch(`/api/song/${encodeURIComponent(songId)}`);
         if (!songRes.ok) {
           setChecking(false);
@@ -58,7 +92,8 @@ function SuccessContent() {
         // Extract musicStyle from song if available
         const musicStyle = (song as any).musicStyle || (song as any).music_style || song.genre || '';
         
-        // Call assign-premium to match and assign a premium song from DB
+        // Step 3: Call assign-premium to match and assign a premium song from DB
+        // Payment is already verified at this point
         const assignRes = await fetch('/api/song/assign-premium', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -171,13 +206,45 @@ function SuccessContent() {
         }
       } catch (e) {
         console.debug('[checkout success] assign premium failed', e);
+        setPaymentError('Something went wrong. Please try refreshing the page.');
       } finally {
         if (!cancelled) setChecking(false);
       }
     };
 
-    assignPremiumSong();
-    return () => { cancelled = true; };
+    verifyAndAssignPremiumSong();
+    
+    // If payment is pending, poll every 3 seconds to check for webhook completion
+    let pollInterval: NodeJS.Timeout | null = null;
+    if (!cancelled) {
+      pollInterval = setInterval(async () => {
+        if (cancelled) return;
+        try {
+          const verifyRes = await fetch('/api/transactions/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ songId })
+          });
+          if (verifyRes.ok) {
+            const verifyData = await verifyRes.json();
+            if (verifyData.verified) {
+              // Payment confirmed via webhook! Re-run the assignment flow
+              console.log('[checkout success] Payment confirmed via polling, re-running assignment');
+              setPaymentPending(false);
+              verifyAndAssignPremiumSong();
+              if (pollInterval) clearInterval(pollInterval);
+            }
+          }
+        } catch (e) {
+          console.debug('[checkout success] poll verify failed', e);
+        }
+      }, 3000);
+    }
+    
+    return () => { 
+      cancelled = true; 
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [songId]);
 
   // If song is not yet available, request a best-match template name from the server
@@ -279,7 +346,11 @@ function SuccessContent() {
             </div>
           )}
 
-          <style>{`\n            .loader{width:36px;height:36px;border-radius:9999px;border:4px solid rgba(255,255,255,0.08);border-top-color:#8b5cf6;animation:spin 1s linear infinite}\n            @keyframes spin{to{transform:rotate(360deg)}}\n          `}</style>
+          <style>{`
+            .loader{width:36px;height:36px;border-radius:9999px;border:4px solid rgba(255,255,255,0.08);border-top-color:#8b5cf6;animation:spin 1s linear infinite}
+            .loader-small{width:16px;height:16px;border-radius:9999px;border:2px solid rgba(255,255,0,0.2);border-top-color:#fbbf24;animation:spin 1s linear infinite}
+            @keyframes spin{to{transform:rotate(360deg)}}
+          `}</style>
 
           {verified === true && (
             <>
@@ -622,13 +693,53 @@ function SuccessContent() {
             </>
           )}
 
-          {verified === false && (
+          {paymentPending && (
+            <div className="bg-yellow-900/30 border border-yellow-500/50 rounded-lg p-6 mb-6">
+              <h3 className="text-yellow-400 font-bold text-xl mb-2">⏳ Payment Processing...</h3>
+              <p className="text-yellow-200 mb-4">
+                We're confirming your payment. This usually takes a few seconds. 
+                Please don't close this page - it will update automatically when your payment is confirmed.
+              </p>
+              <div className="flex items-center gap-2 text-yellow-300 text-sm">
+                <div className="loader-small" />
+                <span>Checking payment status...</span>
+              </div>
+            </div>
+          )}
+
+          {paymentError && (
+            <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-6 mb-6">
+              <h3 className="text-red-400 font-bold text-xl mb-2">⚠️ Payment Issue</h3>
+              <p className="text-red-200 mb-4">{paymentError}</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                >
+                  Refresh Page
+                </button>
+                <a href="/pricing" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+                  Try Again
+                </a>
+              </div>
+            </div>
+          )}
+
+          {verified === false && !paymentPending && !paymentError && (
             <>
-              <p className="text-yellow-700 font-semibold mb-4">Your purchase is pending. If the song doesn't appear, check back in a moment or contact support.</p>
+              <p className="text-yellow-700 font-semibold mb-4">Your purchase could not be verified. If you completed payment, please wait a moment and refresh this page.</p>
               {bestMatch && (
                 <p className="text-sm text-gray-400">Best match template: <span className="font-mono text-white">{bestMatch}</span></p>
               )}
-              <a href="/" className="inline-block mt-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Return Home</a>
+              <div className="flex gap-3 justify-center mt-4">
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
+                >
+                  Refresh Page
+                </button>
+                <a href="/" className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg">Return Home</a>
+              </div>
             </>
           )}
         </>

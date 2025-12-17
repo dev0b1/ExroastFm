@@ -1,0 +1,61 @@
+# Comprehensive robots.txt for ExRoast.buzz
+# Optimized for search engine crawling of breakup, ex roast, heartbreak, and anger-related content
+
+User-agent: *
+Allow: /
+Allow: /template
+Allow: /pricing
+Allow: /how-it-works
+Allow: /privacy
+Allow: /terms
+Allow: /refund-policy
+Allow: /contact
+Allow: /preview
+Allow: /share
+
+# Block private/user-specific pages
+Disallow: /api/
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /auth/
+Disallow: /login/
+Disallow: /success/
+Disallow: /song-unlocked/
+Disallow: /history/
+Disallow: /daily/
+
+# Allow important static assets
+Allow: /templates/
+Allow: /premium-songs/
+Allow: /*.mp4$
+Allow: /*.mp3$
+Allow: /*.jpg$
+Allow: /*.png$
+Allow: /*.webp$
+
+# Sitemap location
+Sitemap: https://www.exroast.buzz/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /auth/
+Disallow: /login/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /auth/
+Disallow: /login/
+

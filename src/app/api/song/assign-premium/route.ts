@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
-import { songs, premiumSongs } from '@/src/db/schema';
-import { eq } from 'drizzle-orm';
+import { songs, premiumSongs, transactions } from '@/src/db/schema';
+import { eq, or } from 'drizzle-orm';
 import { loadManifest } from '@/lib/premium-songs';
 
 /**
@@ -26,13 +26,62 @@ function getSupabaseStorageUrl(filename: string): string {
 }
 
 /**
+ * Verifies that a song has a completed payment transaction.
+ * Returns true if payment is verified, false otherwise.
+ */
+async function verifyPaymentForSong(songId: string): Promise<boolean> {
+  try {
+    // First check if song is already marked as purchased (via webhook)
+    const songResult = await db.select().from(songs).where(eq(songs.id, songId)).limit(1);
+    if (songResult.length > 0 && songResult[0].isPurchased) {
+      console.log('[assign-premium] Song already marked as purchased via webhook', { songId });
+      return true;
+    }
+
+    // Check for a completed transaction for this song
+    const txResult = await db.select().from(transactions)
+      .where(eq(transactions.songId, songId))
+      .limit(5);
+    
+    if (txResult.length > 0) {
+      // Check if any transaction is completed/paid
+      const completedTx = txResult.find(tx => 
+        tx.status === 'paid' || 
+        tx.status === 'completed' || 
+        tx.status === 'succeeded' || 
+        tx.status === 'success' ||
+        tx.status === 'transaction.completed' ||
+        tx.status === 'transaction.paid'
+      );
+      
+      if (completedTx) {
+        console.log('[assign-premium] Found completed transaction', { 
+          songId, 
+          txId: completedTx.id, 
+          status: completedTx.status 
+        });
+        return true;
+      }
+    }
+
+    console.warn('[assign-premium] No completed payment found for song', { songId });
+    return false;
+  } catch (error) {
+    console.error('[assign-premium] Error verifying payment', { songId, error });
+    return false;
+  }
+}
+
+/**
  * Assigns a premium song to a purchased song record.
  * Fetches premium songs from database and matches based on story, style, and mode.
+ * 
+ * IMPORTANT: This endpoint now verifies payment before assigning premium content.
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { songId, story, style, musicStyle } = body;
+    const { songId, story, style, musicStyle, skipPaymentCheck } = body;
 
     if (!songId) {
       return NextResponse.json({ success: false, error: 'songId required' }, { status: 400 });
@@ -45,6 +94,21 @@ export async function POST(req: NextRequest) {
     }
 
     const song = songResult[0];
+    
+    // CRITICAL: Verify payment before assigning premium content
+    // Skip check only if explicitly requested (for webhook-triggered calls where payment is already verified)
+    if (!skipPaymentCheck) {
+      const paymentVerified = await verifyPaymentForSong(songId);
+      if (!paymentVerified) {
+        console.warn('[assign-premium] Payment not verified, rejecting request', { songId });
+        return NextResponse.json({ 
+          success: false, 
+          error: 'payment_not_verified',
+          message: 'Payment has not been verified for this song. Please complete payment first.'
+        }, { status: 402 }); // 402 Payment Required
+      }
+    }
+
     const songStory = story || song.story || '';
     const songStyle = style || song.style || '';
     const songMusicStyle = musicStyle || (song as any).musicStyle || song.genre || '';

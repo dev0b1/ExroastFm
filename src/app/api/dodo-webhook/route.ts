@@ -125,6 +125,7 @@ async function handleTransactionCompleted(transaction: any) {
       return;
     }
 
+    // Mark song as purchased
     await db.update(songs).set({
       isPurchased: true,
       purchaseTransactionId: transaction.id,
@@ -133,6 +134,36 @@ async function handleTransactionCompleted(transaction: any) {
     }).where(eq(songs.id, songId));
 
     console.log(`[DodoWebhook] Unlocked song ${songId} for transaction ${transaction.id}`);
+
+    // Automatically assign a premium song now that payment is confirmed
+    // This ensures the song is ready when the user views the success page
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'http://localhost:5000';
+      const assignRes = await fetch(`${baseUrl}/api/song/assign-premium`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          songId,
+          story: song.story,
+          style: song.style,
+          musicStyle: (song as any).musicStyle || song.genre || '',
+          skipPaymentCheck: true // Payment already verified by webhook
+        })
+      });
+      
+      if (assignRes.ok) {
+        const assignData = await assignRes.json();
+        console.log(`[DodoWebhook] Assigned premium song for ${songId}:`, {
+          premiumSongId: assignData.premiumSongId,
+          fullUrl: assignData.fullUrl
+        });
+      } else {
+        console.warn(`[DodoWebhook] Failed to assign premium song for ${songId}:`, await assignRes.text());
+      }
+    } catch (assignError) {
+      console.error(`[DodoWebhook] Error assigning premium song for ${songId}:`, assignError);
+      // Non-fatal: the success page will handle assignment if webhook fails
+    }
   }
 }
 
